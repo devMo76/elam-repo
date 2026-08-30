@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-elam-primary: #0b0b66;
+  --color-elam-secondary: #4942a8;
+  --color-elam-paper: #fbfbfd;
+  --color-elam-ink: #191925;
+  --font-sans: var(--font-ibm-plex-arabic);
+  --font-mono: var(--font-ibm-plex-mono);
+}
+
+:root {
+  --background: #fbfbfd;
+  --foreground: #191925;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--background);
+}
+
+body {
+  min-block-size: 100vh;
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-ibm-plex-arabic), sans-serif;
+}
+
+a {
+  color: inherit;
+}

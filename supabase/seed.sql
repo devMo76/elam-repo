@@ -1,0 +1,2 @@
+-- Synthetic local and staging seed data will be added during backend Phase 2.
+-- This file must never contain production user data or secrets.
