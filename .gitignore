@@ -17,6 +17,10 @@
 *.tsbuildinfo
 next-env.d.ts
 
+# Supabase local and linked-project state
+/supabase/.branches/
+/supabase/.temp/
+
 # Logs
 npm-debug.log*
 yarn-debug.log*
