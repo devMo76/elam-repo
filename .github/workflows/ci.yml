@@ -51,3 +51,44 @@ jobs:
 
       - name: Audit dependencies
         run: npm audit --audit-level=high
+
+  database:
+    name: Database checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Configure Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.17.1
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Start local Supabase
+        run: npm run supabase:start
+
+      - name: Rebuild and seed database
+        run: npm run supabase:reset
+
+      - name: Run database tests
+        run: npm run test:db
+
+      - name: Lint database functions
+        run: npm run lint:db
+
+      - name: Verify generated database types
+        run: |
+          npm run supabase:types
+          git diff --exit-code -- lib/supabase/database.types.ts
+
+      - name: Stop local Supabase
+        if: always()
+        run: npm run supabase:stop
