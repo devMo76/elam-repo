@@ -12,6 +12,8 @@ begin
 end;
 $$;
 
+set local role authenticated;
+
 select throws_ok(
   $test$
     insert into public.courses (
@@ -63,9 +65,29 @@ select lives_ok(
   'an instructor can submit an owned draft for review'
 );
 
+do $$
+begin
+  perform set_config(
+    'request.jwt.claim.sub',
+    '30000000-0000-4000-8000-000000000001',
+    true
+  );
+end;
+$$;
+
 update public.platform_settings
 set instructor_direct_publish = true
 where id = 1;
+
+do $$
+begin
+  perform set_config(
+    'request.jwt.claim.sub',
+    '20000000-0000-4000-8000-000000000001',
+    true
+  );
+end;
+$$;
 
 select lives_ok(
   $test$
@@ -133,5 +155,6 @@ select lives_ok(
   'an administrator can archive a course'
 );
 
+reset role;
 select * from finish();
 rollback;
