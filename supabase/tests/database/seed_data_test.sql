@@ -2,8 +2,34 @@ begin;
 
 select plan(12);
 
-select is((select count(*) from public.profiles), 4::bigint, 'four synthetic profiles are seeded');
-select is((select count(distinct role) from public.profiles), 3::bigint, 'all three roles are represented');
+select is(
+  (
+    select count(*)
+    from public.profiles
+    where id in (
+      '10000000-0000-4000-8000-000000000001',
+      '10000000-0000-4000-8000-000000000002',
+      '20000000-0000-4000-8000-000000000001',
+      '30000000-0000-4000-8000-000000000001'
+    )
+  ),
+  4::bigint,
+  'four synthetic profiles are seeded'
+);
+select is(
+  (
+    select count(distinct role)
+    from public.profiles
+    where id in (
+      '10000000-0000-4000-8000-000000000001',
+      '10000000-0000-4000-8000-000000000002',
+      '20000000-0000-4000-8000-000000000001',
+      '30000000-0000-4000-8000-000000000001'
+    )
+  ),
+  3::bigint,
+  'all three roles are represented'
+);
 select is((select count(*) from public.courses), 4::bigint, 'four synthetic courses are seeded');
 select is((select count(distinct status) from public.courses), 4::bigint, 'all course states are represented');
 select is((select count(distinct department) from public.courses), 2::bigint, 'multiple departments are represented');
@@ -24,6 +50,10 @@ select is(
     select count(*)
     from public.profiles p
     where p.role = 'learner'
+      and p.id in (
+        '10000000-0000-4000-8000-000000000001',
+        '10000000-0000-4000-8000-000000000002'
+      )
       and not exists (select 1 from public.enrollments e where e.user_id = p.id)
   ),
   1::bigint,
