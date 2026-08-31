@@ -17,6 +17,7 @@
     "test:backend:coverage": "vitest run --coverage",
     "test:db": "supabase test db --local",
     "lint:db": "supabase db lint --local --schema public --level warning --fail-on warning",
+    "verify:client-bundle": "node scripts/verify-client-bundle-secrets.mjs",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
     "supabase:status": "supabase status",

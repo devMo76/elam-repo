@@ -48,6 +48,23 @@ jobs:
 
       - name: Build production application
         run: npm run build
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: elam-ci-secret-canary-supabase
+          MOYASAR_SECRET_KEY: elam-ci-secret-canary-moyasar
+          MOYASAR_WEBHOOK_SECRET: elam-ci-secret-canary-webhook
+          VIDEO_API_KEY: elam-ci-secret-canary-video-api
+          VIDEO_TOKEN_SIGNING_KEY: elam-ci-secret-canary-video-token
+          EMAIL_API_KEY: elam-ci-secret-canary-email
+
+      - name: Verify client bundle contains no server secrets
+        run: npm run verify:client-bundle
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: elam-ci-secret-canary-supabase
+          MOYASAR_SECRET_KEY: elam-ci-secret-canary-moyasar
+          MOYASAR_WEBHOOK_SECRET: elam-ci-secret-canary-webhook
+          VIDEO_API_KEY: elam-ci-secret-canary-video-api
+          VIDEO_TOKEN_SIGNING_KEY: elam-ci-secret-canary-video-token
+          EMAIL_API_KEY: elam-ci-secret-canary-email
 
       - name: Audit dependencies
         run: npm audit --audit-level=high
