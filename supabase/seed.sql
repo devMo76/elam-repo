@@ -79,7 +79,14 @@ values
     null,
     null,
     '2026-01-01 08:03:00+00'
-  );
+  )
+on conflict (id) do update
+set
+  full_name = excluded.full_name,
+  role = excluded.role,
+  headline = excluded.headline,
+  bio = excluded.bio,
+  created_at = excluded.created_at;
 
 insert into public.courses (
   id,
