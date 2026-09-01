@@ -63,6 +63,10 @@ export async function POST(request: Request) {
   const webhook = bunnyWebhookSchema.safeParse(parsedJson);
 
   if (!webhook.success) {
+    console.warn("Rejected Bunny webhook payload.", {
+      issues: webhook.error.issues.map(({ code, path }) => ({ code, path })),
+    });
+
     return createApiError(
       400,
       "invalid_webhook_payload",

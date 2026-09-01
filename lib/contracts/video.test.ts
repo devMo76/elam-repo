@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  bunnyWebhookSchema,
   directVideoUploadResponseSchema,
   lessonPlaybackResponseSchema,
   lessonProgressRequestSchema,
@@ -27,6 +28,21 @@ describe("video contracts", () => {
         },
       }).success,
     ).toBe(true);
+  });
+
+  it("normalizes Bunny webhook integers and ignores provider additions", () => {
+    expect(
+      bunnyWebhookSchema.parse({
+        VideoLibraryId: "741401",
+        VideoGuid: videoId,
+        Status: "4",
+        ProviderAddedField: "ignored",
+      }),
+    ).toEqual({
+      VideoLibraryId: 741401,
+      VideoGuid: videoId,
+      Status: 4,
+    });
   });
 
   it("rejects watermark and permanent playback fields", () => {

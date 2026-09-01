@@ -18,10 +18,20 @@ export const directVideoUploadResponseSchema = z.strictObject({
   }),
 });
 
-export const bunnyWebhookSchema = z.strictObject({
-  VideoLibraryId: z.number().int().positive(),
+const bunnyWebhookIntegerSchema = z.preprocess(
+  (value) =>
+    typeof value === "string" && /^\d+$/.test(value.trim())
+      ? Number(value)
+      : value,
+  z.number().int(),
+);
+
+// Bunny owns this external payload and may add fields without notice. Parse
+// only the authenticated fields we use instead of rejecting harmless additions.
+export const bunnyWebhookSchema = z.object({
+  VideoLibraryId: bunnyWebhookIntegerSchema.pipe(z.number().positive()),
   VideoGuid: z.uuid(),
-  Status: z.number().int().min(0).max(10),
+  Status: bunnyWebhookIntegerSchema.pipe(z.number().min(0).max(10)),
 });
 
 export const savedLessonProgressSchema = z.strictObject({
