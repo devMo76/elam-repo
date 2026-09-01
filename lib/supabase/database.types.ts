@@ -157,6 +157,7 @@ export type Database = {
           completed_at: string | null
           last_position_seconds: number
           lesson_id: string
+          revision: number
           updated_at: string
           user_id: string
         }
@@ -164,6 +165,7 @@ export type Database = {
           completed_at?: string | null
           last_position_seconds?: number
           lesson_id: string
+          revision?: number
           updated_at?: string
           user_id: string
         }
@@ -171,6 +173,7 @@ export type Database = {
           completed_at?: string | null
           last_position_seconds?: number
           lesson_id?: string
+          revision?: number
           updated_at?: string
           user_id?: string
         }
@@ -399,8 +402,44 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      can_access_lesson: { Args: { target_lesson: string }; Returns: boolean }
+      get_learner_course_progress: {
+        Args: never
+        Returns: {
+          completed_lesson_count: number
+          completion_percentage: number
+          course_id: string
+          cover_url: string
+          last_activity_at: string
+          lesson_count: number
+          slug: string
+          status: Database["public"]["Enums"]["course_status"]
+          title: string
+        }[]
+      }
+      get_lesson_playback_access: {
+        Args: { target_lesson: string }
+        Returns: {
+          duration_seconds: number
+          media_status: Database["public"]["Enums"]["media_status"]
+          video_asset_id: string
+        }[]
+      }
       is_admin: { Args: never; Returns: boolean }
       is_enrolled: { Args: { target_course: string }; Returns: boolean }
+      record_lesson_progress: {
+        Args: {
+          expected_revision: number
+          mark_complete?: boolean
+          target_lesson: string
+          target_position_seconds: number
+        }
+        Returns: {
+          completed_at: string
+          position_seconds: number
+          revision: number
+        }[]
+      }
     }
     Enums: {
       course_status: "draft" | "in_review" | "published" | "archived"

@@ -11,6 +11,15 @@ export {
   courseSlugSchema,
   instructorPublicProfileSchema,
 } from "./catalogue";
+export {
+  bunnyWebhookSchema,
+  directUploadHeadersSchema,
+  directVideoUploadResponseSchema,
+  lessonPlaybackResponseSchema,
+  lessonProgressRequestSchema,
+  lessonProgressResponseSchema,
+  learnerCourseProgressSchema,
+} from "./video";
 
 export type { ApiErrorCode, ApiErrorResponse } from "./api-error";
 export type {
@@ -18,3 +27,10 @@ export type {
   CatalogueCourseSummary,
   InstructorPublicProfile,
 } from "./catalogue";
+export type {
+  DirectVideoUploadResponse,
+  LessonPlaybackResponse,
+  LessonProgressRequest,
+  LessonProgressResponse,
+  LearnerCourseProgress,
+} from "./video";
