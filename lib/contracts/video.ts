@@ -44,7 +44,7 @@ export const bunnyWebhookSchema = z.object({
 
 export const savedLessonProgressSchema = z.strictObject({
   positionSeconds: z.number().int().nonnegative(),
-  completedAt: z.iso.datetime().nullable(),
+  completedAt: z.iso.datetime({ offset: true }).nullable(),
   revision: z.number().int().nonnegative(),
 });
 
@@ -82,7 +82,7 @@ export const learnerCourseProgressSchema = z.strictObject({
   lessonCount: z.number().int().nonnegative(),
   completedLessonCount: z.number().int().nonnegative(),
   completionPercentage: z.number().int().min(0).max(100),
-  lastActivityAt: z.iso.datetime().nullable(),
+  lastActivityAt: z.iso.datetime({ offset: true }).nullable(),
 });
 
 export type DirectVideoUploadResponse = z.infer<

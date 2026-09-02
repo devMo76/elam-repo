@@ -5,6 +5,7 @@ import {
   directVideoUploadResponseSchema,
   lessonPlaybackResponseSchema,
   lessonProgressRequestSchema,
+  lessonProgressResponseSchema,
   lessonVideoStatusResponseSchema,
 } from "@/lib/contracts/video";
 
@@ -84,6 +85,40 @@ describe("video contracts", () => {
         positionSeconds: 120,
       }).success,
     ).toBe(false);
+  });
+
+  it("accepts completed Supabase progress timestamps with UTC offsets", () => {
+    const completedAt = "2026-09-02T03:42:36.123+00:00";
+
+    expect(
+      lessonProgressResponseSchema.parse({
+        data: {
+          positionSeconds: 170,
+          completedAt,
+          revision: 2,
+        },
+      }),
+    ).toEqual({
+      data: {
+        positionSeconds: 170,
+        completedAt,
+        revision: 2,
+      },
+    });
+
+    expect(
+      lessonPlaybackResponseSchema.safeParse({
+        data: {
+          playbackUrl: `https://player.mediadelivery.net/embed/741401/${videoId}`,
+          expiresAt: "2026-09-02T05:42:36.123Z",
+          progress: {
+            positionSeconds: 170,
+            completedAt,
+            revision: 2,
+          },
+        },
+      }).success,
+    ).toBe(true);
   });
 
   it("accepts bounded encoding progress without provider credentials", () => {

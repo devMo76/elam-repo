@@ -88,14 +88,22 @@ export async function GET(
     }
   }
 
-  const response = lessonPlaybackResponseSchema.parse({
+  const response = lessonPlaybackResponseSchema.safeParse({
     data: {
       ...createBunnyPlaybackCredential(access.video_asset_id),
       progress,
     },
   });
 
-  return Response.json(response, {
+  if (!response.success) {
+    return createApiError(
+      500,
+      "playback_response_invalid",
+      "The lesson playback response was invalid.",
+    );
+  }
+
+  return Response.json(response.data, {
     headers: { "Cache-Control": "private, no-store" },
   });
 }

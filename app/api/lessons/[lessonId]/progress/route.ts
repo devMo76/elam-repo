@@ -94,13 +94,21 @@ export async function POST(
     );
   }
 
-  return Response.json(
-    lessonProgressResponseSchema.parse({
-      data: {
-        positionSeconds: saved.position_seconds,
-        completedAt: saved.completed_at,
-        revision: saved.revision,
-      },
-    }),
-  );
+  const response = lessonProgressResponseSchema.safeParse({
+    data: {
+      positionSeconds: saved.position_seconds,
+      completedAt: saved.completed_at,
+      revision: saved.revision,
+    },
+  });
+
+  if (!response.success) {
+    return createApiError(
+      500,
+      "progress_response_invalid",
+      "The saved lesson progress response was invalid.",
+    );
+  }
+
+  return Response.json(response.data);
 }
