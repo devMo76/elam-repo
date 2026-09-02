@@ -23,9 +23,26 @@ const bunnyStreamEnvironmentSchema = z.strictObject({
   BUNNY_STREAM_TOKEN_KEY: z.string().trim().min(1),
 });
 
+const moyasarApiEnvironmentSchema = z.strictObject({
+  MOYASAR_SECRET_KEY: z
+    .string()
+    .trim()
+    .regex(/^sk_(?:test|live)_[A-Za-z0-9]+$/),
+});
+
+const moyasarWebhookEnvironmentSchema = z.strictObject({
+  MOYASAR_WEBHOOK_SECRET: z.string().trim().min(16),
+});
+
 export type ServerEnvironment = z.infer<typeof serverEnvironmentSchema>;
 export type BunnyStreamEnvironment = z.infer<
   typeof bunnyStreamEnvironmentSchema
+>;
+export type MoyasarApiEnvironment = z.infer<
+  typeof moyasarApiEnvironmentSchema
+>;
+export type MoyasarWebhookEnvironment = z.infer<
+  typeof moyasarWebhookEnvironmentSchema
 >;
 
 export function getServerEnvironment(): ServerEnvironment {
@@ -50,5 +67,21 @@ export function getBunnyStreamEnvironment(): BunnyStreamEnvironment {
     BUNNY_STREAM_API_KEY: environment.BUNNY_STREAM_API_KEY,
     BUNNY_STREAM_READ_ONLY_API_KEY: environment.BUNNY_STREAM_READ_ONLY_API_KEY,
     BUNNY_STREAM_TOKEN_KEY: environment.BUNNY_STREAM_TOKEN_KEY,
+  });
+}
+
+export function getMoyasarApiEnvironment(): MoyasarApiEnvironment {
+  const environment = getServerEnvironment();
+
+  return moyasarApiEnvironmentSchema.parse({
+    MOYASAR_SECRET_KEY: environment.MOYASAR_SECRET_KEY,
+  });
+}
+
+export function getMoyasarWebhookEnvironment(): MoyasarWebhookEnvironment {
+  const environment = getServerEnvironment();
+
+  return moyasarWebhookEnvironmentSchema.parse({
+    MOYASAR_WEBHOOK_SECRET: environment.MOYASAR_WEBHOOK_SECRET,
   });
 }
