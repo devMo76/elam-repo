@@ -48,6 +48,64 @@ jobs:
 
       - name: Build production application
         run: npm run build
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: elam-ci-secret-canary-supabase
+          MOYASAR_SECRET_KEY: elam-ci-secret-canary-moyasar
+          MOYASAR_WEBHOOK_SECRET: elam-ci-secret-canary-webhook
+          VIDEO_API_KEY: elam-ci-secret-canary-video-api
+          VIDEO_TOKEN_SIGNING_KEY: elam-ci-secret-canary-video-token
+          EMAIL_API_KEY: elam-ci-secret-canary-email
+
+      - name: Verify client bundle contains no server secrets
+        run: npm run verify:client-bundle
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: elam-ci-secret-canary-supabase
+          MOYASAR_SECRET_KEY: elam-ci-secret-canary-moyasar
+          MOYASAR_WEBHOOK_SECRET: elam-ci-secret-canary-webhook
+          VIDEO_API_KEY: elam-ci-secret-canary-video-api
+          VIDEO_TOKEN_SIGNING_KEY: elam-ci-secret-canary-video-token
+          EMAIL_API_KEY: elam-ci-secret-canary-email
 
       - name: Audit dependencies
         run: npm audit --audit-level=high
+
+  database:
+    name: Database checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Configure Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.17.1
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Start local Supabase
+        run: npm run supabase:start
+
+      - name: Rebuild and seed database
+        run: npm run supabase:reset
+
+      - name: Run database tests
+        run: npm run test:db
+
+      - name: Lint database functions
+        run: npm run lint:db
+
+      - name: Verify generated database types
+        run: |
+          npm run supabase:types
+          git diff --exit-code -- lib/supabase/database.types.ts
+
+      - name: Stop local Supabase
+        if: always()
+        run: npm run supabase:stop
