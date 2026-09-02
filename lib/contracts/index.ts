@@ -18,7 +18,9 @@ export {
   lessonPlaybackResponseSchema,
   lessonProgressRequestSchema,
   lessonProgressResponseSchema,
+  lessonVideoStatusResponseSchema,
   learnerCourseProgressSchema,
+  mediaStatusSchema,
 } from "./video";
 
 export type { ApiErrorCode, ApiErrorResponse } from "./api-error";
@@ -32,5 +34,6 @@ export type {
   LessonPlaybackResponse,
   LessonProgressRequest,
   LessonProgressResponse,
+  LessonVideoStatusResponse,
   LearnerCourseProgress,
 } from "./video";

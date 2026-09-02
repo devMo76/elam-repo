@@ -11,6 +11,7 @@ const bunnyVideoSchema = z.object({
   videoLibraryId: z.number().int().positive(),
   length: z.number().int().nonnegative().default(0),
   status: z.number().int().min(0).max(10),
+  encodeProgress: z.number().int().min(0).max(100),
 });
 
 const BUNNY_VIDEO_API_URL = "https://video.bunnycdn.com";

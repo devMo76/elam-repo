@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+export const mediaStatusSchema = z.enum([
+  "absent",
+  "uploading",
+  "processing",
+  "ready",
+  "failed",
+]);
+
 export const directUploadHeadersSchema = z.strictObject({
   AuthorizationSignature: z.string().regex(/^[a-f0-9]{64}$/),
   AuthorizationExpire: z.string().regex(/^\d+$/),
@@ -58,6 +66,13 @@ export const lessonProgressResponseSchema = z.strictObject({
   data: savedLessonProgressSchema,
 });
 
+export const lessonVideoStatusResponseSchema = z.strictObject({
+  data: z.strictObject({
+    mediaStatus: mediaStatusSchema,
+    encodingProgress: z.number().int().min(0).max(100).nullable(),
+  }),
+});
+
 export const learnerCourseProgressSchema = z.strictObject({
   courseId: z.uuid(),
   slug: z.string().min(1),
@@ -81,6 +96,9 @@ export type LessonProgressRequest = z.infer<
 >;
 export type LessonProgressResponse = z.infer<
   typeof lessonProgressResponseSchema
+>;
+export type LessonVideoStatusResponse = z.infer<
+  typeof lessonVideoStatusResponseSchema
 >;
 export type LearnerCourseProgress = z.infer<
   typeof learnerCourseProgressSchema

@@ -5,6 +5,7 @@ import {
   directVideoUploadResponseSchema,
   lessonPlaybackResponseSchema,
   lessonProgressRequestSchema,
+  lessonVideoStatusResponseSchema,
 } from "@/lib/contracts/video";
 
 const videoId = "11111111-1111-4111-8111-111111111111";
@@ -43,6 +44,18 @@ describe("video contracts", () => {
       VideoGuid: videoId,
       Status: 4,
     });
+
+    expect(
+      bunnyWebhookSchema.parse({
+        VideoLibraryId: 741401,
+        VideoGuid: videoId,
+        Status: 4,
+      }),
+    ).toEqual({
+      VideoLibraryId: 741401,
+      VideoGuid: videoId,
+      Status: 4,
+    });
   });
 
   it("rejects watermark and permanent playback fields", () => {
@@ -69,6 +82,41 @@ describe("video contracts", () => {
     expect(
       lessonProgressRequestSchema.safeParse({
         positionSeconds: 120,
+      }).success,
+    ).toBe(false);
+  });
+
+  it("accepts bounded encoding progress without provider credentials", () => {
+    expect(
+      lessonVideoStatusResponseSchema.parse({
+        data: {
+          mediaStatus: "processing",
+          encodingProgress: 47,
+        },
+      }),
+    ).toEqual({
+      data: {
+        mediaStatus: "processing",
+        encodingProgress: 47,
+      },
+    });
+
+    expect(
+      lessonVideoStatusResponseSchema.safeParse({
+        data: {
+          mediaStatus: "processing",
+          encodingProgress: 101,
+        },
+      }).success,
+    ).toBe(false);
+
+    expect(
+      lessonVideoStatusResponseSchema.safeParse({
+        data: {
+          mediaStatus: "processing",
+          encodingProgress: 47,
+          apiKey: "must-not-be-exposed",
+        },
       }).success,
     ).toBe(false);
   });

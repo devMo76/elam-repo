@@ -2,12 +2,12 @@ import "server-only";
 
 import { directVideoUploadResponseSchema } from "@/lib/contracts";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
 import {
   createBunnyUploadAuthorization,
   createBunnyVideo,
   deleteBunnyVideo,
 } from "@/lib/video/bunny";
+import { getManagedVideoLesson } from "@/lib/video/lesson-access";
 
 export class VideoUploadRequestError extends Error {
   constructor(
@@ -30,96 +30,21 @@ async function removeUnclaimedVideo(videoId: string) {
 }
 
 export async function requestLessonVideoUpload(lessonId: string) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+  const access = await getManagedVideoLesson(lessonId);
 
-  if (userError || !user) {
+  if (!access.success) {
     throw new VideoUploadRequestError(
-      401,
-      "unauthenticated",
-      "Sign-in is required.",
+      access.status,
+      access.code,
+      access.message,
     );
   }
 
-  const [profileResult, lessonResult] = await Promise.all([
-    supabase.from("profiles").select("role").eq("id", user.id).maybeSingle(),
-    supabase
-      .from("lessons")
-      .select("id, title, module_id, media_status")
-      .eq("id", lessonId)
-      .maybeSingle(),
-  ]);
-
-  if (profileResult.error || !profileResult.data) {
-    throw new VideoUploadRequestError(
-      403,
-      "forbidden",
-      "An instructor or administrator role is required.",
-    );
-  }
-
-  if (lessonResult.error) {
-    throw new VideoUploadRequestError(
-      500,
-      "lesson_lookup_failed",
-      "The lesson could not be checked.",
-    );
-  }
-
-  if (!lessonResult.data) {
-    throw new VideoUploadRequestError(
-      404,
-      "lesson_not_found",
-      "The lesson was not found.",
-    );
-  }
-
-  const lesson = lessonResult.data;
-  const { data: module, error: moduleError } = await supabase
-    .from("modules")
-    .select("course_id")
-    .eq("id", lesson.module_id)
-    .maybeSingle();
-
-  if (moduleError || !module) {
-    throw new VideoUploadRequestError(
-      404,
-      "lesson_not_found",
-      "The lesson was not found.",
-    );
-  }
-
-  const { data: course, error: courseError } = await supabase
-    .from("courses")
-    .select("instructor_id")
-    .eq("id", module.course_id)
-    .maybeSingle();
-
-  if (courseError || !course) {
-    throw new VideoUploadRequestError(
-      404,
-      "lesson_not_found",
-      "The lesson was not found.",
-    );
-  }
-
-  const isAdmin = profileResult.data.role === "admin";
-  const isOwner = course.instructor_id === user.id;
-
-  if (!isAdmin && !isOwner) {
-    throw new VideoUploadRequestError(
-      403,
-      "forbidden",
-      "You cannot upload video for this lesson.",
-    );
-  }
+  const { lesson } = access;
 
   if (
-    lesson.media_status === "uploading" ||
-    lesson.media_status === "processing"
+    lesson.mediaStatus === "uploading" ||
+    lesson.mediaStatus === "processing"
   ) {
     throw new VideoUploadRequestError(
       409,

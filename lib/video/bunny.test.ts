@@ -7,6 +7,7 @@ import {
   createBunnyPlaybackCredential,
   createBunnyUploadAuthorization,
   createBunnyVideo,
+  getBunnyVideo,
 } from "@/lib/video/bunny";
 
 const videoId = "11111111-1111-4111-8111-111111111111";
@@ -63,6 +64,7 @@ describe("Bunny Stream adapter", () => {
         videoLibraryId: 741401,
         length: 0,
         status: 0,
+        encodeProgress: 0,
       }),
     );
 
@@ -77,6 +79,53 @@ describe("Bunny Stream adapter", () => {
     expect(fetchMock.mock.calls[0]?.[1]?.headers).toMatchObject({
       AccessKey: "test-api-key",
     });
+  });
+
+  it("reads encoding progress with the read-only server credential", async () => {
+    configureEnvironment();
+
+    const fetchMock = vi.fn().mockResolvedValue(
+      Response.json({
+        guid: videoId,
+        videoLibraryId: 741401,
+        length: 0,
+        status: 2,
+        encodeProgress: 47,
+      }),
+    );
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(getBunnyVideo(videoId)).resolves.toMatchObject({
+      status: 2,
+      encodeProgress: 47,
+    });
+
+    expect(fetchMock.mock.calls[0]?.[1]?.headers).toMatchObject({
+      AccessKey: "test-read-only-key",
+    });
+    expect(fetchMock.mock.calls[0]?.[1]?.cache).toBe("no-store");
+  });
+
+  it("rejects invalid provider encoding progress", async () => {
+    configureEnvironment();
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        Response.json({
+          guid: videoId,
+          videoLibraryId: 741401,
+          length: 0,
+          status: 2,
+          encodeProgress: 101,
+        }),
+      ),
+    );
+
+    await expect(getBunnyVideo(videoId)).rejects.toThrow(
+      "Bunny Stream operation failed: get video: invalid response",
+    );
   });
 
   it("creates a short-lived signed Player v2 URL", () => {
