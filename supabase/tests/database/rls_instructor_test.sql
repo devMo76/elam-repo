@@ -101,7 +101,7 @@ with changed as (
 )
 select is((select count(*) from changed), 1::bigint, 'instructors can maintain approved public profile fields');
 
-select is((select count(*) from public.orders), 0::bigint, 'instructors cannot read learner orders or revenue');
+select is((select count(id) from public.orders), 0::bigint, 'instructors cannot read learner orders or revenue');
 select is((select count(*) from public.enrollments), 0::bigint, 'instructors cannot read learner enrolment identities');
 select is((select count(*) from public.lesson_progress), 0::bigint, 'instructors cannot read learner progress');
 select is((select count(*) from public.admin_audit_log), 0::bigint, 'instructors cannot read audit records');

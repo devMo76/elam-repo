@@ -1,6 +1,6 @@
 begin;
 
-select plan(26);
+select plan(30);
 
 select has_type('public', 'user_role', 'user_role enum exists');
 select has_type('public', 'course_status', 'course_status enum exists');
@@ -14,6 +14,7 @@ select has_table('public', 'modules', 'modules table exists');
 select has_table('public', 'lessons', 'lessons table exists');
 select has_table('public', 'orders', 'orders table exists');
 select has_table('public', 'enrollments', 'enrollments table exists');
+select has_table('public', 'payment_events', 'payment_events table exists');
 select has_table('public', 'lesson_progress', 'lesson_progress table exists');
 select has_table('public', 'admin_audit_log', 'admin_audit_log table exists');
 
@@ -52,6 +53,16 @@ select is(
   1::bigint,
   'protected-deletion helper exists'
 );
+select is(
+  (select count(*) from pg_proc where pronamespace = 'public'::regnamespace and proname = 'create_pending_order'),
+  1::bigint,
+  'pending-order transaction exists'
+);
+select is(
+  (select count(*) from pg_proc where pronamespace = 'public'::regnamespace and proname = 'process_verified_moyasar_payment'),
+  1::bigint,
+  'verified-payment transaction exists'
+);
 
 select is(
   (
@@ -66,12 +77,13 @@ select is(
         'lessons',
         'orders',
         'enrollments',
+        'payment_events',
         'lesson_progress',
         'admin_audit_log'
       )
       and relrowsecurity
   ),
-  9::bigint,
+  10::bigint,
   'RLS is enabled on every application table'
 );
 
@@ -99,6 +111,7 @@ select is(
 
 select has_index('public', 'courses', 'courses_published_status_idx', 'published-course index exists');
 select has_index('public', 'orders', 'orders_status_created_at_idx', 'order reporting index exists');
+select has_index('public', 'orders', 'orders_one_active_purchase_idx', 'duplicate active purchases are prevented');
 
 select * from finish();
 rollback;

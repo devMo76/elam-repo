@@ -109,7 +109,7 @@ select is(
   'administrators can preview every course state'
 );
 select is(
-  (select count(*) from public.orders),
+  (select count(id) from public.orders),
   3::bigint,
   'catalogue policy changes do not alter existing administrator access'
 );

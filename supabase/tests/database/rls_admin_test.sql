@@ -34,7 +34,7 @@ select is((select count(*) from public.platform_settings), 1::bigint, 'administr
 select is((select count(*) from public.courses), 4::bigint, 'administrators can read every course state');
 select is((select count(*) from public.modules), 4::bigint, 'administrators can read all modules');
 select is((select count(*) from public.lessons), 5::bigint, 'administrators can read all lessons');
-select is((select count(*) from public.orders), 3::bigint, 'administrators can read all orders');
+select is((select count(id) from public.orders), 3::bigint, 'administrators can read all orders');
 select is((select count(*) from public.enrollments), 1::bigint, 'administrators can read all enrolments');
 select is((select count(*) from public.lesson_progress), 0::bigint, 'administrators do not bypass own-row progress policy');
 select is((select count(*) from public.admin_audit_log), 0::bigint, 'the audit log starts empty');
