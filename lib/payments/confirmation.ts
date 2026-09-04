@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchMoyasarPayment, MoyasarApiError } from "@/lib/payments/moyasar";
+import { attemptPaymentReceipt } from "@/lib/payments/receipt";
 
 const orderIdSchema = z.uuid();
 
@@ -154,6 +155,10 @@ export async function confirmMoyasarPayment(
       "payment_confirmation_failed",
       "The payment could not be confirmed.",
     );
+  }
+
+  if (result.order_status === "paid") {
+    await attemptPaymentReceipt(orderId.data);
   }
 
   return {

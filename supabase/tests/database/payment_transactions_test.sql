@@ -1,6 +1,6 @@
 begin;
 
-select plan(37);
+select plan(51);
 
 insert into auth.users (id, email, raw_user_meta_data)
 values
@@ -61,6 +61,20 @@ select is(
   has_column_privilege('authenticated', 'public.orders', 'raw_payload', 'select'),
   false,
   'learners cannot read raw provider payloads'
+);
+select is(
+  has_table_privilege('authenticated', 'public.payment_receipts', 'select'),
+  false,
+  'browser sessions cannot read receipt delivery records'
+);
+select is(
+  has_function_privilege(
+    'authenticated',
+    'public.claim_payment_receipt(uuid)',
+    'execute'
+  ),
+  false,
+  'browser sessions cannot claim receipt delivery work'
 );
 
 create temporary table payment_order_one as
@@ -222,6 +236,94 @@ select is(
   'separate confirmation paths still create one enrolment'
 );
 
+create temporary table first_receipt_claim as
+select *
+from public.claim_payment_receipt((select order_id from payment_order_one));
+
+select is(
+  (select should_send from first_receipt_claim),
+  true,
+  'the first worker can claim a paid-order receipt'
+);
+select is(
+  (select attempt_count from first_receipt_claim),
+  1,
+  'the first receipt claim records one attempt'
+);
+select is(
+  (
+    select should_send
+    from public.claim_payment_receipt((select order_id from payment_order_one))
+  ),
+  false,
+  'a concurrent receipt worker is blocked by the active lease'
+);
+select lives_ok(
+  format(
+    'select public.record_payment_receipt_failure(%L, %L)',
+    (select order_id from payment_order_one),
+    'provider_unavailable'
+  ),
+  'a failed receipt attempt is recorded safely'
+);
+
+create temporary table retry_receipt_claim as
+select *
+from public.claim_payment_receipt((select order_id from payment_order_one));
+
+select is(
+  (select should_send from retry_receipt_claim),
+  true,
+  'a failed receipt can be claimed again'
+);
+select is(
+  (select attempt_count from retry_receipt_claim),
+  2,
+  'a receipt retry increments the attempt count'
+);
+select lives_ok(
+  format(
+    'select public.complete_payment_receipt(%L, %L)',
+    (select order_id from payment_order_one),
+    'email-receipt-one'
+  ),
+  'a successful receipt is completed'
+);
+select is(
+  (
+    select status
+    from public.payment_receipts
+    where order_id = (select order_id from payment_order_one)
+  ),
+  'sent'::public.receipt_status,
+  'a completed receipt remains sent'
+);
+select is(
+  (
+    select provider_email_id
+    from public.payment_receipts
+    where order_id = (select order_id from payment_order_one)
+  ),
+  'email-receipt-one',
+  'a completed receipt stores the provider identity'
+);
+select ok(
+  (
+    select sent_at is not null
+    from public.payment_receipts
+    where order_id = (select order_id from payment_order_one)
+  ),
+  'a completed receipt records its delivery time'
+);
+select is(
+  (
+    select should_send
+    from public.claim_payment_receipt((select order_id from payment_order_one))
+  ),
+  false,
+  'a sent receipt cannot be claimed again'
+);
+
 create temporary table payment_order_two as
 select *
 from public.create_pending_order(
@@ -271,6 +373,16 @@ select *
 from public.create_pending_order(
   '90000000-0000-4000-8000-000000000053',
   '40000000-0000-4000-8000-000000000001'
+);
+
+select throws_ok(
+  format(
+    'select * from public.claim_payment_receipt(%L)',
+    (select order_id from payment_order_three)
+  ),
+  '55000',
+  'Only paid orders can receive a receipt',
+  'unpaid orders cannot receive a receipt'
 );
 
 select throws_ok(

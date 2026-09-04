@@ -371,6 +371,50 @@ export type Database = {
           },
         ]
       }
+      payment_receipts: {
+        Row: {
+          attempt_count: number
+          created_at: string
+          last_attempt_at: string | null
+          last_error_code: string | null
+          order_id: string
+          provider_email_id: string | null
+          sent_at: string | null
+          status: Database["public"]["Enums"]["receipt_status"]
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          created_at?: string
+          last_attempt_at?: string | null
+          last_error_code?: string | null
+          order_id: string
+          provider_email_id?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["receipt_status"]
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          created_at?: string
+          last_attempt_at?: string | null
+          last_error_code?: string | null
+          order_id?: string
+          provider_email_id?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["receipt_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_receipts_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_settings: {
         Row: {
           id: number
@@ -447,6 +491,18 @@ export type Database = {
         Returns: Database["public"]["Enums"]["user_role"]
       }
       can_access_lesson: { Args: { target_lesson: string }; Returns: boolean }
+      claim_payment_receipt: {
+        Args: { target_order: string }
+        Returns: {
+          attempt_count: number
+          receipt_status: Database["public"]["Enums"]["receipt_status"]
+          should_send: boolean
+        }[]
+      }
+      complete_payment_receipt: {
+        Args: { email_id: string; target_order: string }
+        Returns: undefined
+      }
       create_pending_order: {
         Args: { target_course: string; target_user: string }
         Returns: {
@@ -512,11 +568,16 @@ export type Database = {
           revision: number
         }[]
       }
+      record_payment_receipt_failure: {
+        Args: { error_code: string; target_order: string }
+        Returns: undefined
+      }
     }
     Enums: {
       course_status: "draft" | "in_review" | "published" | "archived"
       media_status: "absent" | "uploading" | "processing" | "ready" | "failed"
       order_status: "pending" | "paid" | "failed" | "refunded" | "reversed"
+      receipt_status: "pending" | "sent" | "failed"
       user_role: "learner" | "instructor" | "admin"
     }
     CompositeTypes: {
@@ -648,6 +709,7 @@ export const Constants = {
       course_status: ["draft", "in_review", "published", "archived"],
       media_status: ["absent", "uploading", "processing", "ready", "failed"],
       order_status: ["pending", "paid", "failed", "refunded", "reversed"],
+      receipt_status: ["pending", "sent", "failed"],
       user_role: ["learner", "instructor", "admin"],
     },
   },

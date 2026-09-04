@@ -14,6 +14,7 @@ const serverEnvironmentSchema = z.strictObject({
   BUNNY_STREAM_READ_ONLY_API_KEY: optionalSecretSchema,
   BUNNY_STREAM_TOKEN_KEY: optionalSecretSchema,
   EMAIL_API_KEY: optionalSecretSchema,
+  EMAIL_FROM_ADDRESS: optionalSecretSchema,
 });
 
 const bunnyStreamEnvironmentSchema = z.strictObject({
@@ -34,6 +35,11 @@ const moyasarWebhookEnvironmentSchema = z.strictObject({
   MOYASAR_WEBHOOK_SECRET: z.string().trim().min(16),
 });
 
+const emailEnvironmentSchema = z.strictObject({
+  EMAIL_API_KEY: z.string().trim().min(1),
+  EMAIL_FROM_ADDRESS: z.string().trim().min(3).max(320),
+});
+
 export type ServerEnvironment = z.infer<typeof serverEnvironmentSchema>;
 export type BunnyStreamEnvironment = z.infer<
   typeof bunnyStreamEnvironmentSchema
@@ -44,6 +50,7 @@ export type MoyasarApiEnvironment = z.infer<
 export type MoyasarWebhookEnvironment = z.infer<
   typeof moyasarWebhookEnvironmentSchema
 >;
+export type EmailEnvironment = z.infer<typeof emailEnvironmentSchema>;
 
 export function getServerEnvironment(): ServerEnvironment {
   return serverEnvironmentSchema.parse({
@@ -56,6 +63,7 @@ export function getServerEnvironment(): ServerEnvironment {
     BUNNY_STREAM_READ_ONLY_API_KEY: process.env.BUNNY_STREAM_READ_ONLY_API_KEY,
     BUNNY_STREAM_TOKEN_KEY: process.env.BUNNY_STREAM_TOKEN_KEY,
     EMAIL_API_KEY: process.env.EMAIL_API_KEY,
+    EMAIL_FROM_ADDRESS: process.env.EMAIL_FROM_ADDRESS,
   });
 }
 
@@ -83,5 +91,14 @@ export function getMoyasarWebhookEnvironment(): MoyasarWebhookEnvironment {
 
   return moyasarWebhookEnvironmentSchema.parse({
     MOYASAR_WEBHOOK_SECRET: environment.MOYASAR_WEBHOOK_SECRET,
+  });
+}
+
+export function getEmailEnvironment(): EmailEnvironment {
+  const environment = getServerEnvironment();
+
+  return emailEnvironmentSchema.parse({
+    EMAIL_API_KEY: environment.EMAIL_API_KEY,
+    EMAIL_FROM_ADDRESS: environment.EMAIL_FROM_ADDRESS,
   });
 }
