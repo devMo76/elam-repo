@@ -12,6 +12,11 @@ export {
   instructorPublicProfileSchema,
 } from "./catalogue";
 export {
+  checkoutRequestSchema,
+  checkoutResponseSchema,
+  paymentReturnStateSchema,
+} from "./payments";
+export {
   bunnyWebhookSchema,
   directUploadHeadersSchema,
   directVideoUploadResponseSchema,
@@ -29,6 +34,11 @@ export type {
   CatalogueCourseSummary,
   InstructorPublicProfile,
 } from "./catalogue";
+export type {
+  CheckoutRequest,
+  CheckoutResponse,
+  PaymentReturnState,
+} from "./payments";
 export type {
   DirectVideoUploadResponse,
   LessonPlaybackResponse,

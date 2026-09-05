@@ -279,6 +279,7 @@ export type Database = {
           paid_at: string | null
           raw_payload: Json | null
           refunded_at: string | null
+          reversed_at: string | null
           status: Database["public"]["Enums"]["order_status"]
           user_id: string
         }
@@ -293,6 +294,7 @@ export type Database = {
           paid_at?: string | null
           raw_payload?: Json | null
           refunded_at?: string | null
+          reversed_at?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           user_id: string
         }
@@ -307,6 +309,7 @@ export type Database = {
           paid_at?: string | null
           raw_payload?: Json | null
           refunded_at?: string | null
+          reversed_at?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           user_id?: string
         }
@@ -323,6 +326,91 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_events: {
+        Row: {
+          event_type: string
+          id: string
+          order_id: string
+          payment_id: string
+          provider_event_id: string
+          provider_status: string
+          raw_payload: Json
+          received_at: string
+        }
+        Insert: {
+          event_type: string
+          id?: string
+          order_id: string
+          payment_id: string
+          provider_event_id: string
+          provider_status: string
+          raw_payload: Json
+          received_at?: string
+        }
+        Update: {
+          event_type?: string
+          id?: string
+          order_id?: string
+          payment_id?: string
+          provider_event_id?: string
+          provider_status?: string
+          raw_payload?: Json
+          received_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_events_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_receipts: {
+        Row: {
+          attempt_count: number
+          created_at: string
+          last_attempt_at: string | null
+          last_error_code: string | null
+          order_id: string
+          provider_email_id: string | null
+          sent_at: string | null
+          status: Database["public"]["Enums"]["receipt_status"]
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          created_at?: string
+          last_attempt_at?: string | null
+          last_error_code?: string | null
+          order_id: string
+          provider_email_id?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["receipt_status"]
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          created_at?: string
+          last_attempt_at?: string | null
+          last_error_code?: string | null
+          order_id?: string
+          provider_email_id?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["receipt_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_receipts_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
         ]
@@ -403,6 +491,27 @@ export type Database = {
         Returns: Database["public"]["Enums"]["user_role"]
       }
       can_access_lesson: { Args: { target_lesson: string }; Returns: boolean }
+      claim_payment_receipt: {
+        Args: { target_order: string }
+        Returns: {
+          attempt_count: number
+          receipt_status: Database["public"]["Enums"]["receipt_status"]
+          should_send: boolean
+        }[]
+      }
+      complete_payment_receipt: {
+        Args: { email_id: string; target_order: string }
+        Returns: undefined
+      }
+      create_pending_order: {
+        Args: { target_course: string; target_user: string }
+        Returns: {
+          amount_halalas: number
+          currency: string
+          order_id: string
+          order_status: Database["public"]["Enums"]["order_status"]
+        }[]
+      }
       get_learner_course_progress: {
         Args: never
         Returns: {
@@ -427,6 +536,25 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       is_enrolled: { Args: { target_course: string }; Returns: boolean }
+      process_verified_moyasar_payment: {
+        Args: {
+          event_type: string
+          failure_detail: string
+          provider_amount: number
+          provider_currency: string
+          provider_event_id: string
+          provider_order_id: string
+          provider_payload: Json
+          provider_payment_id: string
+          provider_status: string
+          target_order: string
+        }
+        Returns: {
+          enrollment_id: string
+          order_status: Database["public"]["Enums"]["order_status"]
+          state_changed: boolean
+        }[]
+      }
       record_lesson_progress: {
         Args: {
           expected_revision: number
@@ -440,11 +568,16 @@ export type Database = {
           revision: number
         }[]
       }
+      record_payment_receipt_failure: {
+        Args: { error_code: string; target_order: string }
+        Returns: undefined
+      }
     }
     Enums: {
       course_status: "draft" | "in_review" | "published" | "archived"
       media_status: "absent" | "uploading" | "processing" | "ready" | "failed"
-      order_status: "pending" | "paid" | "failed" | "refunded"
+      order_status: "pending" | "paid" | "failed" | "refunded" | "reversed"
+      receipt_status: "pending" | "sent" | "failed"
       user_role: "learner" | "instructor" | "admin"
     }
     CompositeTypes: {
@@ -575,7 +708,8 @@ export const Constants = {
     Enums: {
       course_status: ["draft", "in_review", "published", "archived"],
       media_status: ["absent", "uploading", "processing", "ready", "failed"],
-      order_status: ["pending", "paid", "failed", "refunded"],
+      order_status: ["pending", "paid", "failed", "refunded", "reversed"],
+      receipt_status: ["pending", "sent", "failed"],
       user_role: ["learner", "instructor", "admin"],
     },
   },
