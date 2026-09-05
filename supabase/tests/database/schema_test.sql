@@ -1,6 +1,6 @@
 begin;
 
-select plan(36);
+select plan(43);
 
 select has_type('public', 'user_role', 'user_role enum exists');
 select has_type('public', 'course_status', 'course_status enum exists');
@@ -80,6 +80,13 @@ select is(
   1::bigint,
   'receipt failure transaction exists'
 );
+select is((select count(*) from pg_proc where pronamespace = 'public'::regnamespace and proname = 'append_course_module'), 1::bigint, 'module append transaction exists');
+select is((select count(*) from pg_proc where pronamespace = 'public'::regnamespace and proname = 'reorder_course_modules'), 1::bigint, 'module reorder transaction exists');
+select is((select count(*) from pg_proc where pronamespace = 'public'::regnamespace and proname = 'delete_draft_course_module'), 1::bigint, 'draft module delete transaction exists');
+select is((select count(*) from pg_proc where pronamespace = 'public'::regnamespace and proname = 'append_module_lesson'), 1::bigint, 'lesson append transaction exists');
+select is((select count(*) from pg_proc where pronamespace = 'public'::regnamespace and proname = 'reorder_module_lessons'), 1::bigint, 'lesson reorder transaction exists');
+select is((select count(*) from pg_proc where pronamespace = 'public'::regnamespace and proname = 'delete_draft_module_lesson'), 1::bigint, 'draft lesson delete transaction exists');
+select is((select count(*) from pg_proc where pronamespace = 'public'::regnamespace and proname = 'submit_course_for_review'), 1::bigint, 'course review submission transaction exists');
 
 select is(
   (

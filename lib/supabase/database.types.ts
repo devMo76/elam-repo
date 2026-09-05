@@ -490,6 +490,41 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["user_role"]
       }
+      append_course_module: {
+        Args: { module_title: string; target_course_id: string }
+        Returns: {
+          course_id: string
+          id: string
+          position: number
+          title: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "modules"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      append_module_lesson: {
+        Args: { lesson_title: string; target_module_id: string }
+        Returns: {
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          is_free_preview: boolean
+          media_status: Database["public"]["Enums"]["media_status"]
+          module_id: string
+          position: number
+          title: string
+          video_asset_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "lessons"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       can_access_lesson: { Args: { target_lesson: string }; Returns: boolean }
       claim_payment_receipt: {
         Args: { target_order: string }
@@ -511,6 +546,14 @@ export type Database = {
           order_id: string
           order_status: Database["public"]["Enums"]["order_status"]
         }[]
+      }
+      delete_draft_course_module: {
+        Args: { target_module_id: string }
+        Returns: undefined
+      }
+      delete_draft_module_lesson: {
+        Args: { target_lesson_id: string }
+        Returns: undefined
       }
       get_learner_course_progress: {
         Args: never
@@ -571,6 +614,39 @@ export type Database = {
       record_payment_receipt_failure: {
         Args: { error_code: string; target_order: string }
         Returns: undefined
+      }
+      reorder_course_modules: {
+        Args: { ordered_module_ids: string[]; target_course_id: string }
+        Returns: undefined
+      }
+      reorder_module_lessons: {
+        Args: { ordered_lesson_ids: string[]; target_module_id: string }
+        Returns: undefined
+      }
+      submit_course_for_review: {
+        Args: { target_course_id: string }
+        Returns: {
+          course_code: string | null
+          cover_url: string | null
+          created_at: string
+          currency: string
+          department: string
+          description: string | null
+          id: string
+          instructor_id: string
+          price_halalas: number
+          published_at: string | null
+          slug: string
+          status: Database["public"]["Enums"]["course_status"]
+          subtitle: string | null
+          title: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "courses"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
     }
     Enums: {
