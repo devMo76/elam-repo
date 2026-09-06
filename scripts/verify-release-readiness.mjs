@@ -7,6 +7,7 @@ const requiredDocuments = [
   "docs/operations/migration-release.md",
   "docs/operations/incident-response.md",
   "docs/operations/production-release-checklist.md",
+  "docs/operations/load-testing.md",
 ];
 
 for (const document of requiredDocuments) {

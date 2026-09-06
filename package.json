@@ -16,6 +16,7 @@
     "test:backend:watch": "vitest",
     "test:backend:coverage": "vitest run --coverage",
     "test:db": "supabase test db --local",
+    "test:load": "node scripts/load/run.mjs",
     "lint:db": "supabase db lint --local --schema public --level warning --fail-on warning",
     "verify:client-bundle": "node scripts/verify-client-bundle-secrets.mjs",
     "verify:release": "node scripts/verify-release-readiness.mjs",
