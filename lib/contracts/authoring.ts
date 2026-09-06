@@ -136,6 +136,46 @@ export const reorderLessonsResponseSchema = z.strictObject({
   data: z.strictObject({ lessonIds: z.array(z.uuid()) }),
 });
 
+export const authoringCourseStatusResponseSchema = z.strictObject({
+  data: z.strictObject({
+    courseId: z.uuid(),
+    status: authoringCourseStatusSchema,
+  }),
+});
+
+export const instructorCourseStatisticSchema = z.strictObject({
+  courseId: z.uuid(),
+  title: z.string().min(1),
+  status: authoringCourseStatusSchema,
+  enrollmentCount: z.number().int().nonnegative(),
+});
+
+export const instructorStatisticsResponseSchema = z.strictObject({
+  data: z.array(instructorCourseStatisticSchema),
+});
+
+export const updateInstructorProfileRequestSchema = z
+  .strictObject({
+    avatarUrl: z.url().nullable().optional(),
+    headline: optionalText(160).optional(),
+    bio: optionalText(2_000).optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, {
+    message: "At least one profile field is required.",
+  });
+
+export const instructorAuthoringProfileSchema = z.strictObject({
+  id: z.uuid(),
+  fullName: z.string().min(1),
+  avatarUrl: z.url().nullable(),
+  headline: z.string().nullable(),
+  bio: z.string().nullable(),
+});
+
+export const instructorAuthoringProfileResponseSchema = z.strictObject({
+  data: instructorAuthoringProfileSchema,
+});
+
 export type CreateAuthoringCourseRequest = z.infer<
   typeof createAuthoringCourseRequestSchema
 >;
@@ -143,3 +183,6 @@ export type UpdateAuthoringCourseRequest = z.infer<
   typeof updateAuthoringCourseRequestSchema
 >;
 export type UpdateLessonRequest = z.infer<typeof updateLessonRequestSchema>;
+export type UpdateInstructorProfileRequest = z.infer<
+  typeof updateInstructorProfileRequestSchema
+>;

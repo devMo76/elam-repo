@@ -577,6 +577,15 @@ export type Database = {
           video_asset_id: string
         }[]
       }
+      instructor_course_stats: {
+        Args: never
+        Returns: {
+          course_id: string
+          course_status: Database["public"]["Enums"]["course_status"]
+          course_title: string
+          enrollment_count: number
+        }[]
+      }
       is_admin: { Args: never; Returns: boolean }
       is_enrolled: { Args: { target_course: string }; Returns: boolean }
       process_verified_moyasar_payment: {

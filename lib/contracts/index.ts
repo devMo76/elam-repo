@@ -1,10 +1,15 @@
 export {
   authoringCourseListResponseSchema,
   authoringCourseResponseSchema,
+  authoringCourseStatusResponseSchema,
   authoringCourseSchema,
   authoringCourseStatusSchema,
   authoringLessonResponseSchema,
   authoringLessonSchema,
+  instructorAuthoringProfileResponseSchema,
+  instructorAuthoringProfileSchema,
+  instructorCourseStatisticSchema,
+  instructorStatisticsResponseSchema,
   authoringModuleResponseSchema,
   authoringModuleSchema,
   createAuthoringCourseRequestSchema,
@@ -16,6 +21,7 @@ export {
   reorderLessonsResponseSchema,
   updateAuthoringCourseRequestSchema,
   updateLessonRequestSchema,
+  updateInstructorProfileRequestSchema,
   updateModuleRequestSchema,
 } from "./authoring";
 export {
@@ -53,6 +59,7 @@ export type {
   CreateAuthoringCourseRequest,
   UpdateAuthoringCourseRequest,
   UpdateLessonRequest,
+  UpdateInstructorProfileRequest,
 } from "./authoring";
 export type {
   CatalogueCourseDetail,

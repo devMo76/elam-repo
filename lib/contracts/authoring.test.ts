@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createAuthoringCourseRequestSchema,
   reorderModulesRequestSchema,
+  updateInstructorProfileRequestSchema,
   updateLessonRequestSchema,
   updateAuthoringCourseRequestSchema,
 } from "./authoring";
@@ -57,6 +58,23 @@ describe("authoring contracts", () => {
         mediaStatus: "ready",
         videoAssetId: "forged",
       }).success,
+    ).toBe(false);
+  });
+
+  it("allows only approved public instructor profile fields", () => {
+    expect(
+      updateInstructorProfileRequestSchema.parse({
+        avatarUrl: "https://example.com/avatar.jpg",
+        headline: "Electrical engineering instructor",
+        bio: null,
+      }),
+    ).toEqual({
+      avatarUrl: "https://example.com/avatar.jpg",
+      headline: "Electrical engineering instructor",
+      bio: null,
+    });
+    expect(
+      updateInstructorProfileRequestSchema.safeParse({ role: "admin" }).success,
     ).toBe(false);
   });
 });
