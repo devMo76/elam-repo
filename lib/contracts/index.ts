@@ -1,4 +1,8 @@
 export {
+  adminDashboardSummaryResponseSchema,
+  adminDashboardSummarySchema,
+} from "./admin";
+export {
   authoringCourseListResponseSchema,
   authoringCourseResponseSchema,
   authoringCourseStatusResponseSchema,
@@ -55,6 +59,7 @@ export {
 } from "./video";
 
 export type { ApiErrorCode, ApiErrorResponse } from "./api-error";
+export type { AdminDashboardSummary } from "./admin";
 export type {
   CreateAuthoringCourseRequest,
   UpdateAuthoringCourseRequest,

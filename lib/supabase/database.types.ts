@@ -486,6 +486,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      admin_dashboard_summary: {
+        Args: never
+        Returns: {
+          active_course_count: number
+          enrollment_count: number
+          total_revenue_halalas: number
+        }[]
+      }
       app_role: {
         Args: never
         Returns: Database["public"]["Enums"]["user_role"]
