@@ -1,4 +1,6 @@
 export {
+  adminAuditListQuerySchema,
+  adminAuditListResponseSchema,
   adminCourseStatusActionSchema,
   adminCourseStatusResponseSchema,
   adminCourseListQuerySchema,
@@ -12,6 +14,8 @@ export {
   adminPurchaseSchema,
   adminRevenueQuerySchema,
   adminRevenueResponseSchema,
+  adminUserListQuerySchema,
+  adminUserListResponseSchema,
 } from "./admin";
 export {
   authoringCourseListResponseSchema,
@@ -71,10 +75,12 @@ export {
 
 export type { ApiErrorCode, ApiErrorResponse } from "./api-error";
 export type {
+  AdminAuditListQuery,
   AdminDashboardSummary,
   AdminCourseListQuery,
   AdminPurchaseHistoryQuery,
   AdminRevenueQuery,
+  AdminUserListQuery,
 } from "./admin";
 export type {
   CreateAuthoringCourseRequest,

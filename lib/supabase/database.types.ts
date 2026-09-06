@@ -479,6 +479,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_audit_history: {
+        Args: {
+          filter_action?: string
+          page_offset?: number
+          page_size?: number
+        }
+        Returns: {
+          action: string
+          actor_id: string
+          actor_name: string
+          audit_id: number
+          created_at: string
+          detail: Json
+          subject: string
+          total_count: number
+        }[]
+      }
       admin_change_course_status: {
         Args: {
           new_status: Database["public"]["Enums"]["course_status"]
@@ -574,6 +591,22 @@ export type Database = {
           course_title: string
           paid_order_count: number
           revenue_halalas: number
+        }[]
+      }
+      admin_user_directory: {
+        Args: {
+          filter_role?: Database["public"]["Enums"]["user_role"]
+          page_offset?: number
+          page_size?: number
+          search_query?: string
+        }
+        Returns: {
+          created_at: string
+          email: string
+          full_name: string
+          total_count: number
+          user_id: string
+          user_role: Database["public"]["Enums"]["user_role"]
         }[]
       }
       app_role: {

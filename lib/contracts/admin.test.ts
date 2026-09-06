@@ -4,6 +4,8 @@ import {
   adminDashboardSummaryResponseSchema,
   adminCourseStatusActionSchema,
   adminCourseListQuerySchema,
+  adminAuditListQuerySchema,
+  adminUserListQuerySchema,
   adminPurchaseHistoryQuerySchema,
   adminRevenueQuerySchema,
 } from "./admin";
@@ -66,5 +68,10 @@ describe("admin contracts", () => {
   it("validates course review filters and pagination", () => {
     expect(adminCourseListQuerySchema.parse({ status: "in_review", page: "2" })).toMatchObject({ status: "in_review", page: 2, pageSize: 20 });
     expect(adminCourseListQuerySchema.safeParse({ pageSize: "101" }).success).toBe(false);
+  });
+
+  it("validates user and audit directory filters", () => {
+    expect(adminUserListQuerySchema.parse({ role: "instructor" })).toMatchObject({ role: "instructor", page: 1, pageSize: 20 });
+    expect(adminAuditListQuerySchema.safeParse({ pageSize: "0" }).success).toBe(false);
   });
 });

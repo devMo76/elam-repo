@@ -127,3 +127,27 @@ export const adminCourseListResponseSchema = z.strictObject({
 });
 
 export type AdminCourseListQuery = z.infer<typeof adminCourseListQuerySchema>;
+
+const adminPaginationQuery = {
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+};
+
+export const adminUserListQuerySchema = z.strictObject({
+  search: z.string().trim().min(1).max(160).optional(),
+  role: z.enum(["learner", "instructor", "admin"]).optional(),
+  ...adminPaginationQuery,
+});
+export const adminUserListResponseSchema = z.strictObject({
+  data: z.array(z.strictObject({ id: z.uuid(), fullName: z.string().min(1), email: z.email(), role: z.enum(["learner", "instructor", "admin"]), createdAt: z.iso.datetime({ offset: true }) })),
+  pagination: z.strictObject({ page: z.number(), pageSize: z.number(), totalCount: nonnegativeSafeInteger, totalPages: nonnegativeSafeInteger }),
+});
+export const adminAuditListQuerySchema = z.strictObject({
+  action: z.string().trim().min(1).max(100).optional(), ...adminPaginationQuery,
+});
+export const adminAuditListResponseSchema = z.strictObject({
+  data: z.array(z.strictObject({ id: nonnegativeSafeInteger, actorId: z.uuid().nullable(), actorName: z.string().nullable(), action: z.string(), subject: z.string().nullable(), detail: z.unknown().nullable(), createdAt: z.iso.datetime({ offset: true }) })),
+  pagination: z.strictObject({ page: z.number(), pageSize: z.number(), totalCount: nonnegativeSafeInteger, totalPages: nonnegativeSafeInteger }),
+});
+export type AdminUserListQuery = z.infer<typeof adminUserListQuerySchema>;
+export type AdminAuditListQuery = z.infer<typeof adminAuditListQuerySchema>;

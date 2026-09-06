@@ -1,0 +1,17 @@
+begin;
+select plan(9);
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000001', true);
+select throws_ok($$select * from public.admin_user_directory()$$, '42501', 'Administrator role required', 'learners cannot list users');
+select throws_ok($$select * from public.admin_audit_history()$$, '42501', 'Administrator role required', 'learners cannot list audit history');
+select set_config('request.jwt.claim.sub', '30000000-0000-4000-8000-000000000001', true);
+select is((select count(*) from public.admin_user_directory()), 4::bigint, 'admin lists users');
+select is((select count(*) from public.admin_user_directory(filter_role => 'learner')), 2::bigint, 'role filter works');
+select is((select count(*) from public.admin_user_directory(search_query => 'instructor')), 1::bigint, 'user search works');
+select throws_ok($$select * from public.admin_user_directory(page_size => 101)$$, '22023', 'Invalid pagination', 'user page limit enforced');
+select public.admin_change_user_role('10000000-0000-4000-8000-000000000002', 'instructor');
+select is((select count(*) from public.admin_audit_history(filter_action => 'role.change')), 1::bigint, 'audit action filter works');
+select is((select actor_name from public.admin_audit_history(filter_action => 'role.change')), 'Administrator Example', 'audit history identifies actor');
+select throws_ok($$update public.admin_audit_log set detail = '{}'$$, '42501', 'permission denied for table admin_audit_log', 'admins cannot mutate audit rows');
+reset role;
+select * from finish(); rollback;
