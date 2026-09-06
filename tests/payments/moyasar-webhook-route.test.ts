@@ -9,6 +9,10 @@ vi.mock("@/lib/payments/confirmation", () => ({
   confirmMoyasarPayment: vi.fn(),
   PaymentConfirmationError: class PaymentConfirmationError extends Error {},
 }));
+vi.mock("@/lib/webhooks/delivery", () => ({
+  beginWebhookDelivery: vi.fn(),
+  finishWebhookDelivery: vi.fn(),
+}));
 
 import { POST } from "@/app/api/webhooks/moyasar/route";
 import {
@@ -16,6 +20,10 @@ import {
   getMoyasarWebhookEnvironment,
 } from "@/lib/env/server";
 import { confirmMoyasarPayment } from "@/lib/payments/confirmation";
+import {
+  beginWebhookDelivery,
+  finishWebhookDelivery,
+} from "@/lib/webhooks/delivery";
 
 const paymentId = "90000000-0000-4000-8000-000000000001";
 const eventId = "91000000-0000-4000-8000-000000000001";
@@ -49,6 +57,8 @@ beforeEach(() => {
     enrollmentId: "80000000-0000-4000-8000-000000000001",
     stateChanged: true,
   });
+  vi.mocked(beginWebhookDelivery).mockResolvedValue({ id: 1, attemptCount: 1 });
+  vi.mocked(finishWebhookDelivery).mockResolvedValue(undefined);
 });
 
 describe("Moyasar webhook route", () => {
@@ -85,5 +95,13 @@ describe("Moyasar webhook route", () => {
       eventId,
       eventType: "payment_paid",
     });
+    expect(finishWebhookDelivery).toHaveBeenCalledWith(1, "completed");
+  });
+
+  it("returns a retryable error when delivery tracking is unavailable", async () => {
+    vi.mocked(beginWebhookDelivery).mockRejectedValue(new Error("database unavailable"));
+    const response = await POST(createWebhook("a-secure-webhook-secret"));
+    expect(response.status).toBe(503);
+    expect(confirmMoyasarPayment).not.toHaveBeenCalled();
   });
 });

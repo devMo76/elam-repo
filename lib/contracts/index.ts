@@ -16,6 +16,8 @@ export {
   adminRevenueResponseSchema,
   adminUserListQuerySchema,
   adminUserListResponseSchema,
+  adminWebhookListQuerySchema,
+  adminWebhookListResponseSchema,
 } from "./admin";
 export {
   authoringCourseListResponseSchema,
@@ -81,6 +83,7 @@ export type {
   AdminPurchaseHistoryQuery,
   AdminRevenueQuery,
   AdminUserListQuery,
+  AdminWebhookListQuery,
 } from "./admin";
 export type {
   CreateAuthoringCourseRequest,

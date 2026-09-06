@@ -474,11 +474,77 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_deliveries: {
+        Row: {
+          attempt_count: number
+          completed_at: string | null
+          event_key: string
+          event_type: string
+          first_received_at: string
+          id: number
+          last_error_code: string | null
+          last_received_at: string
+          provider: Database["public"]["Enums"]["webhook_provider"]
+          request_id: string | null
+          resource_id: string | null
+          status: Database["public"]["Enums"]["webhook_delivery_status"]
+        }
+        Insert: {
+          attempt_count?: number
+          completed_at?: string | null
+          event_key: string
+          event_type: string
+          first_received_at?: string
+          id?: number
+          last_error_code?: string | null
+          last_received_at?: string
+          provider: Database["public"]["Enums"]["webhook_provider"]
+          request_id?: string | null
+          resource_id?: string | null
+          status?: Database["public"]["Enums"]["webhook_delivery_status"]
+        }
+        Update: {
+          attempt_count?: number
+          completed_at?: string | null
+          event_key?: string
+          event_type?: string
+          first_received_at?: string
+          id?: number
+          last_error_code?: string | null
+          last_received_at?: string
+          provider?: Database["public"]["Enums"]["webhook_provider"]
+          request_id?: string | null
+          resource_id?: string | null
+          status?: Database["public"]["Enums"]["webhook_delivery_status"]
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      begin_webhook_delivery: {
+        Args: {
+          target_event_key: string
+          target_event_type: string
+          target_provider: Database["public"]["Enums"]["webhook_provider"]
+          target_request_id: string
+          target_resource_id: string
+        }
+        Returns: {
+          delivery_attempt_count: number
+          delivery_id: number
+        }[]
+      }
+      finish_webhook_delivery: {
+        Args: {
+          target_delivery_id: number
+          target_error_code?: string
+          target_status: Database["public"]["Enums"]["webhook_delivery_status"]
+        }
+        Returns: undefined
+      }
       admin_audit_history: {
         Args: {
           filter_action?: string
@@ -787,6 +853,8 @@ export type Database = {
       order_status: "pending" | "paid" | "failed" | "refunded" | "reversed"
       receipt_status: "pending" | "sent" | "failed"
       user_role: "learner" | "instructor" | "admin"
+      webhook_delivery_status: "received" | "completed" | "failed"
+      webhook_provider: "moyasar" | "bunny"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -919,6 +987,8 @@ export const Constants = {
       order_status: ["pending", "paid", "failed", "refunded", "reversed"],
       receipt_status: ["pending", "sent", "failed"],
       user_role: ["learner", "instructor", "admin"],
+      webhook_delivery_status: ["received", "completed", "failed"],
+      webhook_provider: ["moyasar", "bunny"],
     },
   },
 } as const

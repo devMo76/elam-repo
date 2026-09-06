@@ -151,3 +151,29 @@ export const adminAuditListResponseSchema = z.strictObject({
 });
 export type AdminUserListQuery = z.infer<typeof adminUserListQuerySchema>;
 export type AdminAuditListQuery = z.infer<typeof adminAuditListQuerySchema>;
+
+export const adminWebhookListQuerySchema = z.strictObject({
+  provider: z.enum(["moyasar", "bunny"]).optional(),
+  status: z.enum(["received", "completed", "failed"]).optional(),
+  ...adminPaginationQuery,
+});
+
+export const adminWebhookListResponseSchema = z.strictObject({
+  data: z.array(z.strictObject({
+    id: nonnegativeSafeInteger,
+    provider: z.enum(["moyasar", "bunny"]),
+    eventKey: z.string(),
+    eventType: z.string(),
+    resourceId: z.string().nullable(),
+    status: z.enum(["received", "completed", "failed"]),
+    attemptCount: z.number().int().positive(),
+    requestId: z.string().nullable(),
+    lastErrorCode: z.string().nullable(),
+    firstReceivedAt: z.iso.datetime({ offset: true }),
+    lastReceivedAt: z.iso.datetime({ offset: true }),
+    completedAt: z.iso.datetime({ offset: true }).nullable(),
+  })),
+  pagination: z.strictObject({ page: z.number(), pageSize: z.number(), totalCount: nonnegativeSafeInteger, totalPages: nonnegativeSafeInteger }),
+});
+
+export type AdminWebhookListQuery = z.infer<typeof adminWebhookListQuerySchema>;

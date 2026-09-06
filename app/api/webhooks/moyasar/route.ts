@@ -14,6 +14,10 @@ import {
   moyasarWebhookSchema,
   verifyMoyasarWebhookSecret,
 } from "@/lib/payments/moyasar";
+import {
+  beginWebhookDelivery,
+  finishWebhookDelivery,
+} from "@/lib/webhooks/delivery";
 
 export const runtime = "nodejs";
 
@@ -103,6 +107,20 @@ export async function POST(request: Request) {
     );
   }
 
+  let delivery;
+  try {
+    delivery = await beginWebhookDelivery({
+      provider: "moyasar",
+      eventKey: webhook.data.id,
+      eventType: webhook.data.type,
+      resourceId: webhook.data.data.id,
+      requestId,
+    });
+  } catch (error) {
+    logger.error("moyasar.webhook.tracking_failed", { requestId, error });
+    return createApiError(503, "webhook_tracking_unavailable", "The webhook could not be recorded.");
+  }
+
   try {
     await confirmMoyasarPayment(webhook.data.data.id, {
       kind: "webhook",
@@ -111,6 +129,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     if (error instanceof PaymentConfirmationError) {
+      await finishWebhookDelivery(delivery.id, "failed", error.code).catch(() => undefined);
       logger.warn("moyasar.webhook.rejected", {
         requestId,
         eventId: webhook.data.id,
@@ -120,6 +139,7 @@ export async function POST(request: Request) {
       return createApiError(error.status, error.code, error.message);
     }
 
+    await finishWebhookDelivery(delivery.id, "failed", "payment_confirmation_failed").catch(() => undefined);
     logger.error("moyasar.webhook.failed", {
       requestId,
       eventId: webhook.data.id,
@@ -134,11 +154,19 @@ export async function POST(request: Request) {
     );
   }
 
+  try {
+    await finishWebhookDelivery(delivery.id, "completed");
+  } catch (error) {
+    logger.error("moyasar.webhook.tracking_failed", { requestId, error });
+    return createApiError(503, "webhook_tracking_unavailable", "The webhook result could not be recorded.");
+  }
+
   logger.info("moyasar.webhook.completed", {
     requestId,
     eventId: webhook.data.id,
     paymentId: webhook.data.data.id,
     eventType: webhook.data.type,
+    attemptCount: delivery.attemptCount,
   });
 
   return new Response(null, { status: 204 });

@@ -8,6 +8,10 @@ import {
   mapBunnyStatus,
   verifyBunnyWebhookSignature,
 } from "@/lib/video/webhook";
+import {
+  beginWebhookDelivery,
+  finishWebhookDelivery,
+} from "@/lib/webhooks/delivery";
 
 export const runtime = "nodejs";
 
@@ -88,6 +92,24 @@ export async function POST(request: Request) {
     );
   }
 
+  let delivery;
+  try {
+    delivery = await beginWebhookDelivery({
+      provider: "bunny",
+      eventKey: `${webhook.data.VideoGuid}:${webhook.data.Status}`,
+      eventType: `video_status_${webhook.data.Status}`,
+      resourceId: webhook.data.VideoGuid,
+      requestId,
+    });
+  } catch (error) {
+    logger.error("bunny.webhook.tracking_failed", { requestId, error });
+    return createApiError(
+      503,
+      "webhook_tracking_unavailable",
+      "The webhook could not be recorded.",
+    );
+  }
+
   let video;
 
   try {
@@ -95,6 +117,7 @@ export async function POST(request: Request) {
     // Fetching current provider state makes delayed events safe.
     video = await getBunnyVideo(webhook.data.VideoGuid);
   } catch (error) {
+    await finishWebhookDelivery(delivery.id, "failed", "video_provider_unavailable").catch(() => undefined);
     logger.error("bunny.webhook.provider_check_failed", {
       requestId,
       videoId: webhook.data.VideoGuid,
@@ -111,6 +134,11 @@ export async function POST(request: Request) {
     String(video.videoLibraryId) !== environment.BUNNY_STREAM_LIBRARY_ID ||
     video.guid !== webhook.data.VideoGuid
   ) {
+    await finishWebhookDelivery(
+      delivery.id,
+      "failed",
+      "video_identity_mismatch",
+    ).catch(() => undefined);
     return createApiError(
       400,
       "video_identity_mismatch",
@@ -121,6 +149,16 @@ export async function POST(request: Request) {
   const mediaStatus = mapBunnyStatus(video.status);
 
   if (!mediaStatus) {
+    try {
+      await finishWebhookDelivery(delivery.id, "completed");
+    } catch (error) {
+      logger.error("bunny.webhook.tracking_failed", { requestId, error });
+      return createApiError(
+        503,
+        "webhook_tracking_unavailable",
+        "The webhook result could not be recorded.",
+      );
+    }
     return new Response(null, { status: 204 });
   }
 
@@ -134,6 +172,7 @@ export async function POST(request: Request) {
     .eq("video_asset_id", video.guid);
 
   if (error) {
+    await finishWebhookDelivery(delivery.id, "failed", "video_status_update_failed").catch(() => undefined);
     logger.error("bunny.webhook.database_update_failed", {
       requestId,
       videoId: video.guid,
@@ -146,10 +185,18 @@ export async function POST(request: Request) {
     );
   }
 
+  try {
+    await finishWebhookDelivery(delivery.id, "completed");
+  } catch (error) {
+    logger.error("bunny.webhook.tracking_failed", { requestId, error });
+    return createApiError(503, "webhook_tracking_unavailable", "The webhook result could not be recorded.");
+  }
+
   logger.info("bunny.webhook.completed", {
     requestId,
     videoId: video.guid,
     mediaStatus,
+    attemptCount: delivery.attemptCount,
   });
 
   return new Response(null, { status: 204 });
