@@ -1,6 +1,6 @@
 begin;
 
-select plan(43);
+select plan(46);
 
 select has_type('public', 'user_role', 'user_role enum exists');
 select has_type('public', 'course_status', 'course_status enum exists');
@@ -87,6 +87,9 @@ select is((select count(*) from pg_proc where pronamespace = 'public'::regnamesp
 select is((select count(*) from pg_proc where pronamespace = 'public'::regnamespace and proname = 'reorder_module_lessons'), 1::bigint, 'lesson reorder transaction exists');
 select is((select count(*) from pg_proc where pronamespace = 'public'::regnamespace and proname = 'delete_draft_module_lesson'), 1::bigint, 'draft lesson delete transaction exists');
 select is((select count(*) from pg_proc where pronamespace = 'public'::regnamespace and proname = 'submit_course_for_review'), 1::bigint, 'course review submission transaction exists');
+select is((select count(*) from pg_proc where pronamespace = 'public'::regnamespace and proname = 'protect_lesson_video_fields'), 1::bigint, 'lesson video field protection exists');
+select is((select count(*) from pg_proc where pronamespace = 'public'::regnamespace and proname = 'reject_module_reparent'), 1::bigint, 'module hierarchy protection exists');
+select is((select count(*) from pg_proc where pronamespace = 'public'::regnamespace and proname = 'reject_lesson_reparent'), 1::bigint, 'lesson hierarchy protection exists');
 
 select is(
   (

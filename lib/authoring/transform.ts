@@ -1,13 +1,25 @@
 import {
   authoringCourseSchema,
+  authoringLessonSchema,
   authoringModuleSchema,
 } from "@/lib/contracts";
+
+type RawLesson = {
+  id: string;
+  module_id: string;
+  title: string;
+  position: number;
+  duration_seconds: number | null;
+  is_free_preview: boolean;
+  media_status: "absent" | "uploading" | "processing" | "ready" | "failed";
+};
 
 type RawModule = {
   id: string;
   course_id: string;
   title: string;
   position: number;
+  lessons?: RawLesson[] | null;
 };
 
 type RawCourse = {
@@ -33,6 +45,21 @@ export function toAuthoringModule(rawModule: RawModule) {
     courseId: rawModule.course_id,
     title: rawModule.title,
     position: rawModule.position,
+    lessons: [...(rawModule.lessons ?? [])]
+      .sort((left, right) => left.position - right.position)
+      .map(toAuthoringLesson),
+  });
+}
+
+export function toAuthoringLesson(rawLesson: RawLesson) {
+  return authoringLessonSchema.parse({
+    id: rawLesson.id,
+    moduleId: rawLesson.module_id,
+    title: rawLesson.title,
+    position: rawLesson.position,
+    durationSeconds: rawLesson.duration_seconds,
+    isFreePreview: rawLesson.is_free_preview,
+    mediaStatus: rawLesson.media_status,
   });
 }
 

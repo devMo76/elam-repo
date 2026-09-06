@@ -1,6 +1,6 @@
 begin;
 
-select plan(32);
+select plan(35);
 
 insert into auth.users (id, email, raw_user_meta_data)
 values (
@@ -192,6 +192,30 @@ select throws_ok(
   '42501',
   'Module is not available for authoring',
   'an instructor cannot append to another instructor module'
+);
+select throws_ok(
+  $$update public.lessons
+    set media_status = 'ready', video_asset_id = 'forged-browser-asset'
+    where id = '60000000-0000-4000-8000-000000000004'$$,
+  '42501',
+  'permission denied for table lessons',
+  'instructors cannot forge video provider state directly'
+);
+select throws_ok(
+  $$update public.modules
+    set course_id = '40000000-0000-4000-8000-000000000001'
+    where id = '50000000-0000-4000-8000-000000000003'$$,
+  '23514',
+  'Modules cannot be moved between courses',
+  'existing modules cannot be reparented'
+);
+select throws_ok(
+  $$update public.lessons
+    set module_id = '50000000-0000-4000-8000-000000000001'
+    where id = '60000000-0000-4000-8000-000000000004'$$,
+  '23514',
+  'Lessons cannot be moved between modules',
+  'existing lessons cannot be reparented'
 );
 
 select lives_ok(

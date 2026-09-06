@@ -3,13 +3,19 @@ export {
   authoringCourseResponseSchema,
   authoringCourseSchema,
   authoringCourseStatusSchema,
+  authoringLessonResponseSchema,
+  authoringLessonSchema,
   authoringModuleResponseSchema,
   authoringModuleSchema,
   createAuthoringCourseRequestSchema,
+  createLessonRequestSchema,
   createModuleRequestSchema,
   reorderModulesRequestSchema,
   reorderModulesResponseSchema,
+  reorderLessonsRequestSchema,
+  reorderLessonsResponseSchema,
   updateAuthoringCourseRequestSchema,
+  updateLessonRequestSchema,
   updateModuleRequestSchema,
 } from "./authoring";
 export {
@@ -46,6 +52,7 @@ export type { ApiErrorCode, ApiErrorResponse } from "./api-error";
 export type {
   CreateAuthoringCourseRequest,
   UpdateAuthoringCourseRequest,
+  UpdateLessonRequest,
 } from "./authoring";
 export type {
   CatalogueCourseDetail,

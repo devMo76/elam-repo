@@ -12,7 +12,13 @@ import { toAuthoringCourse } from "./transform";
 const courseSelect = `
   id, slug, department, course_code, title, subtitle, description,
   price_halalas, currency, status, cover_url, created_at, published_at,
-  modules (id, course_id, title, position)
+  modules (
+    id, course_id, title, position,
+    lessons (
+      id, module_id, title, position, duration_seconds,
+      is_free_preview, media_status
+    )
+  )
 `;
 
 export async function listInstructorCourses() {

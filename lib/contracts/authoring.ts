@@ -55,11 +55,44 @@ export const reorderModulesRequestSchema = z.strictObject({
     }),
 });
 
+export const createLessonRequestSchema = z.strictObject({
+  title: requiredText(160),
+});
+
+export const updateLessonRequestSchema = z
+  .strictObject({
+    title: requiredText(160).optional(),
+    isFreePreview: z.boolean().optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, {
+    message: "At least one lesson field is required.",
+  });
+
+export const reorderLessonsRequestSchema = z.strictObject({
+  lessonIds: z
+    .array(z.uuid())
+    .max(1_000)
+    .refine((ids) => new Set(ids).size === ids.length, {
+      message: "Lesson IDs must be unique.",
+    }),
+});
+
+export const authoringLessonSchema = z.strictObject({
+  id: z.uuid(),
+  moduleId: z.uuid(),
+  title: z.string().min(1),
+  position: z.number().int().positive(),
+  durationSeconds: z.number().int().nonnegative().nullable(),
+  isFreePreview: z.boolean(),
+  mediaStatus: z.enum(["absent", "uploading", "processing", "ready", "failed"]),
+});
+
 export const authoringModuleSchema = z.strictObject({
   id: z.uuid(),
   courseId: z.uuid(),
   title: z.string().min(1),
   position: z.number().int().positive(),
+  lessons: z.array(authoringLessonSchema),
 });
 
 export const authoringCourseSchema = z.strictObject({
@@ -91,8 +124,16 @@ export const authoringModuleResponseSchema = z.strictObject({
   data: authoringModuleSchema,
 });
 
+export const authoringLessonResponseSchema = z.strictObject({
+  data: authoringLessonSchema,
+});
+
 export const reorderModulesResponseSchema = z.strictObject({
   data: z.strictObject({ moduleIds: z.array(z.uuid()) }),
+});
+
+export const reorderLessonsResponseSchema = z.strictObject({
+  data: z.strictObject({ lessonIds: z.array(z.uuid()) }),
 });
 
 export type CreateAuthoringCourseRequest = z.infer<
@@ -101,3 +142,4 @@ export type CreateAuthoringCourseRequest = z.infer<
 export type UpdateAuthoringCourseRequest = z.infer<
   typeof updateAuthoringCourseRequestSchema
 >;
+export type UpdateLessonRequest = z.infer<typeof updateLessonRequestSchema>;

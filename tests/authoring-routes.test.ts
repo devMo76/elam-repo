@@ -12,12 +12,21 @@ vi.mock("@/lib/authoring/modules", () => ({
   reorderCourseModules: vi.fn(),
   deleteCourseModule: vi.fn(),
 }));
+vi.mock("@/lib/authoring/lessons", () => ({
+  createModuleLesson: vi.fn(),
+  updateModuleLesson: vi.fn(),
+  reorderModuleLessons: vi.fn(),
+  deleteModuleLesson: vi.fn(),
+}));
 
 import { GET as listCourses, POST as createCourse } from "@/app/api/instructor/courses/route";
 import { GET as getCourse, PATCH as updateCourse } from "@/app/api/instructor/courses/[courseId]/route";
 import { POST as createModule } from "@/app/api/instructor/courses/[courseId]/modules/route";
 import { PUT as reorderModules } from "@/app/api/instructor/courses/[courseId]/modules/order/route";
 import { DELETE as deleteModule, PATCH as renameModule } from "@/app/api/instructor/modules/[moduleId]/route";
+import { POST as createLesson } from "@/app/api/instructor/modules/[moduleId]/lessons/route";
+import { PUT as reorderLessons } from "@/app/api/instructor/modules/[moduleId]/lessons/order/route";
+import { DELETE as deleteLesson, PATCH as updateLesson } from "@/app/api/instructor/lessons/[lessonId]/route";
 import {
   createInstructorCourse,
   getInstructorCourse,
@@ -31,6 +40,12 @@ import {
   renameCourseModule,
   reorderCourseModules,
 } from "@/lib/authoring/modules";
+import {
+  createModuleLesson,
+  deleteModuleLesson,
+  reorderModuleLessons,
+  updateModuleLesson,
+} from "@/lib/authoring/lessons";
 
 const courseId = "11111111-1111-4111-8111-111111111111";
 const moduleId = "22222222-2222-4222-8222-222222222222";
@@ -50,7 +65,23 @@ const course = {
   publishedAt: null,
   modules: [],
 };
-const courseModule = { id: moduleId, courseId, title: "Introduction", position: 1 };
+const lessonId = "33333333-3333-4333-8333-333333333333";
+const courseModule = {
+  id: moduleId,
+  courseId,
+  title: "Introduction",
+  position: 1,
+  lessons: [],
+};
+const lesson = {
+  id: lessonId,
+  moduleId,
+  title: "First Lesson",
+  position: 1,
+  durationSeconds: null,
+  isFreePreview: false,
+  mediaStatus: "absent" as const,
+};
 
 function jsonRequest(path: string, method: string, body: unknown) {
   return new Request(`http://localhost${path}`, {
@@ -170,5 +201,75 @@ describe("instructor module routes", () => {
     });
     expect(response.status).toBe(204);
     expect(deleteCourseModule).toHaveBeenCalledWith(moduleId);
+  });
+});
+
+describe("instructor lesson routes", () => {
+  it("creates a lesson through the atomic append service", async () => {
+    vi.mocked(createModuleLesson).mockResolvedValue(lesson);
+    const response = await createLesson(
+      jsonRequest(`/api/instructor/modules/${moduleId}/lessons`, "POST", {
+        title: lesson.title,
+      }),
+      { params: Promise.resolve({ moduleId }) },
+    );
+
+    expect(response.status).toBe(201);
+    expect(createModuleLesson).toHaveBeenCalledWith(moduleId, lesson.title);
+    await expect(response.json()).resolves.toEqual({ data: lesson });
+  });
+
+  it("updates only editable lesson fields", async () => {
+    vi.mocked(updateModuleLesson).mockResolvedValue({
+      ...lesson,
+      isFreePreview: true,
+    });
+    const response = await updateLesson(
+      jsonRequest(`/api/instructor/lessons/${lessonId}`, "PATCH", {
+        isFreePreview: true,
+      }),
+      { params: Promise.resolve({ lessonId }) },
+    );
+
+    expect(response.status).toBe(200);
+    expect(updateModuleLesson).toHaveBeenCalledWith(lessonId, {
+      isFreePreview: true,
+    });
+  });
+
+  it("rejects direct video state changes at the contract boundary", async () => {
+    const response = await updateLesson(
+      jsonRequest(`/api/instructor/lessons/${lessonId}`, "PATCH", {
+        mediaStatus: "ready",
+        videoAssetId: "forged",
+      }),
+      { params: Promise.resolve({ lessonId }) },
+    );
+
+    expect(response.status).toBe(422);
+    expect(updateModuleLesson).not.toHaveBeenCalled();
+  });
+
+  it("rejects duplicate lesson order before database access", async () => {
+    const response = await reorderLessons(
+      jsonRequest(`/api/instructor/modules/${moduleId}/lessons/order`, "PUT", {
+        lessonIds: [lessonId, lessonId],
+      }),
+      { params: Promise.resolve({ moduleId }) },
+    );
+
+    expect(response.status).toBe(422);
+    expect(reorderModuleLessons).not.toHaveBeenCalled();
+  });
+
+  it("deletes a draft lesson without returning a body", async () => {
+    vi.mocked(deleteModuleLesson).mockResolvedValue(undefined);
+    const response = await deleteLesson(
+      new Request("http://localhost", { method: "DELETE" }),
+      { params: Promise.resolve({ lessonId }) },
+    );
+
+    expect(response.status).toBe(204);
+    expect(deleteModuleLesson).toHaveBeenCalledWith(lessonId);
   });
 });
