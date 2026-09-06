@@ -494,6 +494,40 @@ export type Database = {
           total_revenue_halalas: number
         }[]
       }
+      admin_purchase_history: {
+        Args: {
+          created_before?: string
+          created_from?: string
+          filter_status?: Database["public"]["Enums"]["order_status"]
+          page_offset?: number
+          page_size?: number
+          search_query?: string
+        }
+        Returns: {
+          amount_halalas: number
+          course_id: string
+          course_title: string
+          created_at: string
+          currency: string
+          learner_email: string
+          learner_name: string
+          order_id: string
+          order_status: Database["public"]["Enums"]["order_status"]
+          paid_at: string
+          refunded_at: string
+          reversed_at: string
+          total_count: number
+        }[]
+      }
+      admin_revenue_by_course: {
+        Args: { paid_before?: string; paid_from?: string }
+        Returns: {
+          course_id: string
+          course_title: string
+          paid_order_count: number
+          revenue_halalas: number
+        }[]
+      }
       app_role: {
         Args: never
         Returns: Database["public"]["Enums"]["user_role"]

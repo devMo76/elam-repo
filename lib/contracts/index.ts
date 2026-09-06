@@ -1,6 +1,13 @@
 export {
+  adminCourseRevenueSchema,
   adminDashboardSummaryResponseSchema,
   adminDashboardSummarySchema,
+  adminOrderStatusSchema,
+  adminPurchaseHistoryQuerySchema,
+  adminPurchaseHistoryResponseSchema,
+  adminPurchaseSchema,
+  adminRevenueQuerySchema,
+  adminRevenueResponseSchema,
 } from "./admin";
 export {
   authoringCourseListResponseSchema,
@@ -59,7 +66,11 @@ export {
 } from "./video";
 
 export type { ApiErrorCode, ApiErrorResponse } from "./api-error";
-export type { AdminDashboardSummary } from "./admin";
+export type {
+  AdminDashboardSummary,
+  AdminPurchaseHistoryQuery,
+  AdminRevenueQuery,
+} from "./admin";
 export type {
   CreateAuthoringCourseRequest,
   UpdateAuthoringCourseRequest,
