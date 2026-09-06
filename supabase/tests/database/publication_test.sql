@@ -125,15 +125,16 @@ select throws_ok(
   'an instructor cannot archive a course'
 );
 
-select throws_ok(
-  $test$
+with changed as (
     update public.courses
     set status = 'draft'
     where id = '40000000-0000-4000-8000-000000000004'
-  $test$,
-  '42501',
-  'Course status transition not permitted',
-  'an instructor cannot restore an archived course'
+    returning 1
+)
+select is(
+  (select count(*) from changed),
+  0::bigint,
+  'RLS prevents an instructor from restoring an archived course'
 );
 
 do $$

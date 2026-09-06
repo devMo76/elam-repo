@@ -1,6 +1,6 @@
 begin;
 
-select plan(29);
+select plan(32);
 
 insert into auth.users (id, email, raw_user_meta_data)
 values (
@@ -19,6 +19,21 @@ values (
   'Second Authoring Draft',
   10000,
   '20000000-0000-4000-8000-000000000009'
+);
+
+insert into public.modules (id, course_id, title, position)
+values (
+  '50000000-0000-4000-8000-000000000009',
+  '40000000-0000-4000-8000-000000000004',
+  'Archived Module',
+  1
+);
+insert into public.lessons (id, module_id, title, position)
+values (
+  '60000000-0000-4000-8000-000000000009',
+  '50000000-0000-4000-8000-000000000009',
+  'Archived Lesson',
+  1
 );
 
 select is(
@@ -251,6 +266,29 @@ select throws_ok(
   'Course is not available for authoring',
   'learners cannot append course modules'
 );
+
+select set_config('request.jwt.claim.sub', '20000000-0000-4000-8000-000000000001', true);
+with changed as (
+  update public.courses
+  set title = 'Forbidden archived edit'
+  where id = '40000000-0000-4000-8000-000000000004'
+  returning 1
+)
+select is((select count(*) from changed), 0::bigint, 'instructors cannot update archived courses directly');
+with changed as (
+  update public.modules
+  set title = 'Forbidden archived module edit'
+  where id = '50000000-0000-4000-8000-000000000009'
+  returning 1
+)
+select is((select count(*) from changed), 0::bigint, 'instructors cannot update archived modules directly');
+with changed as (
+  update public.lessons
+  set title = 'Forbidden archived lesson edit'
+  where id = '60000000-0000-4000-8000-000000000009'
+  returning 1
+)
+select is((select count(*) from changed), 0::bigint, 'instructors cannot update archived lessons directly');
 
 reset role;
 select * from finish();
