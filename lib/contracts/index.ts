@@ -1,4 +1,30 @@
 export {
+  authoringCourseListResponseSchema,
+  authoringCourseResponseSchema,
+  authoringCourseStatusResponseSchema,
+  authoringCourseSchema,
+  authoringCourseStatusSchema,
+  authoringLessonResponseSchema,
+  authoringLessonSchema,
+  instructorAuthoringProfileResponseSchema,
+  instructorAuthoringProfileSchema,
+  instructorCourseStatisticSchema,
+  instructorStatisticsResponseSchema,
+  authoringModuleResponseSchema,
+  authoringModuleSchema,
+  createAuthoringCourseRequestSchema,
+  createLessonRequestSchema,
+  createModuleRequestSchema,
+  reorderModulesRequestSchema,
+  reorderModulesResponseSchema,
+  reorderLessonsRequestSchema,
+  reorderLessonsResponseSchema,
+  updateAuthoringCourseRequestSchema,
+  updateLessonRequestSchema,
+  updateInstructorProfileRequestSchema,
+  updateModuleRequestSchema,
+} from "./authoring";
+export {
   apiErrorCodeSchema,
   apiErrorResponseSchema,
   apiFieldErrorsSchema,
@@ -29,6 +55,12 @@ export {
 } from "./video";
 
 export type { ApiErrorCode, ApiErrorResponse } from "./api-error";
+export type {
+  CreateAuthoringCourseRequest,
+  UpdateAuthoringCourseRequest,
+  UpdateLessonRequest,
+  UpdateInstructorProfileRequest,
+} from "./authoring";
 export type {
   CatalogueCourseDetail,
   CatalogueCourseSummary,
