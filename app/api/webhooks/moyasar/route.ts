@@ -3,6 +3,7 @@ import {
   getMoyasarWebhookEnvironment,
 } from "@/lib/env/server";
 import { createApiError } from "@/lib/http/api-response";
+import { getRequestId, logger } from "@/lib/observability/logger";
 import {
   confirmMoyasarPayment,
   PaymentConfirmationError,
@@ -19,6 +20,7 @@ export const runtime = "nodejs";
 const MAX_WEBHOOK_BYTES = 64 * 1024;
 
 export async function POST(request: Request) {
+  const requestId = getRequestId(request);
   const contentLength = Number(request.headers.get("content-length") ?? 0);
 
   if (Number.isFinite(contentLength) && contentLength > MAX_WEBHOOK_BYTES) {
@@ -109,8 +111,21 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     if (error instanceof PaymentConfirmationError) {
+      logger.warn("moyasar.webhook.rejected", {
+        requestId,
+        eventId: webhook.data.id,
+        paymentId: webhook.data.data.id,
+        errorCode: error.code,
+      });
       return createApiError(error.status, error.code, error.message);
     }
+
+    logger.error("moyasar.webhook.failed", {
+      requestId,
+      eventId: webhook.data.id,
+      paymentId: webhook.data.data.id,
+      error,
+    });
 
     return createApiError(
       500,
@@ -118,6 +133,13 @@ export async function POST(request: Request) {
       "The payment could not be confirmed.",
     );
   }
+
+  logger.info("moyasar.webhook.completed", {
+    requestId,
+    eventId: webhook.data.id,
+    paymentId: webhook.data.data.id,
+    eventType: webhook.data.type,
+  });
 
   return new Response(null, { status: 204 });
 }

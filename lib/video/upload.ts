@@ -2,6 +2,7 @@ import "server-only";
 
 import { directVideoUploadResponseSchema } from "@/lib/contracts";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logger } from "@/lib/observability/logger";
 import {
   createBunnyUploadAuthorization,
   createBunnyVideo,
@@ -25,7 +26,7 @@ async function removeUnclaimedVideo(videoId: string) {
     await deleteBunnyVideo(videoId);
   } catch {
     // The upload remains unusable because it was never bound to a lesson.
-    console.error("Failed to remove an unclaimed Bunny video.", { videoId });
+    logger.error("bunny.unclaimed_video_cleanup_failed", { videoId });
   }
 }
 

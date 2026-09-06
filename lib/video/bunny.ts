@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 
 import { getBunnyStreamEnvironment } from "@/lib/env/server";
+import { observeProviderCall } from "@/lib/observability/logger";
 
 const bunnyVideoSchema = z.object({
   guid: z.uuid(),
@@ -57,15 +58,17 @@ async function parseVideoResponse(
 export async function createBunnyVideo(title: string): Promise<BunnyVideo> {
   const environment = getBunnyStreamEnvironment();
 
-  const response = await fetch(getLibraryPath("/videos"), {
-    method: "POST",
-    headers: {
-      AccessKey: environment.BUNNY_STREAM_API_KEY,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ title }),
-    signal: AbortSignal.timeout(10_000),
-  });
+  const response = await observeProviderCall("bunny", "create_video", () =>
+    fetch(getLibraryPath("/videos"), {
+      method: "POST",
+      headers: {
+        AccessKey: environment.BUNNY_STREAM_API_KEY,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ title }),
+      signal: AbortSignal.timeout(10_000),
+    }),
+  );
 
   return parseVideoResponse(response, "create video");
 }
@@ -73,13 +76,15 @@ export async function createBunnyVideo(title: string): Promise<BunnyVideo> {
 export async function getBunnyVideo(videoId: string): Promise<BunnyVideo> {
   const environment = getBunnyStreamEnvironment();
 
-  const response = await fetch(getLibraryPath(`/videos/${videoId}`), {
-    headers: {
-      AccessKey: environment.BUNNY_STREAM_READ_ONLY_API_KEY,
-    },
-    cache: "no-store",
-    signal: AbortSignal.timeout(10_000),
-  });
+  const response = await observeProviderCall("bunny", "get_video", () =>
+    fetch(getLibraryPath(`/videos/${videoId}`), {
+      headers: {
+        AccessKey: environment.BUNNY_STREAM_READ_ONLY_API_KEY,
+      },
+      cache: "no-store",
+      signal: AbortSignal.timeout(10_000),
+    }),
+  );
 
   return parseVideoResponse(response, "get video");
 }
@@ -87,13 +92,15 @@ export async function getBunnyVideo(videoId: string): Promise<BunnyVideo> {
 export async function deleteBunnyVideo(videoId: string): Promise<void> {
   const environment = getBunnyStreamEnvironment();
 
-  const response = await fetch(getLibraryPath(`/videos/${videoId}`), {
-    method: "DELETE",
-    headers: {
-      AccessKey: environment.BUNNY_STREAM_API_KEY,
-    },
-    signal: AbortSignal.timeout(10_000),
-  });
+  const response = await observeProviderCall("bunny", "delete_video", () =>
+    fetch(getLibraryPath(`/videos/${videoId}`), {
+      method: "DELETE",
+      headers: {
+        AccessKey: environment.BUNNY_STREAM_API_KEY,
+      },
+      signal: AbortSignal.timeout(10_000),
+    }),
+  );
 
   if (!response.ok) {
     throw new BunnyStreamError("delete video", response.status);

@@ -2,6 +2,7 @@ import "server-only";
 
 import { ResendApiError, sendEmail } from "@/lib/email/resend";
 import { createPaymentReceiptEmail } from "@/lib/email/templates/payment-receipt";
+import { logger } from "@/lib/observability/logger";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 class ReceiptDeliveryError extends Error {
@@ -43,6 +44,7 @@ export async function attemptPaymentReceipt(orderId: string) {
     const claim = claims[0];
 
     if (!claim?.should_send) {
+      logger.info("payment.receipt.skipped", { orderId });
       return { status: "skipped" as const };
     }
 
@@ -106,9 +108,16 @@ export async function attemptPaymentReceipt(orderId: string) {
       throw new ReceiptDeliveryError("receipt_completion_failed");
     }
 
+    logger.info("payment.receipt.sent", {
+      orderId,
+      providerEmailId: sentEmail.id,
+    });
+
     return { status: "sent" as const };
   } catch (error) {
     const code = getSafeErrorCode(error);
+
+    logger.error("payment.receipt.failed", { orderId, errorCode: code, error });
 
     // If Resend accepted the email, keep the active lease. A later attempt can
     // reuse the same idempotency key instead of marking a delivered email failed.

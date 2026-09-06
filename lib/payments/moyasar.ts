@@ -5,6 +5,7 @@ import { timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 
 import { getMoyasarApiEnvironment } from "@/lib/env/server";
+import { observeProviderCall } from "@/lib/observability/logger";
 
 const moyasarPaymentStatusSchema = z.enum([
   "initiated",
@@ -82,16 +83,18 @@ export function isExpectedMoyasarMode(live: boolean, secretKey: string) {
 
 export async function fetchMoyasarPayment(paymentId: string) {
   const environment = getMoyasarApiEnvironment();
-  const response = await fetch(`${MOYASAR_API_URL}/payments/${paymentId}`, {
-    headers: {
-      Authorization: `Basic ${Buffer.from(
-        `${environment.MOYASAR_SECRET_KEY}:`,
-      ).toString("base64")}`,
-      Accept: "application/json",
-    },
-    cache: "no-store",
-    signal: AbortSignal.timeout(10_000),
-  });
+  const response = await observeProviderCall("moyasar", "fetch_payment", () =>
+    fetch(`${MOYASAR_API_URL}/payments/${paymentId}`, {
+      headers: {
+        Authorization: `Basic ${Buffer.from(
+          `${environment.MOYASAR_SECRET_KEY}:`,
+        ).toString("base64")}`,
+        Accept: "application/json",
+      },
+      cache: "no-store",
+      signal: AbortSignal.timeout(10_000),
+    }),
+  );
 
   if (!response.ok) {
     throw new MoyasarApiError("fetch payment", response.status);

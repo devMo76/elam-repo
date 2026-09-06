@@ -1,6 +1,7 @@
 import { bunnyWebhookSchema } from "@/lib/contracts";
 import { getBunnyStreamEnvironment } from "@/lib/env/server";
 import { createApiError } from "@/lib/http/api-response";
+import { getRequestId, logger } from "@/lib/observability/logger";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getBunnyVideo } from "@/lib/video/bunny";
 import {
@@ -13,6 +14,7 @@ export const runtime = "nodejs";
 const MAX_WEBHOOK_BYTES = 64 * 1024;
 
 export async function POST(request: Request) {
+  const requestId = getRequestId(request);
   const environment = getBunnyStreamEnvironment();
   const contentLength = Number(request.headers.get("content-length") ?? 0);
 
@@ -63,7 +65,8 @@ export async function POST(request: Request) {
   const webhook = bunnyWebhookSchema.safeParse(parsedJson);
 
   if (!webhook.success) {
-    console.warn("Rejected Bunny webhook payload.", {
+    logger.warn("bunny.webhook.invalid_payload", {
+      requestId,
       issues: webhook.error.issues.map(({ code, path }) => ({ code, path })),
     });
 
@@ -91,7 +94,12 @@ export async function POST(request: Request) {
     // Bunny signatures authenticate the event but carry no replay timestamp.
     // Fetching current provider state makes delayed events safe.
     video = await getBunnyVideo(webhook.data.VideoGuid);
-  } catch {
+  } catch (error) {
+    logger.error("bunny.webhook.provider_check_failed", {
+      requestId,
+      videoId: webhook.data.VideoGuid,
+      error,
+    });
     return createApiError(
       502,
       "video_provider_unavailable",
@@ -126,12 +134,23 @@ export async function POST(request: Request) {
     .eq("video_asset_id", video.guid);
 
   if (error) {
+    logger.error("bunny.webhook.database_update_failed", {
+      requestId,
+      videoId: video.guid,
+      errorCode: error.code,
+    });
     return createApiError(
       500,
       "video_status_update_failed",
       "The lesson video status could not be updated.",
     );
   }
+
+  logger.info("bunny.webhook.completed", {
+    requestId,
+    videoId: video.guid,
+    mediaStatus,
+  });
 
   return new Response(null, { status: 204 });
 }
