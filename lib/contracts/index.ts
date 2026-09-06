@@ -1,4 +1,23 @@
 export {
+  adminAuditListQuerySchema,
+  adminAuditListResponseSchema,
+  adminCourseStatusActionSchema,
+  adminCourseStatusResponseSchema,
+  adminCourseListQuerySchema,
+  adminCourseListResponseSchema,
+  adminCourseRevenueSchema,
+  adminDashboardSummaryResponseSchema,
+  adminDashboardSummarySchema,
+  adminOrderStatusSchema,
+  adminPurchaseHistoryQuerySchema,
+  adminPurchaseHistoryResponseSchema,
+  adminPurchaseSchema,
+  adminRevenueQuerySchema,
+  adminRevenueResponseSchema,
+  adminUserListQuerySchema,
+  adminUserListResponseSchema,
+} from "./admin";
+export {
   authoringCourseListResponseSchema,
   authoringCourseResponseSchema,
   authoringCourseStatusResponseSchema,
@@ -55,6 +74,14 @@ export {
 } from "./video";
 
 export type { ApiErrorCode, ApiErrorResponse } from "./api-error";
+export type {
+  AdminAuditListQuery,
+  AdminDashboardSummary,
+  AdminCourseListQuery,
+  AdminPurchaseHistoryQuery,
+  AdminRevenueQuery,
+  AdminUserListQuery,
+} from "./admin";
 export type {
   CreateAuthoringCourseRequest,
   UpdateAuthoringCourseRequest,

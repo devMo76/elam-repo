@@ -479,12 +479,135 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_audit_history: {
+        Args: {
+          filter_action?: string
+          page_offset?: number
+          page_size?: number
+        }
+        Returns: {
+          action: string
+          actor_id: string
+          actor_name: string
+          audit_id: number
+          created_at: string
+          detail: Json
+          subject: string
+          total_count: number
+        }[]
+      }
+      admin_change_course_status: {
+        Args: {
+          new_status: Database["public"]["Enums"]["course_status"]
+          target_course_id: string
+        }
+        Returns: {
+          course_code: string | null
+          cover_url: string | null
+          created_at: string
+          currency: string
+          department: string
+          description: string | null
+          id: string
+          instructor_id: string
+          price_halalas: number
+          published_at: string | null
+          slug: string
+          status: Database["public"]["Enums"]["course_status"]
+          subtitle: string | null
+          title: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "courses"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_change_user_role: {
         Args: {
           new_role: Database["public"]["Enums"]["user_role"]
           target_user_id: string
         }
         Returns: undefined
+      }
+      admin_course_review_queue: {
+        Args: {
+          filter_status?: Database["public"]["Enums"]["course_status"]
+          page_offset?: number
+          page_size?: number
+          search_query?: string
+        }
+        Returns: {
+          course_code: string
+          course_id: string
+          course_slug: string
+          course_status: Database["public"]["Enums"]["course_status"]
+          course_title: string
+          created_at: string
+          instructor_id: string
+          instructor_name: string
+          published_at: string
+          total_count: number
+        }[]
+      }
+      admin_dashboard_summary: {
+        Args: never
+        Returns: {
+          active_course_count: number
+          enrollment_count: number
+          total_revenue_halalas: number
+        }[]
+      }
+      admin_purchase_history: {
+        Args: {
+          created_before?: string
+          created_from?: string
+          filter_status?: Database["public"]["Enums"]["order_status"]
+          page_offset?: number
+          page_size?: number
+          search_query?: string
+        }
+        Returns: {
+          amount_halalas: number
+          course_id: string
+          course_title: string
+          created_at: string
+          currency: string
+          learner_email: string
+          learner_name: string
+          order_id: string
+          order_status: Database["public"]["Enums"]["order_status"]
+          paid_at: string
+          refunded_at: string
+          reversed_at: string
+          total_count: number
+        }[]
+      }
+      admin_revenue_by_course: {
+        Args: { paid_before?: string; paid_from?: string }
+        Returns: {
+          course_id: string
+          course_title: string
+          paid_order_count: number
+          revenue_halalas: number
+        }[]
+      }
+      admin_user_directory: {
+        Args: {
+          filter_role?: Database["public"]["Enums"]["user_role"]
+          page_offset?: number
+          page_size?: number
+          search_query?: string
+        }
+        Returns: {
+          created_at: string
+          email: string
+          full_name: string
+          total_count: number
+          user_id: string
+          user_role: Database["public"]["Enums"]["user_role"]
+        }[]
       }
       app_role: {
         Args: never
