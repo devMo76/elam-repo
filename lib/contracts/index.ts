@@ -1,4 +1,8 @@
 export {
+  adminCourseStatusActionSchema,
+  adminCourseStatusResponseSchema,
+  adminCourseListQuerySchema,
+  adminCourseListResponseSchema,
   adminCourseRevenueSchema,
   adminDashboardSummaryResponseSchema,
   adminDashboardSummarySchema,
@@ -68,6 +72,7 @@ export {
 export type { ApiErrorCode, ApiErrorResponse } from "./api-error";
 export type {
   AdminDashboardSummary,
+  AdminCourseListQuery,
   AdminPurchaseHistoryQuery,
   AdminRevenueQuery,
 } from "./admin";

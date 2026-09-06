@@ -479,12 +479,60 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_change_course_status: {
+        Args: {
+          new_status: Database["public"]["Enums"]["course_status"]
+          target_course_id: string
+        }
+        Returns: {
+          course_code: string | null
+          cover_url: string | null
+          created_at: string
+          currency: string
+          department: string
+          description: string | null
+          id: string
+          instructor_id: string
+          price_halalas: number
+          published_at: string | null
+          slug: string
+          status: Database["public"]["Enums"]["course_status"]
+          subtitle: string | null
+          title: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "courses"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_change_user_role: {
         Args: {
           new_role: Database["public"]["Enums"]["user_role"]
           target_user_id: string
         }
         Returns: undefined
+      }
+      admin_course_review_queue: {
+        Args: {
+          filter_status?: Database["public"]["Enums"]["course_status"]
+          page_offset?: number
+          page_size?: number
+          search_query?: string
+        }
+        Returns: {
+          course_code: string
+          course_id: string
+          course_slug: string
+          course_status: Database["public"]["Enums"]["course_status"]
+          course_title: string
+          created_at: string
+          instructor_id: string
+          instructor_name: string
+          published_at: string
+          total_count: number
+        }[]
       }
       admin_dashboard_summary: {
         Args: never

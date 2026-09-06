@@ -92,3 +92,38 @@ export type AdminPurchaseHistoryQuery = z.infer<
   typeof adminPurchaseHistoryQuerySchema
 >;
 export type AdminRevenueQuery = z.infer<typeof adminRevenueQuerySchema>;
+
+export const adminCourseStatusActionSchema = z.strictObject({
+  status: z.enum(["draft", "published", "archived"]),
+});
+
+export const adminCourseStatusResponseSchema = z.strictObject({
+  data: z.strictObject({
+    courseId: z.uuid(),
+    status: z.enum(["draft", "published", "archived"]),
+    publishedAt: z.iso.datetime({ offset: true }).nullable(),
+  }),
+});
+
+export const adminCourseListQuerySchema = z.strictObject({
+  search: z.string().trim().min(1).max(160).optional(),
+  status: z.enum(["draft", "in_review", "published", "archived"]).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).default(20),
+});
+
+export const adminCourseListResponseSchema = z.strictObject({
+  data: z.array(z.strictObject({
+    id: z.uuid(), slug: z.string().min(1), courseCode: z.string().nullable(),
+    title: z.string().min(1), status: z.enum(["draft", "in_review", "published", "archived"]),
+    instructorId: z.uuid(), instructorName: z.string().min(1),
+    createdAt: z.iso.datetime({ offset: true }),
+    publishedAt: z.iso.datetime({ offset: true }).nullable(),
+  })),
+  pagination: z.strictObject({
+    page: z.number().int().positive(), pageSize: z.number().int().positive().max(100),
+    totalCount: nonnegativeSafeInteger, totalPages: nonnegativeSafeInteger,
+  }),
+});
+
+export type AdminCourseListQuery = z.infer<typeof adminCourseListQuerySchema>;

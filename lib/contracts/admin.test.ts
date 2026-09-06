@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   adminDashboardSummaryResponseSchema,
+  adminCourseStatusActionSchema,
+  adminCourseListQuerySchema,
   adminPurchaseHistoryQuerySchema,
   adminRevenueQuerySchema,
 } from "./admin";
@@ -54,5 +56,15 @@ describe("admin contracts", () => {
         before: "2026-01-01T00:00:00Z",
       }).success,
     ).toBe(false);
+  });
+
+  it("accepts only admin-controlled destination statuses", () => {
+    expect(adminCourseStatusActionSchema.safeParse({ status: "published" }).success).toBe(true);
+    expect(adminCourseStatusActionSchema.safeParse({ status: "in_review" }).success).toBe(false);
+  });
+
+  it("validates course review filters and pagination", () => {
+    expect(adminCourseListQuerySchema.parse({ status: "in_review", page: "2" })).toMatchObject({ status: "in_review", page: 2, pageSize: 20 });
+    expect(adminCourseListQuerySchema.safeParse({ pageSize: "101" }).success).toBe(false);
   });
 });
