@@ -52,8 +52,10 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: elam-ci-secret-canary-supabase
           MOYASAR_SECRET_KEY: elam-ci-secret-canary-moyasar
           MOYASAR_WEBHOOK_SECRET: elam-ci-secret-canary-webhook
-          VIDEO_API_KEY: elam-ci-secret-canary-video-api
-          VIDEO_TOKEN_SIGNING_KEY: elam-ci-secret-canary-video-token
+          BUNNY_STREAM_LIBRARY_ID: "123456"
+          BUNNY_STREAM_API_KEY: elam-ci-secret-canary-bunny-api
+          BUNNY_STREAM_READ_ONLY_API_KEY: elam-ci-secret-canary-bunny-read
+          BUNNY_STREAM_TOKEN_KEY: elam-ci-secret-canary-bunny-token
           EMAIL_API_KEY: elam-ci-secret-canary-email
 
       - name: Verify client bundle contains no server secrets
@@ -62,8 +64,10 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: elam-ci-secret-canary-supabase
           MOYASAR_SECRET_KEY: elam-ci-secret-canary-moyasar
           MOYASAR_WEBHOOK_SECRET: elam-ci-secret-canary-webhook
-          VIDEO_API_KEY: elam-ci-secret-canary-video-api
-          VIDEO_TOKEN_SIGNING_KEY: elam-ci-secret-canary-video-token
+          BUNNY_STREAM_LIBRARY_ID: "123456"
+          BUNNY_STREAM_API_KEY: elam-ci-secret-canary-bunny-api
+          BUNNY_STREAM_READ_ONLY_API_KEY: elam-ci-secret-canary-bunny-read
+          BUNNY_STREAM_TOKEN_KEY: elam-ci-secret-canary-bunny-token
           EMAIL_API_KEY: elam-ci-secret-canary-email
 
       - name: Audit dependencies

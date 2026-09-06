@@ -5,6 +5,8 @@ import type { ApiErrorResponse } from "@/lib/contracts";
 
 type FieldErrors = NonNullable<ApiErrorResponse["error"]["fieldErrors"]>;
 
+const MAX_JSON_BODY_BYTES = 64 * 1024;
+
 export function createApiError(
   status: number,
   code: string,
@@ -46,10 +48,49 @@ export async function parseJsonBody<Schema extends z.ZodType>(
   | { success: true; data: z.output<Schema> }
   | { success: false; response: NextResponse<ApiErrorResponse> }
 > {
+  const contentLength = Number(request.headers.get("content-length") ?? 0);
+
+  if (Number.isFinite(contentLength) && contentLength > MAX_JSON_BODY_BYTES) {
+    return {
+      success: false,
+      response: createApiError(
+        413,
+        "request_too_large",
+        "The request body is too large.",
+      ),
+    };
+  }
+
+  let rawBody: string;
+
+  try {
+    rawBody = await request.text();
+  } catch {
+    return {
+      success: false,
+      response: createApiError(
+        400,
+        "invalid_json",
+        "The request body must contain valid JSON.",
+      ),
+    };
+  }
+
+  if (new TextEncoder().encode(rawBody).byteLength > MAX_JSON_BODY_BYTES) {
+    return {
+      success: false,
+      response: createApiError(
+        413,
+        "request_too_large",
+        "The request body is too large.",
+      ),
+    };
+  }
+
   let body: unknown;
 
   try {
-    body = await request.json();
+    body = JSON.parse(rawBody);
   } catch {
     return {
       success: false,
