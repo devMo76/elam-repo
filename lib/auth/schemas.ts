@@ -22,6 +22,10 @@ export const requestPasswordResetSchema = z.strictObject({
   email: emailSchema,
 });
 
+export const resendConfirmationSchema = z.strictObject({
+  email: emailSchema,
+});
+
 export const updatePasswordSchema = z.strictObject({
   password: passwordSchema,
 });
@@ -31,4 +35,5 @@ export type SignInInput = z.infer<typeof signInSchema>;
 export type RequestPasswordResetInput = z.infer<
   typeof requestPasswordResetSchema
 >;
+export type ResendConfirmationInput = z.infer<typeof resendConfirmationSchema>;
 export type UpdatePasswordInput = z.infer<typeof updatePasswordSchema>;

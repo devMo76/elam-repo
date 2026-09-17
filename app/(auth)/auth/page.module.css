@@ -1,0 +1,1 @@
+.main { display: grid; min-block-size: calc(100dvh - 10rem); place-items: center; width: min(100% - 2rem, 78rem); margin-inline: auto; padding-block: 3rem; }

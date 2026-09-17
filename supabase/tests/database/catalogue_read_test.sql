@@ -16,8 +16,8 @@ set local role anon;
 
 select is(
   (select count(*) from public.courses where status = 'published'),
-  1::bigint,
-  'the anonymous catalogue contains the published seed course only'
+  6::bigint,
+  'the anonymous catalogue contains the published Arabic seed courses'
 );
 select is(
   (
@@ -105,7 +105,7 @@ select set_config('request.jwt.claim.sub', '30000000-0000-4000-8000-000000000001
 
 select is(
   (select count(*) from public.courses),
-  4::bigint,
+  9::bigint,
   'administrators can preview every course state'
 );
 select is(

@@ -1,0 +1,90 @@
+.page {
+  min-block-size: 100vh;
+  background: var(--surface);
+}
+
+.header,
+.footer {
+  display: flex;
+  align-items: center;
+  width: min(100% - 2rem, 87.5rem);
+  margin-inline: auto;
+}
+
+.header {
+  min-height: 6.5rem;
+  gap: 2rem;
+  background: color-mix(in srgb, var(--tint) 70%, var(--surface));
+}
+
+.brand {
+  color: var(--ink);
+  font-size: 1.65rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.navigation {
+  display: flex;
+  gap: 1.5rem;
+  margin-inline-start: 1rem;
+}
+
+.navigation a {
+  color: var(--body);
+  font-size: 1rem;
+  text-decoration: none;
+}
+
+.navigation a:hover {
+  color: var(--accent);
+}
+
+.cta {
+  margin-inline-start: auto;
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.cta:hover {
+  background: var(--ink);
+}
+
+.signIn {
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.header[data-user-state="signed-in"] .signIn {
+  display: none;
+}
+
+.footer {
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding-block: 2rem;
+  border-top: 1px solid var(--hairline);
+}
+
+.footer p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+@media (max-width: 640px) {
+  .navigation {
+    display: none;
+  }
+
+  .footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

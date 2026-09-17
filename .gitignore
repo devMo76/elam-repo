@@ -20,6 +20,7 @@ next-env.d.ts
 # Supabase local and linked-project state
 /supabase/.branches/
 /supabase/.temp/
+/supabase/snippets/
 
 # Logs
 npm-debug.log*

@@ -30,7 +30,7 @@ select is(
   3::bigint,
   'all three roles are represented'
 );
-select is((select count(*) from public.courses), 4::bigint, 'four synthetic courses are seeded');
+select is((select count(*) from public.courses), 9::bigint, 'the Arabic catalogue and state fixtures are seeded');
 select is((select count(distinct status) from public.courses), 4::bigint, 'all course states are represented');
 select is((select count(distinct department) from public.courses), 2::bigint, 'multiple departments are represented');
 select ok(
@@ -66,8 +66,8 @@ select is(
 );
 select is(
   (select array_agg(status order by slug) from public.courses where status = 'published'),
-  array['published'::public.course_status],
-  'the catalogue query returns published courses only'
+  array_fill('published'::public.course_status, array[6]),
+  'the catalogue query returns the six published Arabic seed courses only'
 );
 
 select * from finish();

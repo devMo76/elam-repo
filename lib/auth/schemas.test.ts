@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   registerSchema,
+  resendConfirmationSchema,
   requestPasswordResetSchema,
   signInSchema,
   updatePasswordSchema,
@@ -58,6 +59,20 @@ describe("authentication schemas", () => {
         email: "learner@example.com",
       }).success,
     ).toBe(true);
+  });
+
+  it("accepts only an email for confirmation resends", () => {
+    expect(
+      resendConfirmationSchema.safeParse({
+        email: "learner@example.com",
+      }).success,
+    ).toBe(true);
+    expect(
+      resendConfirmationSchema.safeParse({
+        email: "learner@example.com",
+        role: "admin",
+      }).success,
+    ).toBe(false);
   });
 
   it("validates replacement passwords", () => {

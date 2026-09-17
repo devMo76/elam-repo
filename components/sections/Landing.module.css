@@ -1,0 +1,128 @@
+/*
+ * The landing page's visual connective tissue.  These treatments reuse the
+ * existing indigo rather than introducing a second accent: an engineering
+ * signal is expressed through quiet grids, offsets, and responsive movement.
+ */
+.home,
+.featured,
+.vetting,
+.catalog {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.featured::before,
+.vetting::before,
+.catalog::before {
+  position: absolute;
+  z-index: -1;
+  content: "";
+  pointer-events: none;
+}
+
+.featured {
+  background: var(--tint);
+}
+
+.featured::before {
+  inset-inline-end: -12rem;
+  top: -18rem;
+  width: 34rem;
+  aspect-ratio: 1;
+  border: 1px solid rgb(66 57 146 / 13%);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 2.5rem rgb(66 57 146 / 3%),
+    0 0 0 6rem rgb(66 57 146 / 2%);
+}
+
+.featuredCard {
+  transition:
+    border-color 260ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 260ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.vetting::before {
+  width: min(40rem, 70vw);
+  aspect-ratio: 1;
+  inset-inline-start: -16rem;
+  top: -20rem;
+  border: 1px solid rgb(66 57 146 / 11%);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 3rem rgb(66 57 146 / 3%),
+    0 0 0 7rem rgb(66 57 146 / 2%);
+}
+
+.vettingTrack {
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .vettingTrack::before {
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 1px;
+    content: "";
+    background: var(--accent);
+    opacity: 0.3;
+  }
+
+}
+
+.vettingStep {
+  position: relative;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+}
+
+.catalog {
+  background: color-mix(in srgb, var(--tint) 30%, var(--surface));
+}
+
+.catalog::before {
+  inset-inline-end: max(2rem, calc((100vw - 1400px) / 2));
+  top: 5rem;
+  width: 13rem;
+  height: 13rem;
+  opacity: 0.32;
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.25rem rgb(66 57 146 / 4%);
+}
+
+.tileReveal {
+  height: 100%;
+}
+
+.tile {
+  position: relative;
+  transition:
+    border-color 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .featuredCard:hover,
+  .featuredCard:focus-visible,
+  .tile:hover,
+  .tile:focus-visible {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 36px rgb(10 14 105 / 10%);
+  }
+
+  .tile:hover > :first-child,
+  .tile:focus-visible > :first-child {
+    background: color-mix(in srgb, var(--accent) 11%, var(--tint));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .featuredCard,
+  .tile {
+    transition: none;
+  }
+}

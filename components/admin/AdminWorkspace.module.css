@@ -1,0 +1,335 @@
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  padding-block-end: 1.75rem;
+  border-block-end: 1px solid var(--hairline);
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.header p {
+  max-inline-size: 48rem;
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin-block: 2rem;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--hairline);
+}
+
+.metric {
+  display: grid;
+  gap: 0.35rem;
+  background: var(--raised);
+  padding: 1.25rem;
+}
+
+.metric span {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.metric strong {
+  color: var(--ink);
+  font-size: 1.45rem;
+  line-height: 1.3;
+}
+
+.section {
+  margin-block-start: 2rem;
+}
+
+.section h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.sectionDescription {
+  margin: 0.4rem 0 1rem;
+  color: var(--muted);
+}
+
+.links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.link {
+  display: grid;
+  gap: 0.3rem;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--raised);
+  color: var(--body);
+  padding: 1.25rem;
+  text-decoration: none;
+  transition: border-color 160ms, background 160ms;
+}
+
+.link:hover {
+  border-color: var(--accent);
+  background: var(--tint);
+}
+
+.link strong { color: var(--ink); }
+.link span { color: var(--muted); font-size: 0.9375rem; }
+
+.filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.75rem;
+  margin-block: 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--raised);
+}
+
+.filter label {
+  display: grid;
+  flex: 1 1 10rem;
+  gap: 0.35rem;
+  color: var(--body);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.filter input,
+.filter select {
+  min-block-size: 44px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  color: var(--body);
+  padding-inline: 0.7rem;
+  font: inherit;
+}
+
+.filter button,
+.actionButton,
+.dangerButton,
+.quietButton {
+  min-block-size: 44px;
+  border-radius: var(--radius-card);
+  padding-inline: 1rem;
+  font: inherit;
+  font-weight: 600;
+}
+
+.filter button,
+.actionButton {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.filter button:hover,
+.actionButton:hover { background: var(--ink); }
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--raised);
+}
+
+.table {
+  width: 100%;
+  min-inline-size: 52rem;
+  border-collapse: collapse;
+  text-align: start;
+}
+
+.table th,
+.table td {
+  padding: 0.875rem 1rem;
+  border-block-end: 1px solid var(--hairline);
+  vertical-align: top;
+}
+
+.table th {
+  background: var(--tint);
+  color: var(--ink);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.table tr:last-child td { border-block-end: 0; }
+.table td { font-size: 0.9rem; }
+.table small { color: var(--muted); }
+
+.userIdentity {
+  display: grid;
+  gap: 0.18rem;
+  min-inline-size: 13rem;
+}
+
+.userIdentity strong {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 0.9375rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userEmail {
+  overflow: hidden;
+  color: var(--muted);
+  direction: ltr;
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+  text-align: start;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  unicode-bidi: isolate;
+}
+
+.status {
+  display: inline-flex;
+  border-radius: 999px;
+  background: var(--tint);
+  color: var(--accent);
+  padding: 0.18rem 0.55rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.actions { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.mutation { display: grid; gap: 0.4rem; }
+.roleControl { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; }
+.inlineSelect { min-block-size: 40px; border: 1px solid var(--hairline); border-radius: var(--radius-card); background: var(--surface); color: var(--body); padding-inline: 0.5rem; font: inherit; }
+
+.settingControl { display: grid; gap: 1rem; max-inline-size: 48rem; border: 1px solid var(--hairline); border-radius: 12px; background: var(--raised); padding: 1.25rem; }
+.settingLabel { display: flex; align-items: start; gap: 0.75rem; color: var(--body); cursor: pointer; }
+.settingLabel input { inline-size: 1.15rem; block-size: 1.15rem; margin-block-start: 0.35rem; accent-color: var(--accent); }
+.settingLabel strong, .settingLabel small { display: block; }
+.settingLabel small { margin-block-start: 0.25rem; color: var(--muted); line-height: 1.65; }
+
+.confirmation {
+  display: grid;
+  min-inline-size: 14rem;
+  gap: 0.5rem;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-card);
+  background: var(--tint);
+  padding: 0.75rem;
+}
+
+.confirmation p { margin: 0; color: var(--body); font-size: 0.85rem; }
+.confirmationActions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.dangerButton { border: 1px solid var(--ink); background: var(--ink); color: var(--on-accent); }
+.quietButton { border: 1px solid var(--hairline); background: var(--raised); color: var(--body); }
+button:disabled { cursor: not-allowed; opacity: 0.65; }
+.error { margin: 0; color: #9c1c35 !important; font-size: 0.8125rem !important; }
+
+.pagination { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-block-start: 1rem; color: var(--muted); font-size: 0.875rem; }
+.pagination nav { display: flex; gap: 0.5rem; }
+.pagination a { display: inline-flex; min-block-size: 40px; align-items: center; border: 1px solid var(--hairline); border-radius: var(--radius-card); color: var(--accent); padding-inline: 0.75rem; text-decoration: none; }
+.pagination a:hover { background: var(--tint); }
+
+.empty,
+.notice {
+  max-inline-size: 48rem;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--raised);
+  padding: 1.5rem;
+}
+
+.empty h2,
+.notice h2 { margin: 0; font-size: 1.2rem; }
+.empty p,
+.notice p { margin: 0.5rem 0 0; color: var(--muted); }
+.notice { border-color: var(--accent); background: var(--tint); }
+
+.skeleton { display: grid; gap: 1px; margin-block: 2rem; overflow: hidden; border-radius: 12px; background: var(--hairline); }
+.skeleton div { min-block-size: 6rem; background: var(--tint); }
+.stateViewport { min-block-size: 18rem; }
+
+@media (max-width: 760px) {
+  .header {
+    align-items: stretch;
+    gap: 0.75rem;
+    padding-block-end: 1.25rem;
+  }
+
+  .header h1 { font-size: 1.5rem; }
+  .header p { font-size: 0.9375rem; line-height: 1.7; }
+
+  .metrics,
+  .links { grid-template-columns: 1fr; }
+
+  .metrics { margin-block: 1.25rem; border-radius: 10px; }
+  .metric { padding: 1rem; }
+  .metric strong { font-size: 1.3rem; }
+
+  .section { margin-block-start: 1.5rem; }
+  .link { padding: 1rem; }
+
+  .filter {
+    gap: 0.65rem;
+    margin-block: 1rem 1.25rem;
+    padding: 0.75rem;
+    border-radius: 10px;
+  }
+
+  .filter label { flex-basis: 100%; }
+  .filter input,
+  .filter select { font-size: 1rem; }
+  .filter button { width: 100%; }
+
+  .tableWrap {
+    margin-inline: -0.75rem;
+    border-inline: 0;
+    border-radius: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table { min-inline-size: 42rem; }
+  .table th,
+  .table td { padding: 0.75rem; }
+  .table th { font-size: 0.75rem; }
+  .table td { font-size: 0.875rem; }
+  .userIdentity { min-inline-size: 11rem; }
+
+  .actions { min-inline-size: 8rem; }
+  .roleControl { min-inline-size: 10rem; align-items: stretch; }
+  .inlineSelect { inline-size: 100%; }
+
+  .settingControl { gap: 0.75rem; padding: 1rem; }
+  .settingLabel { align-items: flex-start; }
+
+  .confirmation { min-inline-size: min(100%, 16rem); }
+
+  .pagination {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .pagination nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pagination a { justify-content: center; }
+
+  .empty,
+  .notice { padding: 1.25rem; }
+  .stateViewport { min-block-size: 14rem; }
+}

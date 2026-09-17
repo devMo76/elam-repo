@@ -12,8 +12,20 @@ import { createClient } from "@/lib/supabase/server";
 export const runtime = "nodejs";
 
 function createReturnResponse(state: PaymentReturnState) {
-  const destination = new URL("/", getPublicEnvironment().NEXT_PUBLIC_SITE_URL);
+  const destination = new URL("/dashboard", getPublicEnvironment().NEXT_PUBLIC_SITE_URL);
   destination.searchParams.set("payment", state);
+
+  const response = NextResponse.redirect(destination);
+  response.headers.set("Cache-Control", "no-store");
+  return response;
+}
+
+function createSignInReturnResponse() {
+  const destination = new URL(
+    "/auth/sign-in",
+    getPublicEnvironment().NEXT_PUBLIC_SITE_URL,
+  );
+  destination.searchParams.set("next", "/dashboard?payment=sign_in_required");
 
   const response = NextResponse.redirect(destination);
   response.headers.set("Cache-Control", "no-store");
@@ -34,7 +46,7 @@ export async function GET(request: Request) {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    return createReturnResponse("sign_in_required");
+    return createSignInReturnResponse();
   }
 
   try {

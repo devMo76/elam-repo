@@ -46,7 +46,7 @@ describe("payment callback route", () => {
 
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toBe(
-      "https://example.com/?payment=failed",
+      "https://example.com/dashboard?payment=failed",
     );
     expect(confirmMoyasarPayment).not.toHaveBeenCalled();
   });
@@ -68,7 +68,7 @@ describe("payment callback route", () => {
     );
 
     expect(response.headers.get("location")).toBe(
-      "https://example.com/?payment=sign_in_required",
+      "https://example.com/auth/sign-in?next=%2Fdashboard%3Fpayment%3Dsign_in_required",
     );
     expect(confirmMoyasarPayment).not.toHaveBeenCalled();
   });
@@ -88,7 +88,7 @@ describe("payment callback route", () => {
     );
 
     expect(response.headers.get("location")).toBe(
-      "https://example.com/?payment=success",
+      "https://example.com/dashboard?payment=success",
     );
     expect(confirmMoyasarPayment).toHaveBeenCalledWith(paymentId, {
       kind: "callback",

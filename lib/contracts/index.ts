@@ -59,6 +59,7 @@ export {
 export {
   checkoutRequestSchema,
   checkoutResponseSchema,
+  freeCourseEnrollmentResponseSchema,
   paymentReturnStateSchema,
 } from "./payments";
 export {

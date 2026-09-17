@@ -1,35 +1,142 @@
 @import "tailwindcss";
 
-@theme inline {
-  --color-elam-primary: #0b0b66;
-  --color-elam-secondary: #4942a8;
-  --color-elam-paper: #fbfbfd;
-  --color-elam-ink: #191925;
-  --font-sans: var(--font-ibm-plex-arabic);
-  --font-mono: var(--font-ibm-plex-mono);
-}
+/* ---------------------------------------------------------------------------
+   Elam design tokens
+
+   Palette sampled from the brand logo (importants/elam_logo.jpg):
+     #0A0E69  deep navy-indigo, book mark and wordmark
+     #423992  violet-indigo, right-hand page
+
+   ONE THEME. The site is light-only and there is no runtime switch: no
+   data-theme attribute, no prefers-color-scheme branch, no dark: variant.
+   Components read these nine variables and never spell a colour twice, which
+   is what makes the single-accent lock in section 9 of the spec reviewable
+   rather than aspirational.
+
+   A dark palette was previously carried here alongside a header toggle. It was
+   removed deliberately: it doubled the token surface, forced the logo to ship
+   as four images instead of two, and required a render-blocking inline script
+   in the document body to avoid a first-paint flash. If dark mode ever comes
+   back, all three of those costs come back with it.
+   --------------------------------------------------------------------------- */
 
 :root {
-  --background: #fbfbfd;
-  --foreground: #191925;
+  --surface: #fafafc;
+  --raised: #ffffff;
+  --ink: #0a0e69;
+  --body: #3a3f5c;
+  --muted: #5a5f7a;
+  --accent: #423992;
+  --on-accent: #ffffff;
+  --hairline: #e4e4ee;
+  --tint: #f1f0f9;
+
+  /* Stated, not inferred. Without this a reader whose OS is set to dark gets
+     dark scrollbars and dark native form controls framing a light page. */
+  color-scheme: light;
 }
 
-* {
-  box-sizing: border-box;
+@theme inline {
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-ink: var(--ink);
+  --color-body: var(--body);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-hairline: var(--hairline);
+  --color-tint: var(--tint);
+
+  --font-sans: var(--font-plex-arabic);
+  --font-mono: var(--font-plex-mono);
+
+  /* Cards, buttons, inputs, and images all use rounded-card. */
+  --radius-card: 8px;
+
+  --radius-frame: 96px;
 }
 
 html {
-  background: var(--background);
+  scroll-behavior: smooth;
+
+  /* The canvas background propagates from body only while html has none, and
+     that propagation is easy to break later. Setting it here too means the
+     area beyond the content can never fall back to the UA default. */
+  background: var(--surface);
 }
 
 body {
-  min-block-size: 100vh;
-  margin: 0;
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-ibm-plex-arabic), sans-serif;
+  background: var(--surface);
+  color: var(--body);
+  font-family: var(--font-plex-arabic), system-ui, sans-serif;
+
+  /* Arabic renders optically smaller than Latin at equal pixel size and
+     needs more vertical room for ascenders, descenders, and diacritics.
+     Latin-tuned defaults (1rem / 1.5) set Arabic too tight to read. */
+  font-size: 1.0625rem;
+  line-height: 1.9;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  color: inherit;
+h1,
+h2,
+h3,
+h4 {
+  color: var(--ink);
+  line-height: 1.4;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* Latin and numeric runs sitting inside Arabic text (course codes such as
+   EE 301, durations, prices) are reordered by the bidi algorithm unless
+   they are explicitly isolated. Applied by the Num component. */
+.ltr-num {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* Reduced motion is mandatory at MOTION_INTENSITY 5, not optional.
+   Motion components additionally gate on useReducedMotion so that reveal
+   animations resolve to their final state rather than merely snapping. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.roleLanding {
+  width: min(100% - 2rem, 78rem);
+  min-block-size: calc(100dvh - 10rem);
+  margin-inline: auto;
+  padding-block: clamp(3rem, 10vw, 7rem);
+}
+
+.roleLanding p {
+  max-width: 42rem;
+  color: var(--muted);
 }

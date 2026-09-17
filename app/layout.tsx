@@ -5,21 +5,21 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 const arabicSans = IBM_Plex_Sans_Arabic({
-  variable: "--font-ibm-plex-arabic",
-  subsets: ["arabic"],
-  weight: ["300", "400", "600"],
+  variable: "--font-plex-arabic",
+  subsets: ["arabic", "latin"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
 const mono = IBM_Plex_Mono({
-  variable: "--font-ibm-plex-mono",
+  variable: "--font-plex-mono",
   subsets: ["latin"],
-  weight: ["400", "600"],
+  weight: ["400", "500"],
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "إلم",
+  title: "إلام",
   description: "منصة تعليمية لطلاب الهندسة",
 };
 
@@ -32,9 +32,12 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <html
       lang="ar"
       dir="rtl"
-      className={`${arabicSans.variable} ${mono.variable}`}
+      data-scroll-behavior="smooth"
+      className={`${arabicSans.variable} ${mono.variable} h-full`}
     >
-      <body>{children}</body>
+      <body className="flex min-h-full flex-col bg-surface text-body">
+        {children}
+      </body>
     </html>
   );
 }

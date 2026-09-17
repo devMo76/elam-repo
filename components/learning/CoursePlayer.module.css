@@ -1,0 +1,580 @@
+.page {
+  width: min(100% - 2rem, 78rem);
+  min-block-size: calc(100dvh - 10rem);
+  margin-inline: auto;
+  padding-block: clamp(1.5rem, 4vw, 3.5rem);
+}
+
+.back {
+  display: inline-flex;
+  min-block-size: 44px;
+  align-items: center;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.back:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.25rem;
+}
+
+.breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+  min-block-size: 44px;
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+.breadcrumbs a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.breadcrumbs a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.25rem;
+}
+
+.heading {
+  margin-top: 1rem;
+  max-width: 46rem;
+}
+
+.heading h1 {
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  font-weight: 700;
+}
+
+.heading p {
+  margin-top: 0.5rem;
+  color: var(--muted);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.58fr);
+  gap: clamp(1.25rem, 3vw, 2rem);
+  align-items: start;
+  margin-top: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.playerColumn,
+.curriculum {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-card);
+  background: var(--raised);
+}
+
+.playerColumn {
+  overflow: hidden;
+}
+
+.lessonHeader {
+  padding: clamp(1rem, 3vw, 1.5rem);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.lessonHeader h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.lessonMeta {
+  margin-top: 0.25rem;
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+.frameWrap {
+  direction: ltr;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--ink);
+}
+
+.frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.playerControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  padding: 1rem clamp(1rem, 3vw, 1.5rem);
+}
+
+.complete {
+  display: inline-flex;
+  min-block-size: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-card);
+  background: transparent;
+  color: var(--accent);
+  padding-inline: 1rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.complete:hover:not(:disabled) {
+  background: var(--tint);
+}
+
+.complete:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.saveStatus {
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+.state {
+  display: grid;
+  min-block-size: 22rem;
+  place-content: center;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  text-align: center;
+}
+
+.state h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.state p {
+  max-width: 34rem;
+  margin-top: 0.75rem;
+  color: var(--muted);
+}
+
+.retry,
+.catalogueLink {
+  display: inline-flex;
+  min-block-size: 44px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1.25rem;
+  border-radius: var(--radius-card);
+  background: var(--accent);
+  color: var(--on-accent);
+  padding-inline: 1rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.retry:hover,
+.catalogueLink:hover {
+  background: var(--ink);
+}
+
+.curriculumHeader {
+  padding: 1.25rem 1.25rem 0.75rem;
+}
+
+.curriculumHeader h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.curriculumHeader p {
+  margin-top: 0.25rem;
+  color: var(--muted);
+  font-size: 0.9375rem;
+}
+
+.module {
+  border-top: 1px solid var(--hairline);
+}
+
+.moduleSummary {
+  min-block-size: 48px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: var(--ink);
+  padding-inline: 1.25rem;
+  font-weight: 600;
+}
+
+.moduleSummary::marker {
+  color: var(--accent);
+}
+
+.lessonList {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0 0.75rem 0.75rem;
+}
+
+.lesson {
+  display: grid;
+  width: 100%;
+  min-block-size: 52px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-card);
+  background: transparent;
+  color: var(--body);
+  padding: 0.75rem;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.lesson:hover:not(:disabled) {
+  background: var(--tint);
+}
+
+.lesson:disabled {
+  cursor: not-allowed;
+  color: var(--muted);
+}
+
+.lessonActive {
+  border-color: var(--accent);
+  background: var(--tint);
+  color: var(--ink);
+}
+
+.lessonTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lessonEnd {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+.free {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.locked {
+  color: var(--muted);
+}
+
+.done {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.notice {
+  margin: 0 1.25rem 1.25rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-card);
+  background: var(--tint);
+  color: var(--body);
+  padding: 1rem;
+  font-size: 0.9375rem;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .curriculum {
+    order: 2;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    width: min(100% - 1.5rem, 78rem);
+  }
+
+  .state {
+    min-block-size: 18rem;
+  }
+}
+
+/* The learning surface uses the same quiet geometry and editorial spacing as
+   the public Elam site, rather than introducing a separate dashboard theme. */
+.page {
+  width: min(100% - 2rem, 87.5rem);
+  padding-block: clamp(1.75rem, 5vw, 4.5rem) clamp(3rem, 7vw, 6rem);
+}
+
+.back {
+  color: var(--accent);
+  font-size: 0.9375rem;
+}
+
+.heading {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin-top: 1rem;
+  border-block: 1px solid rgb(66 57 146 / 22%);
+  background: color-mix(in srgb, var(--tint) 62%, var(--surface));
+  padding: clamp(1.5rem, 4vw, 3rem);
+}
+
+.heading::before,
+.heading::after {
+  position: absolute;
+  z-index: -1;
+  border: 1px solid rgb(66 57 146 / 14%);
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+}
+
+.heading::before {
+  inset-inline-end: -9rem;
+  top: -11rem;
+  width: 26rem;
+  aspect-ratio: 1;
+  box-shadow:
+    0 0 0 2.5rem rgb(66 57 146 / 4%),
+    0 0 0 6rem rgb(66 57 146 / 2%);
+}
+
+.heading::after {
+  inset-inline-start: -6rem;
+  bottom: -12rem;
+  width: 17rem;
+  aspect-ratio: 1;
+}
+
+.headingContent {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  max-width: 62rem;
+  margin-top: 0;
+}
+
+.heading h1 {
+  max-width: 48rem;
+  font-size: clamp(1.85rem, 3.5vw, 2.85rem);
+  letter-spacing: -0.02em;
+}
+
+.heading h1 + p {
+  max-width: 42rem;
+  margin-top: 0.75rem;
+  color: var(--body);
+}
+
+.courseCount {
+  display: inline-grid;
+  flex: 0 0 auto;
+  width: 5.5rem;
+  aspect-ratio: 1;
+  place-content: center;
+  justify-items: center;
+  gap: 0.1rem;
+  border: 1px solid rgb(66 57 146 / 28%);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--raised) 78%, transparent);
+  color: var(--accent);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.courseCount span { font-size: 0.75rem; }
+
+.courseProgress {
+  display: grid;
+  grid-template-columns: auto minmax(6rem, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 42rem;
+  margin-top: 1.25rem;
+  color: var(--body);
+  font-size: 0.875rem;
+}
+
+.courseProgress progress {
+  display: block;
+  width: 100%;
+  height: 0.45rem;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(66 57 146 / 18%);
+}
+
+.courseProgress progress::-webkit-progress-bar { background: rgb(66 57 146 / 18%); }
+.courseProgress progress::-webkit-progress-value { background: var(--accent); }
+.courseProgress progress::-moz-progress-bar { background: var(--accent); }
+
+.layout {
+  grid-template-columns: minmax(0, 1.45fr) minmax(19rem, 0.62fr);
+  gap: clamp(1.25rem, 3.5vw, 3rem);
+  margin-top: clamp(1.75rem, 4vw, 3rem);
+}
+
+.playerColumn,
+.curriculum {
+  border-color: rgb(66 57 146 / 18%);
+  border-radius: 0;
+  box-shadow: 0 16px 36px rgb(10 14 105 / 5%);
+}
+
+.lessonHeader {
+  border-bottom-color: rgb(66 57 146 / 18%);
+  background: var(--raised);
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+}
+
+.lessonHeader h2 {
+  font-size: clamp(1.15rem, 2vw, 1.5rem);
+}
+
+.curriculum {
+  overflow: hidden;
+  background: var(--raised);
+}
+
+.curriculumHeader {
+  border-bottom: 1px solid rgb(66 57 146 / 18%);
+  background: var(--tint);
+  padding: 1.35rem 1.5rem 1rem;
+}
+
+.curriculumHeader h2 {
+  color: var(--ink);
+  font-size: 1.35rem;
+}
+
+.module {
+  border-top: 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.moduleSummary {
+  min-block-size: 58px;
+  padding-inline: 1.5rem;
+  transition: background 180ms, color 180ms;
+}
+
+.moduleSummary:hover {
+  background: color-mix(in srgb, var(--tint) 65%, transparent);
+  color: var(--accent);
+}
+
+.lessonList {
+  gap: 0.4rem;
+  padding: 0.25rem 0.75rem 1rem;
+}
+
+.lesson {
+  min-block-size: 58px;
+  border-color: var(--hairline);
+  border-radius: 0;
+  background: var(--surface);
+  padding: 0.85rem 1rem;
+  text-align: right;
+  transition:
+    background 180ms,
+    border-color 180ms,
+    transform 180ms;
+}
+
+.lesson:hover {
+  border-color: rgb(66 57 146 / 42%);
+  background: var(--tint);
+}
+
+.lesson:active {
+  transform: translateY(1px);
+}
+
+.lessonLocked {
+  cursor: pointer;
+  color: var(--body);
+}
+
+.lessonLocked .locked {
+  color: var(--accent);
+}
+
+.lessonActive {
+  border-color: var(--accent);
+  border-inline-start-width: 4px;
+  background: var(--tint);
+}
+
+.free,
+.done {
+  color: var(--accent);
+}
+
+.notice {
+  margin: 1rem;
+  border-color: rgb(66 57 146 / 20%);
+  border-radius: 0;
+  background: color-mix(in srgb, var(--tint) 74%, var(--raised));
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    width: min(100% - 1.5rem, 87.5rem);
+  }
+
+  .heading {
+    padding: 1.25rem;
+  }
+
+  .headingContent {
+    align-items: start;
+  }
+
+  .courseCount {
+    width: 4.25rem;
+    font-size: 0.75rem;
+  }
+
+  .courseProgress {
+    grid-template-columns: 1fr auto;
+  }
+
+  .courseProgress progress {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .heading h1 {
+    font-size: clamp(1.85rem, 10vw, 2.6rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .moduleSummary,
+  .lesson {
+    transition: none;
+  }
+}

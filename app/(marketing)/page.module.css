@@ -1,0 +1,42 @@
+.hero,
+.catalogue,
+.steps { position: relative; isolation: isolate; overflow: hidden; }
+.hero { min-block-size: min(40rem, calc(100dvh - 6.5rem)); border-block-end: 1px solid var(--hairline); }
+.heroBackdrop { position: absolute; inset: 0; z-index: -1; background: radial-gradient(70% 64% at 84% 84%, transparent 63%, var(--tint) 63.2% 63.7%, transparent 64%), linear-gradient(to bottom, color-mix(in srgb, var(--tint) 70%, transparent), var(--surface)); }
+.heroInner, .sectionInner { width: min(100% - 2rem, 87.5rem); margin-inline: auto; }
+.heroInner { display: grid; grid-template-columns: minmax(0, 46ch) minmax(0, 31rem); align-items: center; justify-content: center; gap: clamp(3.5rem, 6vw, 6rem); min-block-size: inherit; padding-block: 3rem 5rem; }
+.heroCopy { max-inline-size: 42ch; }
+.heroCopy h1 { margin: 0; color: var(--ink); font-size: clamp(2.5rem, 5vw, 3.5rem); font-weight: 700; line-height: 1.28; }
+.heroCopy > p { margin: 1.5rem 0 0; color: var(--body); font-size: clamp(1.05rem, 2vw, 1.25rem); }
+.heroActions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2rem; margin-block-start: 2.25rem; }
+.primaryAction, .secondaryAction, .catalogueLink { font-weight: 600; text-decoration: none; }
+.primaryAction { padding: 0.65rem 1.5rem; border-radius: 8px; background: var(--accent); color: var(--on-accent); transition: background 200ms, transform 200ms; }
+.primaryAction:hover { background: var(--ink); transform: translateY(-2px); }
+.secondaryAction, .catalogueLink { color: var(--accent); text-underline-offset: 4px; }
+.secondaryAction:hover, .catalogueLink:hover { text-decoration: underline; }
+.heroPoints { display: grid; gap: 0.7rem; margin: 2.5rem 0 0; padding: 1.6rem 0 0; border-block-start: 1px solid var(--hairline); color: var(--muted); font-size: 0.9rem; list-style: none; }
+.heroPoints li::before { content: "•"; margin-inline-end: 0.65rem; color: var(--accent); }
+.heroFrame { position: relative; width: 100%; max-inline-size: 34rem; margin-inline: auto; }
+.heroFrame::before { position: absolute; z-index: -1; inset-block-start: -1.75rem; inset-inline-end: -1.75rem; width: 100%; height: 100%; border-radius: 8px 96px 8px 8px; background: var(--accent); content: ""; }
+.heroImage { position: relative; aspect-ratio: 3 / 2; overflow: hidden; border-radius: 8px 96px 8px 8px; }
+.heroImage img { object-fit: cover; }
+.catalogue { background: color-mix(in srgb, var(--tint) 30%, var(--surface)); }
+.catalogue::before, .steps::before { position: absolute; z-index: -1; border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); border-radius: 50%; content: ""; pointer-events: none; }
+.catalogue::before { inset-inline-end: max(2rem, calc((100vw - 87.5rem) / 2)); inset-block-start: 5rem; width: 13rem; height: 13rem; box-shadow: 0 0 0 1.25rem color-mix(in srgb, var(--accent) 4%, transparent); }
+.sectionInner { padding-block: 5rem 7rem; }
+.sectionHeading { max-inline-size: 42rem; margin-block-end: 2.75rem; }
+.sectionHeading h2 { margin: 0; font-size: clamp(2rem, 4vw, 2.5rem); font-weight: 700; }
+.sectionHeading p { margin: 1rem 0 0; color: var(--body); font-size: 1.1rem; }
+.courseGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; }
+.catalogueLink { display: inline-block; margin-block-start: 2rem; }
+.empty { padding: 2rem; border: 1px dashed var(--hairline); border-radius: 8px; color: var(--muted); }
+.steps { border-block-end: 1px solid var(--hairline); }
+.steps::before { width: min(40rem, 70vw); aspect-ratio: 1; inset-inline-start: -16rem; inset-block-start: -20rem; box-shadow: 0 0 0 3rem color-mix(in srgb, var(--accent) 3%, transparent), 0 0 0 7rem color-mix(in srgb, var(--accent) 2%, transparent); }
+.stepGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+.stepGrid article { padding-block-start: 1.25rem; border-block-start: 2px solid var(--accent); background: color-mix(in srgb, var(--surface) 88%, transparent); }
+.stepGrid article:nth-child(2) { margin-block-start: 2rem; }
+.stepGrid h3, .stepGrid p { margin: 0; }
+.stepGrid h3 { font-size: 1.2rem; font-weight: 600; }
+.stepGrid p { margin-block-start: 0.5rem; color: var(--body); }
+@media (max-width: 900px) { .heroInner { grid-template-columns: minmax(0, 42ch) minmax(17rem, 0.8fr); gap: 2rem; } .courseGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 700px) { .hero { min-block-size: auto; } .heroInner, .courseGrid, .stepGrid { grid-template-columns: 1fr; } .heroInner { padding-block: 3rem 4rem; } .heroFrame { max-inline-size: 34rem; } .stepGrid article:nth-child(2) { margin-block-start: 0; } .sectionInner { padding-block: 4rem; } }

@@ -14,6 +14,19 @@ Use the response headers exactly as returned. Display upload percentage and
 retry recoverable TUS failures. A second upload request returns `409` while the
 current video is uploading or processing.
 
+## Studio-wide upload manager
+
+The Studio owns TUS uploads in `InstructorUploadProvider`, mounted in the
+`/studio` layout rather than in an individual lesson row. This lets an
+instructor navigate to another course or start another video upload without
+losing the active upload object, its byte-level progress, or processing polls.
+
+Active jobs appear in the fixed Studio upload panel. Their non-sensitive lesson
+metadata and processing state are saved in browser local storage, so a refresh
+continues status polling. A browser/tab close cannot resume the local file
+transfer without the instructor selecting the file again; Bunny processing is
+still tracked from the saved job and the backend's provider-status endpoint.
+
 ## Playback
 
 Call `GET /api/lessons/{lessonId}/playback`. A successful response contains a

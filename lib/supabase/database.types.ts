@@ -649,6 +649,13 @@ export type Database = {
         }
       }
       can_access_lesson: { Args: { target_lesson: string }; Returns: boolean }
+      claim_free_course: {
+        Args: { target_course: string }
+        Returns: {
+          course_id: string
+          granted_at: string
+        }[]
+      }
       claim_payment_receipt: {
         Args: { target_order: string }
         Returns: {

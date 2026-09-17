@@ -56,8 +56,10 @@ describe("Bunny Stream webhooks", () => {
   it("maps provider states without treating ancillary events as regressions", () => {
     expect(mapBunnyStatus(0)).toBe("uploading");
     expect(mapBunnyStatus(2)).toBe("processing");
+    expect(mapBunnyStatus(3)).toBe("processing");
     expect(mapBunnyStatus(4)).toBe("ready");
     expect(mapBunnyStatus(5)).toBe("failed");
+    expect(mapBunnyStatus(6)).toBe("failed");
     expect(mapBunnyStatus(9)).toBeNull();
     expect(mapBunnyStatus(10)).toBeNull();
   });
