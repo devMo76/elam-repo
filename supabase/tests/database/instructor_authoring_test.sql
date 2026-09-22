@@ -223,7 +223,7 @@ select is(
   'a duplicate never inherits provider video state'
 );
 select throws_ok(
-  $$select public.duplicate_module_lesson('60000000-0000-4000-8000-000000000005')$$,
+  $$select public.duplicate_module_lesson('61000000-0000-4000-8000-000000000005')$$,
   '42501',
   'Lesson is not available for authoring',
   'an instructor cannot duplicate another instructor lesson'
@@ -336,6 +336,17 @@ with deleted as (
   returning 1
 )
 select is((select count(*) from deleted), 0::bigint, 'direct REST-style deletion cannot remove a published lesson');
+
+reset role;
+update public.lessons as lesson
+set
+  media_status = 'ready',
+  video_asset_id = coalesce(lesson.video_asset_id, 'authoring-generated-ready-fixture')
+from public.modules as module
+where module.id = lesson.module_id
+  and module.course_id = '40000000-0000-4000-8000-000000000002';
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '20000000-0000-4000-8000-000000000001', true);
 
 select is(
   (public.submit_course_for_review('40000000-0000-4000-8000-000000000002')).status,

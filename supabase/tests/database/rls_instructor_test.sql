@@ -4,20 +4,20 @@ select plan(14);
 
 insert into auth.users (id, email, raw_user_meta_data)
 values (
-  '20000000-0000-4000-8000-000000000002',
+  '20000000-0000-4000-8000-000000000008',
   'second.instructor@example.invalid',
   '{"full_name":"Second Instructor"}'::jsonb
 );
 update public.profiles
 set role = 'instructor'
-where id = '20000000-0000-4000-8000-000000000002';
+where id = '20000000-0000-4000-8000-000000000008';
 insert into public.courses (id, slug, title, price_halalas, instructor_id)
 values (
   '40000000-0000-4000-8000-000000000005',
   'second-instructor-private-course',
   'Second Instructor Private Course',
   10000,
-  '20000000-0000-4000-8000-000000000002'
+  '20000000-0000-4000-8000-000000000008'
 );
 insert into public.modules (id, course_id, title, position)
 values (
@@ -40,7 +40,7 @@ select set_config('request.jwt.claim.sub', '20000000-0000-4000-8000-000000000001
 select ok(
   exists (
     select 1 from public.profiles
-    where id = '20000000-0000-4000-8000-000000000002'
+    where id = '20000000-0000-4000-8000-000000000008'
   ) and not exists (
     select 1 from public.profiles
     where id = '10000000-0000-4000-8000-000000000001'

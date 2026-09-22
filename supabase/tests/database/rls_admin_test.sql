@@ -37,7 +37,7 @@ select is((select count(*) from public.lessons), 15::bigint, 'administrators can
 select is((select count(id) from public.orders), 3::bigint, 'administrators can read all orders');
 select is((select count(*) from public.enrollments), 1::bigint, 'administrators can read all enrolments');
 select is((select count(*) from public.lesson_progress), 0::bigint, 'administrators do not bypass own-row progress policy');
-select is((select count(*) from public.admin_audit_log), 0::bigint, 'the audit log starts empty');
+select is((select count(*) from public.admin_audit_log), 3::bigint, 'administrators can read seeded audit history');
 
 select lives_ok(
   $test$
@@ -59,8 +59,8 @@ select is(
 );
 select is(
   (select count(*) from public.admin_audit_log where action = 'settings.update'),
-  1::bigint,
-  'a settings change creates one audit record'
+  2::bigint,
+  'a settings change adds one audit record'
 );
 
 select lives_ok(

@@ -86,7 +86,7 @@ from public.create_pending_order(
 
 select is(
   (select amount_halalas from payment_order_one),
-  35000,
+  19900,
   'pending orders use the database course price'
 );
 select is(
@@ -153,7 +153,7 @@ from public.process_verified_moyasar_payment(
   'payment-paid-one',
   'payment_paid',
   'paid',
-  35000,
+  19900,
   'SAR',
   (select order_id from payment_order_one),
   '{"id":"payment-paid-one","status":"paid"}'::jsonb,
@@ -198,7 +198,7 @@ from public.process_verified_moyasar_payment(
   'payment-paid-one',
   'payment_paid',
   'paid',
-  35000,
+  19900,
   'SAR',
   (select order_id from payment_order_one),
   '{"id":"payment-paid-one","status":"paid"}'::jsonb,
@@ -234,7 +234,7 @@ select lives_ok(
       'payment-paid-one',
       'payment_callback',
       'paid',
-      35000,
+      19900,
       'SAR',
       (select order_id from payment_order_one),
       '{"id":"payment-paid-one","status":"paid"}'::jsonb,
@@ -412,7 +412,7 @@ select throws_ok(
       'payment-wrong-metadata',
       'payment_paid',
       'paid',
-      35000,
+      19900,
       'SAR',
       (select order_id from payment_order_two),
       '{"id":"payment-wrong-metadata","status":"paid"}'::jsonb,
@@ -429,7 +429,7 @@ select throws_ok(
     values (
       '90000000-0000-4000-8000-000000000053',
       '40000000-0000-4000-8000-000000000001',
-      35000,
+      19900,
       'SAR'
     )
   $test$,
@@ -447,7 +447,7 @@ select lives_ok(
       'payment-paid-one',
       'payment_refunded',
       'refunded',
-      35000,
+      19900,
       'SAR',
       (select order_id from payment_order_one),
       '{"id":"payment-paid-one","status":"refunded"}'::jsonb,
@@ -488,7 +488,7 @@ from public.process_verified_moyasar_payment(
   'payment-paid-four',
   'payment_paid',
   'paid',
-  35000,
+  19900,
   'SAR',
   (select order_id from payment_order_four),
   '{"id":"payment-paid-four","status":"paid"}'::jsonb,
@@ -509,7 +509,7 @@ from public.process_verified_moyasar_payment(
   'payment-paid-four',
   'payment_voided',
   'voided',
-  35000,
+  19900,
   'SAR',
   (select order_id from payment_order_four),
   '{"id":"payment-paid-four","status":"voided"}'::jsonb,
@@ -547,7 +547,7 @@ select throws_ok(
         'payment-invalid-status',
         'payment_updated',
         null,
-        35000,
+        19900,
         'SAR',
         %L,
         '{"id":"payment-invalid-status"}'::jsonb,

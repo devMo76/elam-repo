@@ -2,6 +2,10 @@ begin;
 
 select plan(13);
 
+update public.courses
+set title = 'Signals Purchase Fixture'
+where id = '40000000-0000-4000-8000-000000000001';
+
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000001', true);
 select throws_ok(
@@ -26,7 +30,7 @@ select set_config('request.jwt.claim.sub', '30000000-0000-4000-8000-000000000001
 select is((select count(*) from public.admin_purchase_history()), 3::bigint, 'admins see all seeded orders');
 select is((select count(*) from public.admin_purchase_history(filter_status => 'paid')), 1::bigint, 'status filtering works');
 select is((select count(*) from public.admin_purchase_history(search_query => 'Learner One')), 1::bigint, 'learner-name search works');
-select is((select count(*) from public.admin_purchase_history(search_query => 'Signals')), 2::bigint, 'course-title search works');
+select is((select count(*) from public.admin_purchase_history(search_query => 'Signals Purchase Fixture')), 2::bigint, 'course-title search works');
 select is((select count(*) from public.admin_purchase_history(page_size => 1)), 1::bigint, 'page size limits returned rows');
 select is((select total_count from public.admin_purchase_history(page_size => 1)), 3::bigint, 'pagination returns the full matching count');
 select throws_ok(
