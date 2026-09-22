@@ -338,6 +338,7 @@ with deleted as (
 select is((select count(*) from deleted), 0::bigint, 'direct REST-style deletion cannot remove a published lesson');
 
 reset role;
+select set_config('request.jwt.claim.sub', '', true);
 update public.lessons as lesson
 set
   media_status = 'ready',
