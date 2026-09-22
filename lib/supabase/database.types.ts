@@ -664,6 +664,12 @@ export type Database = {
           title: string
           video_asset_id: string | null
         }[]
+        SetofOptions: {
+          from: "*"
+          to: "lessons"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       can_access_lesson: { Args: { target_lesson: string }; Returns: boolean }
       claim_free_course: {
