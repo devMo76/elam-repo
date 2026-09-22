@@ -3,6 +3,7 @@ import "server-only";
 import { z } from "zod";
 
 import { getEmailEnvironment } from "@/lib/env/server";
+import { measureServerOperation } from "@/lib/observability/server";
 
 const resendResponseSchema = z.object({
   id: z.string().trim().min(1),
@@ -27,23 +28,28 @@ export class ResendApiError extends Error {
 
 export async function sendEmail(input: SendEmailInput) {
   const environment = getEmailEnvironment();
-  const response = await fetch(RESEND_EMAILS_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${environment.EMAIL_API_KEY}`,
-      "Content-Type": "application/json",
-      "Idempotency-Key": input.idempotencyKey,
-    },
-    body: JSON.stringify({
-      from: environment.EMAIL_FROM_ADDRESS,
-      to: [input.to],
-      subject: input.subject,
-      html: input.html,
-      text: input.text,
-    }),
-    cache: "no-store",
-    signal: AbortSignal.timeout(10_000),
-  });
+  const response = await measureServerOperation(
+    "resend.email.send",
+    "resend",
+    () =>
+      fetch(RESEND_EMAILS_URL, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${environment.EMAIL_API_KEY}`,
+          "Content-Type": "application/json",
+          "Idempotency-Key": input.idempotencyKey,
+        },
+        body: JSON.stringify({
+          from: environment.EMAIL_FROM_ADDRESS,
+          to: [input.to],
+          subject: input.subject,
+          html: input.html,
+          text: input.text,
+        }),
+        cache: "no-store",
+        signal: AbortSignal.timeout(10_000),
+      }),
+  );
 
   if (!response.ok) {
     throw new ResendApiError(`resend_http_${response.status}`);

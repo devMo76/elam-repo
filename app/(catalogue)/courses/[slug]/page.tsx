@@ -6,6 +6,7 @@ import { FreeCourseEnrollmentButton } from "@/components/catalogue/FreeCourseEnr
 import { PaidCourseCheckoutButton } from "@/components/catalogue/PaidCourseCheckoutButton";
 import { formatArabicLessonCount } from "@/lib/catalogue/presentation";
 import { getCatalogueCourseBySlug } from "@/lib/catalogue/queries";
+import { measureServerOperation } from "@/lib/observability/server";
 
 import styles from "./page.module.css";
 
@@ -23,7 +24,11 @@ export default async function CourseDetailPage({
   params,
 }: CourseDetailPageProps) {
   const { slug } = await params;
-  const course = await getCatalogueCourseBySlug(slug);
+  const course = await measureServerOperation(
+    "supabase.catalogue.detail",
+    "supabase",
+    () => getCatalogueCourseBySlug(slug),
+  );
 
   if (!course) {
     notFound();
@@ -36,7 +41,7 @@ export default async function CourseDetailPage({
 
   return (
     <PublicShell>
-      <main className={styles.main}>
+      <div className={styles.main}>
         <Link className={styles.back} href="/courses">
           المواد المتوفرة ←
         </Link>
@@ -140,7 +145,7 @@ export default async function CourseDetailPage({
             {course.instructor.bio ? <p>{course.instructor.bio}</p> : null}
           </aside>
         </div>
-      </main>
+      </div>
     </PublicShell>
   );
 }

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { InstructorShell } from "@/components/instructor/InstructorShell";
+import { InstructorNavigationBlockerProvider } from "@/components/instructor/InstructorNavigationBlocker";
 import { InstructorUploadProvider } from "@/components/instructor/InstructorUploadManager";
 import { getViewer } from "@/lib/auth/viewer";
 
@@ -10,9 +11,11 @@ export default async function StudioLayout({ children }: { children: ReactNode }
 
   return (
     <InstructorUploadProvider>
-      {viewer?.role === "instructor" ? (
-        <InstructorShell viewer={viewer}>{children}</InstructorShell>
-      ) : children}
+      <InstructorNavigationBlockerProvider>
+        {viewer?.role === "instructor" ? (
+          <InstructorShell viewer={viewer}>{children}</InstructorShell>
+        ) : children}
+      </InstructorNavigationBlockerProvider>
     </InstructorUploadProvider>
   );
 }

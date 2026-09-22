@@ -1,10 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
+import { AccessibleFormError } from "@/components/ui/AccessibleFormError";
+import { useInstructorUnsavedChanges } from "./InstructorNavigationBlocker";
 import type { AuthoringApiError, StudioCourse } from "./studio-types";
 import styles from "./InstructorWorkspace.module.css";
+import { getEditorSaveState } from "@/lib/authoring/editor-state";
 
 type CourseFields = {
   slug: string;
@@ -15,6 +18,19 @@ type CourseFields = {
   description: string;
   priceRiyals: string;
   coverUrl: string;
+};
+
+type CourseFieldErrors = Partial<Record<keyof CourseFields, string>>;
+
+const initialCourseFields: CourseFields = {
+  slug: "",
+  department: "الهندسة الكهربائية",
+  courseCode: "",
+  title: "",
+  subtitle: "",
+  description: "",
+  priceRiyals: "0",
+  coverUrl: "",
 };
 
 const arabicError = {
@@ -31,11 +47,42 @@ function readError(payload: AuthoringApiError | null) {
   return "تعذّر حفظ المقرر. تحقّق من الاتصال ثم حاول مرة أخرى.";
 }
 
-function toPayload(fields: CourseFields) {
+function readFieldErrors(payload: AuthoringApiError | null): CourseFieldErrors {
+  const fields = payload?.error?.fieldErrors;
+  if (!fields) return {};
+
+  const invalid = "تحقّق من هذا الحقل ثم حاول مرة أخرى.";
+  return {
+    ...(fields.slug ? { slug: invalid } : {}),
+    ...(fields.department ? { department: invalid } : {}),
+    ...(fields.courseCode ? { courseCode: invalid } : {}),
+    ...(fields.title ? { title: invalid } : {}),
+    ...(fields.subtitle ? { subtitle: invalid } : {}),
+    ...(fields.description ? { description: invalid } : {}),
+    ...(fields.priceHalalas ? { priceRiyals: invalid } : {}),
+    ...(fields.coverUrl ? { coverUrl: invalid } : {}),
+  };
+}
+
+function fieldErrorProps(field: keyof CourseFields, errors: CourseFieldErrors) {
+  return {
+    "aria-describedby": errors[field] ? `course-${field}-error` : undefined,
+    "aria-invalid": Boolean(errors[field]),
+  } as const;
+}
+
+function CourseFieldError({ field, errors }: { field: keyof CourseFields; errors: CourseFieldErrors }) {
+  return errors[field] ? <small id={`course-${field}-error`}>{errors[field]}</small> : null;
+}
+
+const validSlug = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+function toPayload(fields: CourseFields, includeSlug: boolean) {
   const priceRiyals = Number(fields.priceRiyals);
+  const slug = fields.slug.trim();
 
   return {
-    slug: fields.slug.trim(),
+    ...(includeSlug || slug ? { slug } : {}),
     department: fields.department.trim(),
     courseCode: fields.courseCode.trim() || null,
     title: fields.title.trim(),
@@ -47,12 +94,21 @@ function toPayload(fields: CourseFields) {
 }
 
 function CourseFieldsForm({
+  creating = false,
   fields,
+  fieldErrors,
   onChange,
 }: {
+  creating?: boolean;
   fields: CourseFields;
+  fieldErrors: CourseFieldErrors;
   onChange: (field: keyof CourseFields, value: string) => void;
 }) {
+  const slugError = fields.slug && !validSlug.test(fields.slug)
+    ? "استخدم حروفًا إنجليزية صغيرة وأرقامًا وشرطات فقط."
+    : fieldErrors.slug;
+  const displayedErrors = { ...fieldErrors, slug: slugError || undefined };
+
   return (
     <div className={styles.formGroups}>
       <fieldset className={styles.formGroup}>
@@ -60,25 +116,24 @@ function CourseFieldsForm({
         <div className={styles.formGrid}>
           <label className={styles.field}>
             <span>عنوان المقرر</span>
-            <input autoComplete="off" onChange={(event) => onChange("title", event.target.value)} required value={fields.title} />
+            <input {...fieldErrorProps("title", displayedErrors)} autoComplete="off" onChange={(event) => onChange("title", event.target.value)} required value={fields.title} />
+            <CourseFieldError errors={displayedErrors} field="title" />
           </label>
           <label className={styles.field}>
             <span>القسم</span>
-            <input autoComplete="off" onChange={(event) => onChange("department", event.target.value)} required value={fields.department} />
+            <input {...fieldErrorProps("department", displayedErrors)} autoComplete="off" onChange={(event) => onChange("department", event.target.value)} required value={fields.department} />
+            <CourseFieldError errors={displayedErrors} field="department" />
           </label>
           <label className={styles.field}>
             <span>رمز المقرر (اختياري)</span>
-            <input autoComplete="off" onChange={(event) => onChange("courseCode", event.target.value)} value={fields.courseCode} />
-          </label>
-          <label className={styles.field}>
-            <span>رابط المقرر المختصر</span>
-            <input autoCapitalize="none" autoComplete="off" dir="ltr" onChange={(event) => onChange("slug", event.target.value.toLowerCase())} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" required value={fields.slug} />
-            <small>حروف إنجليزية صغيرة وأرقام وشرطات فقط.</small>
+            <input {...fieldErrorProps("courseCode", displayedErrors)} autoComplete="off" onChange={(event) => onChange("courseCode", event.target.value)} value={fields.courseCode} />
+            <CourseFieldError errors={displayedErrors} field="courseCode" />
           </label>
           <label className={styles.field}>
             <span>السعر بالريال السعودي</span>
-            <input inputMode="decimal" min="0" onChange={(event) => onChange("priceRiyals", event.target.value)} required step="0.01" type="number" value={fields.priceRiyals} />
+            <input {...fieldErrorProps("priceRiyals", displayedErrors)} inputMode="decimal" min="0" onChange={(event) => onChange("priceRiyals", event.target.value)} required step="0.01" type="number" value={fields.priceRiyals} />
             <small>0 للمقرر المجاني.</small>
+            <CourseFieldError errors={displayedErrors} field="priceRiyals" />
           </label>
         </div>
       </fieldset>
@@ -87,36 +142,41 @@ function CourseFieldsForm({
         <div className={styles.formGrid}>
           <label className={styles.field}>
             <span>صورة الغلاف (رابط اختياري)</span>
-            <input autoCapitalize="none" inputMode="url" onChange={(event) => onChange("coverUrl", event.target.value)} placeholder="https://…" type="url" value={fields.coverUrl} />
+            <input {...fieldErrorProps("coverUrl", displayedErrors)} autoCapitalize="none" inputMode="url" onChange={(event) => onChange("coverUrl", event.target.value)} placeholder="https://…" type="url" value={fields.coverUrl} />
+            <CourseFieldError errors={displayedErrors} field="coverUrl" />
           </label>
           <label className={`${styles.field} ${styles.wideField}`}>
             <span>وصف قصير (اختياري)</span>
-            <input autoComplete="off" onChange={(event) => onChange("subtitle", event.target.value)} value={fields.subtitle} />
+            <input {...fieldErrorProps("subtitle", displayedErrors)} autoComplete="off" onChange={(event) => onChange("subtitle", event.target.value)} value={fields.subtitle} />
+            <CourseFieldError errors={displayedErrors} field="subtitle" />
           </label>
           <label className={`${styles.field} ${styles.wideField}`}>
             <span>وصف المقرر (اختياري)</span>
-            <textarea onChange={(event) => onChange("description", event.target.value)} rows={6} value={fields.description} />
+            <textarea {...fieldErrorProps("description", displayedErrors)} onChange={(event) => onChange("description", event.target.value)} rows={6} value={fields.description} />
+            <CourseFieldError errors={displayedErrors} field="description" />
           </label>
         </div>
       </fieldset>
+      <details className={styles.advancedFields}>
+        <summary>خيارات متقدمة</summary>
+        <label className={styles.field}>
+          <span>{creating ? "تخصيص رابط المقرر (اختياري)" : "رابط المقرر"}</span>
+          <input {...fieldErrorProps("slug", displayedErrors)} autoCapitalize="none" autoComplete="off" dir="ltr" maxLength={120} onChange={(event) => onChange("slug", event.target.value.toLowerCase())} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder={creating ? "يُنشأ تلقائيًا من العنوان" : undefined} required={!creating} value={fields.slug} />
+          <CourseFieldError errors={displayedErrors} field="slug" />
+        </label>
+      </details>
     </div>
   );
 }
 
 export function InstructorCourseCreateForm() {
   const router = useRouter();
-  const [fields, setFields] = useState<CourseFields>({
-    slug: "",
-    department: "الهندسة الكهربائية",
-    courseCode: "",
-    title: "",
-    subtitle: "",
-    description: "",
-    priceRiyals: "0",
-    coverUrl: "",
-  });
+  const [fields, setFields] = useState<CourseFields>(initialCourseFields);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<CourseFieldErrors>({});
   const [isSaving, setIsSaving] = useState(false);
+  const isDirty = useMemo(() => JSON.stringify(fields) !== JSON.stringify(initialCourseFields), [fields]);
+  useInstructorUnsavedChanges(isDirty);
 
   function changeField(field: keyof CourseFields, value: string) {
     setFields((current) => ({ ...current, [field]: value }));
@@ -125,17 +185,19 @@ export function InstructorCourseCreateForm() {
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+    setFieldErrors({});
     setIsSaving(true);
 
     try {
       const response = await fetch("/api/instructor/courses", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(toPayload(fields)),
+        body: JSON.stringify(toPayload(fields, false)),
       });
       const payload = (await response.json().catch(() => null)) as { data?: StudioCourse } & AuthoringApiError;
 
       if (!response.ok || !payload.data) {
+        setFieldErrors(readFieldErrors(payload));
         setError(readError(payload));
         return;
       }
@@ -151,17 +213,23 @@ export function InstructorCourseCreateForm() {
 
   return (
     <form className={styles.formPanel} onSubmit={submit}>
-      <CourseFieldsForm fields={fields} onChange={changeField} />
+      <CourseFieldsForm creating fieldErrors={fieldErrors} fields={fields} onChange={changeField} />
       <div className={styles.formFooter}>
-        <p>سيُنشأ المقرر كمسودة.</p>
+        <p className={isDirty ? styles.unsaved : undefined}>{isDirty ? "توجد بيانات غير محفوظة" : "سيُنشأ المقرر كمسودة."}</p>
         <button className={styles.primaryButton} disabled={isSaving} type="submit">{isSaving ? "جارٍ إنشاء المسودة…" : "إنشاء المسودة"}</button>
       </div>
-      {error ? <p className={styles.error} role="alert">{error}</p> : null}
+      {error ? <AccessibleFormError className={styles.error}>{error}</AccessibleFormError> : null}
     </form>
   );
 }
 
-export function InstructorCourseDetailsForm({ course }: { course: StudioCourse }) {
+export function InstructorCourseDetailsForm({
+  course,
+  onSaved,
+}: {
+  course: StudioCourse;
+  onSaved?: (course: StudioCourse) => void;
+}) {
   const [fields, setFields] = useState<CourseFields>({
     slug: course.slug,
     department: course.department,
@@ -173,8 +241,14 @@ export function InstructorCourseDetailsForm({ course }: { course: StudioCourse }
     coverUrl: course.coverUrl ?? "",
   });
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<CourseFieldErrors>({});
   const [saved, setSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [savedFields, setSavedFields] = useState(fields);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const isDirty = useMemo(() => JSON.stringify(fields) !== JSON.stringify(savedFields), [fields, savedFields]);
+  const saveState = getEditorSaveState({ dirty: isDirty, saving: isSaving, saved, failed: error !== null });
+  useInstructorUnsavedChanges(isDirty);
 
   function changeField(field: keyof CourseFields, value: string) {
     setSaved(false);
@@ -184,6 +258,7 @@ export function InstructorCourseDetailsForm({ course }: { course: StudioCourse }
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+    setFieldErrors({});
     setSaved(false);
     setIsSaving(true);
 
@@ -191,15 +266,19 @@ export function InstructorCourseDetailsForm({ course }: { course: StudioCourse }
       const response = await fetch(`/api/instructor/courses/${course.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(toPayload(fields)),
+        body: JSON.stringify(toPayload(fields, true)),
       });
-      const payload = (await response.json().catch(() => null)) as AuthoringApiError;
+      const payload = (await response.json().catch(() => null)) as ({ data?: StudioCourse } & AuthoringApiError) | null;
 
-      if (!response.ok) {
+      if (!response.ok || !payload?.data) {
+        setFieldErrors(readFieldErrors(payload));
         setError(readError(payload));
         return;
       }
 
+      onSaved?.(payload.data);
+      setSavedFields(fields);
+      setLastSavedAt(new Date());
       setSaved(true);
     } catch {
       setError("تعذّر الاتصال بالخدمة. تحقّق من الاتصال ثم حاول مرة أخرى.");
@@ -214,12 +293,22 @@ export function InstructorCourseDetailsForm({ course }: { course: StudioCourse }
 
   return (
     <form className={styles.formPanel} onSubmit={submit}>
-      <CourseFieldsForm fields={fields} onChange={changeField} />
+      <CourseFieldsForm fieldErrors={fieldErrors} fields={fields} onChange={changeField} />
       <div className={styles.formFooter}>
-        {saved ? <p className={styles.success}>حُفظت التغييرات.</p> : null}
+        <p className={saveState === "dirty" || saveState === "failed" ? styles.unsaved : styles.saveStatus} role="status">
+          {saveState === "saving"
+            ? "جارٍ حفظ التغييرات…"
+            : saveState === "failed"
+              ? "لم تُحفظ التغييرات — حاول مرة أخرى"
+              : saveState === "dirty"
+                ? "توجد تغييرات غير محفوظة"
+                : saveState === "saved" && lastSavedAt
+                  ? `حُفظت الآن، ${lastSavedAt.toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" })}`
+                  : "جميع التغييرات محفوظة"}
+        </p>
         <button className={styles.primaryButton} disabled={isSaving} type="submit">{isSaving ? "جارٍ الحفظ…" : "حفظ التفاصيل"}</button>
       </div>
-      {error ? <p className={styles.error} role="alert">{error}</p> : null}
+      {error ? <AccessibleFormError className={styles.error}>{error}</AccessibleFormError> : null}
     </form>
   );
 }

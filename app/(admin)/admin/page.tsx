@@ -8,7 +8,7 @@ export async function LegacyAdminPage() {
   if (viewer.role === "admin") {
     return (
       <PublicShell>
-        <main className="roleLanding">
+        <div className="roleLanding">
           <p
             className="mb-4 inline-flex rounded-full bg-tint px-4 py-2 text-sm font-semibold text-accent"
             role="status"
@@ -20,9 +20,9 @@ export async function LegacyAdminPage() {
             أنت مسجّل الدخول بصفة مسؤول. لديك صلاحية الوصول إلى أدوات إدارة
             المنصة، ومراجعة المواد، وإدارة المستخدمين.
           </p>
-        </main>
+        </div>
       </PublicShell>
     );
   }
-  return <PublicShell><main className="roleLanding"><h1>مرحبًا {viewer.fullName}</h1><p>ستظهر هنا ملخصات إدارة المنصة ومراجعة المواد.</p></main></PublicShell>;
+  return <PublicShell><div className="roleLanding"><h1>مرحبًا {viewer.fullName}</h1><p>ستظهر هنا ملخصات إدارة المنصة ومراجعة المواد.</p></div></PublicShell>;
 }

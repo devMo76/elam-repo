@@ -97,3 +97,47 @@ export async function requestLessonVideoUpload(lessonId: string) {
     },
   });
 }
+
+export async function cancelLessonVideoUpload(lessonId: string) {
+  const access = await getManagedVideoLesson(lessonId);
+
+  if (!access.success) {
+    throw new VideoUploadRequestError(
+      access.status,
+      access.code,
+      access.message,
+    );
+  }
+
+  const { lesson } = access;
+  if (!lesson.videoAssetId || lesson.mediaStatus === "absent") return;
+
+  try {
+    await deleteBunnyVideo(lesson.videoAssetId);
+  } catch {
+    throw new VideoUploadRequestError(
+      502,
+      "video_cancel_failed",
+      "The video provider could not cancel this video.",
+    );
+  }
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("lessons")
+    .update({
+      video_asset_id: null,
+      duration_seconds: null,
+      media_status: "absent",
+    })
+    .eq("id", lesson.id)
+    .eq("video_asset_id", lesson.videoAssetId);
+
+  if (error) {
+    throw new VideoUploadRequestError(
+      500,
+      "video_cancel_state_failed",
+      "The cancelled video state could not be saved.",
+    );
+  }
+}

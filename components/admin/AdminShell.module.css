@@ -53,7 +53,8 @@
 }
 
 .navigation a,
-.backLink {
+.backLink,
+.signOutButton {
   display: flex;
   min-block-size: 44px;
   align-items: center;
@@ -66,7 +67,8 @@
 }
 
 .navigation a:hover,
-.backLink:hover {
+.backLink:hover,
+.signOutButton:hover {
   background: var(--tint);
   color: var(--accent);
 }
@@ -76,12 +78,27 @@
   color: var(--on-accent);
 }
 
-.backLink {
+.sidebarActions {
+  display: grid;
+  gap: 0.25rem;
   margin-block-start: auto;
   border-top: 1px solid var(--hairline);
-  border-radius: 0;
   padding-block-start: 1.25rem;
 }
+
+.backLink { border-radius: 0; }
+
+.signOutButton {
+  inline-size: 100%;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: start;
+}
+
+.signOutButton:disabled { cursor: wait; opacity: 0.65; }
+.signOutButton:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 35%, transparent); outline-offset: 2px; }
 
 .workspace {
   min-inline-size: 0;
@@ -151,9 +168,17 @@
     scroll-snap-align: start;
   }
 
-  .backLink {
-    display: none;
+  .sidebarActions {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    margin: 0;
+    border: 0;
+    padding: 0;
   }
+
+  .backLink { display: none; }
+  .signOutButton { inline-size: auto; min-block-size: 40px; padding-inline: 0.7rem; font-size: 0.8125rem; white-space: nowrap; }
 
   .workspace {
     padding: 1.25rem 0.75rem max(2.5rem, env(safe-area-inset-bottom));

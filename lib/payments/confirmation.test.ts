@@ -14,10 +14,6 @@ vi.mock("@/lib/payments/moyasar", async (importOriginal) => {
     fetchMoyasarPayment: vi.fn(),
   };
 });
-vi.mock("@/lib/payments/receipt", () => ({
-  attemptPaymentReceipt: vi.fn(),
-}));
-
 import {
   confirmMoyasarPayment,
   PaymentConfirmationError,
@@ -26,7 +22,6 @@ import {
   fetchMoyasarPayment,
   MoyasarApiError,
 } from "@/lib/payments/moyasar";
-import { attemptPaymentReceipt } from "@/lib/payments/receipt";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const paymentId = "90000000-0000-4000-8000-000000000001";
@@ -59,7 +54,6 @@ beforeEach(() => {
   vi.mocked(fetchMoyasarPayment).mockResolvedValue(
     verifiedPayment() as Awaited<ReturnType<typeof fetchMoyasarPayment>>,
   );
-  vi.mocked(attemptPaymentReceipt).mockResolvedValue({ status: "sent" });
 });
 
 describe("payment confirmation", () => {
@@ -101,7 +95,6 @@ describe("payment confirmation", () => {
       provider_payload: expect.objectContaining({ id: paymentId }),
       failure_detail: "",
     });
-    expect(attemptPaymentReceipt).toHaveBeenCalledWith(orderId);
   });
 
   it("allows a callback to confirm only the signed-in learner's order", async () => {
@@ -163,10 +156,9 @@ describe("payment confirmation", () => {
         failure_detail: "Payment was abandoned",
       }),
     );
-    expect(attemptPaymentReceipt).not.toHaveBeenCalled();
   });
 
-  it("keeps a verified payment successful when receipt delivery fails", async () => {
+  it("returns a verified payment without entering the receipt-delivery path", async () => {
     const rpc = vi.fn().mockResolvedValue({
       data: [
         {
@@ -178,11 +170,6 @@ describe("payment confirmation", () => {
       error: null,
     });
     vi.mocked(createAdminClient).mockReturnValue({ rpc } as never);
-    vi.mocked(attemptPaymentReceipt).mockResolvedValue({
-      status: "failed",
-      code: "resend_http_503",
-    });
-
     await expect(
       confirmMoyasarPayment(paymentId, {
         kind: "webhook",

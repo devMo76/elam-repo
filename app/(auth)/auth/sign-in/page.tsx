@@ -8,9 +8,9 @@ export default async function SignInPage({
 }: {
   searchParams: Promise<{ next?: string; password?: string }>;
 }) {
-  await redirectAuthenticatedUser();
   const params = await searchParams;
   const redirectTo = getSafeRedirectPath(params.next ?? null, "/account");
+  await redirectAuthenticatedUser(redirectTo);
 
   return <>{params.password === "updated" ? <AuthStatus status="password-updated" /> : null}<AuthPanel mode="sign-in" redirectTo={redirectTo} /></>;
 }

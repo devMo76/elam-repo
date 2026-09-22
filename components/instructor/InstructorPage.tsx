@@ -1,6 +1,6 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { InstructorLink as Link } from "./InstructorNavigationBlocker";
 import styles from "./InstructorWorkspace.module.css";
 
 export function InstructorPageHeader({

@@ -286,6 +286,22 @@
 .field small { color: var(--muted); font-size: 0.8125rem; font-weight: 400; }
 .wideField { grid-column: 1 / -1; }
 
+.advancedFields {
+  border-block-start: 1px solid var(--hairline);
+  padding-block-start: 1rem;
+}
+
+.advancedFields summary {
+  min-block-size: 40px;
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.advancedFields[open] summary { margin-block-end: 0.75rem; }
+.advancedFields .field { max-inline-size: 34rem; }
+
 .formFooter {
   display: flex;
   flex-wrap: wrap;
@@ -314,6 +330,8 @@
 .primaryButton:disabled { cursor: wait; opacity: 0.7; }
 .error { margin: 0; color: #9c1c35; font-size: 0.875rem; font-weight: 600; }
 .success { margin: 0; color: var(--accent); font-size: 0.875rem; font-weight: 700; }
+.saveStatus { margin: 0; color: var(--muted); font-size: 0.875rem; }
+.unsaved { margin: 0; color: #8a5612; font-size: 0.8125rem; font-weight: 700; }
 .readOnlyNotice { margin: 0; color: var(--muted); }
 .profileName { display: grid; gap: 0.1rem; border-block-end: 1px solid var(--hairline); padding-block-end: 1rem; }
 .profileName span, .profileName small { color: var(--muted); font-size: 0.875rem; }
@@ -321,6 +339,23 @@
 .publicationControl { display: grid; gap: 0.85rem; max-inline-size: 48rem; border: 1px solid var(--hairline); border-radius: 12px; background: var(--raised); padding: 1.25rem; }
 .publicationControl > p { margin: 0; color: var(--muted); }
 .publicationActions { display: flex; flex-wrap: wrap; gap: 0.65rem; }
+.readinessPanel { overflow: hidden; border: 1px solid var(--hairline); border-radius: 10px; background: var(--surface); }
+.readinessPanel summary { display: grid; min-block-size: 48px; cursor: pointer; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.65rem; padding: 0.7rem 0.85rem; }
+.readinessPanel summary::marker { content: ""; }
+.readinessPanel summary::-webkit-details-marker { display: none; }
+.readinessPanel summary:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 35%, transparent); outline-offset: -3px; }
+.readinessPanel summary strong { color: var(--ink); font-size: 0.9rem; }
+.readinessIndicator { inline-size: 0.65rem; block-size: 0.65rem; border-radius: 999px; background: var(--accent); }
+.readinessBlocked .readinessIndicator { background: #9c1c35; }
+.readinessDisclosure { color: var(--accent); font-size: 0.8125rem; font-weight: 700; }
+.readinessBody { display: grid; gap: 1rem; border-block-start: 1px solid var(--hairline); padding: 0.85rem; }
+.readinessBody h3 { margin: 0 0 0.4rem; color: var(--ink); font-size: 0.875rem; }
+.readinessBody ul { display: grid; gap: 0.4rem; margin: 0; padding-inline-start: 1.2rem; }
+.readinessBody li, .readinessBody p { color: var(--muted); font-size: 0.875rem; }
+.readinessBody p { margin: 0; }
+.readinessBody a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+.readinessBody a:hover { color: var(--ink); }
+.module, .lesson, #course-details, #curriculum { scroll-margin-block-start: 1rem; }
 
 .curriculum {
   display: grid;
@@ -352,8 +387,8 @@
 
 .module + .module { border-block-start: 1px solid var(--hairline); }
 
-.moduleHeader,
-.lesson,
+.moduleSummary,
+.lessonSummary,
 .lessonMain,
 .rowActions,
 .lessonMeta,
@@ -364,7 +399,28 @@
   gap: 0.5rem;
 }
 
-.moduleHeader { justify-content: space-between; gap: 0.75rem 1.5rem; }
+.moduleSummary { justify-content: space-between; gap: 0.75rem 1.5rem; }
+.moduleToggle {
+  display: flex;
+  flex: 1 1 24rem;
+  min-block-size: 48px;
+  min-inline-size: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  padding: 0;
+  font: inherit;
+  text-align: start;
+}
+.moduleToggle > span:first-child { display: grid; min-inline-size: 0; gap: 0.1rem; }
+.moduleToggle strong { overflow-wrap: anywhere; }
+.moduleToggle small { color: var(--muted); font-size: 0.8125rem; font-weight: 400; }
+.moduleSignals { display: flex; flex: 0 0 auto; flex-wrap: wrap; justify-content: end; gap: 0.35rem 0.65rem; }
+.moduleSignals .problemSignal { color: #9c1c35; font-weight: 700; }
+.moduleBody { display: grid; gap: 0.9rem; border-block-start: 1px solid var(--hairline); padding-block-start: 0.9rem; }
 .inlineForm { display: flex; flex: 1 1 18rem; align-items: center; gap: 0.5rem; }
 .inlineForm input,
 .addLessonRow input,
@@ -399,13 +455,31 @@
 .lessonList { display: grid; }
 
 .lesson {
-  justify-content: space-between;
+  display: grid;
   gap: 0.75rem;
   border-block-start: 1px solid var(--hairline);
   padding-block: 0.85rem;
 }
 
-.lessonMain { flex: 1 1 28rem; min-inline-size: 0; align-items: start; }
+.lessonSummary { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.65rem; }
+.lessonToggle {
+  display: flex;
+  min-block-size: 40px;
+  min-inline-size: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  text-align: start;
+}
+.lessonToggle span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lessonToggle small { flex: 0 0 auto; color: var(--muted); font-size: 0.75rem; font-weight: 400; }
+.lessonMain { min-inline-size: 0; align-items: start; border-radius: 10px; background: var(--surface); padding: 0.85rem; }
 .lessonPosition { display: inline-flex; min-inline-size: 1.5rem; justify-content: center; color: var(--muted); font-size: 0.875rem; font-variant-numeric: tabular-nums; }
 .lessonFields { display: grid; flex: 1; min-inline-size: 0; gap: 0.45rem; }
 .lessonFields > input { inline-size: 100%; }
@@ -413,6 +487,7 @@
 .checkLabel { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--body); cursor: pointer; }
 .checkLabel input { accent-color: var(--accent); }
 .uploadControl { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.uploadRecovery { display: flex; flex-basis: 100%; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.65rem; border-inline-start: 3px solid #a56a12; padding: 0.65rem 0.75rem; background: #fff8e8; color: var(--body); font-size: 0.8125rem; line-height: 1.6; }
 .uploadButton {
   display: inline-flex;
   min-block-size: 40px;
@@ -437,6 +512,11 @@
 .inlineConfirmation p { flex: 1 1 100%; margin: 0; color: var(--body); font-size: 0.875rem; }
 .dangerButton { border: 1px solid var(--ink); background: var(--ink); color: var(--on-accent); }
 .quietButton { border: 1px solid var(--hairline); background: var(--raised); color: var(--body); }
+.quickAdd { border-block-start: 1px solid var(--hairline); padding-block-start: 0.75rem; }
+.quickAdd summary { min-block-size: 40px; cursor: pointer; color: var(--accent); font-size: 0.875rem; font-weight: 700; }
+.quickAdd form { display: grid; gap: 0.65rem; }
+.quickAdd textarea { min-block-size: 7rem; }
+.quickAdd .textButton { justify-self: start; }
 
 @media (max-width: 760px) {
   .header { align-items: stretch; gap: 0.75rem; padding-block-end: 1.25rem; }
@@ -468,12 +548,19 @@
   .primaryButton { inline-size: 100%; }
   .curriculum { padding: 1rem; border-radius: 10px; }
   .addRow .primaryButton { flex: 1 1 100%; }
-  .moduleHeader { align-items: stretch; }
+  .moduleSummary { align-items: stretch; }
+  .moduleToggle { flex-basis: 100%; }
+  .moduleSignals { justify-content: start; }
   .inlineForm { flex-basis: 100%; }
   .rowActions { inline-size: 100%; }
   .rowActions > button { flex: 1 1 auto; }
+  .lessonSummary { grid-template-columns: auto minmax(0, 1fr); }
+  .lessonSummary > .rowActions { grid-column: 1 / -1; justify-content: end; }
+  .lessonToggle { align-items: start; flex-direction: column; gap: 0.1rem; }
+  .lessonToggle span { white-space: normal; }
   .lessonMain { flex-basis: 100%; }
-  .lesson > .rowActions { justify-content: end; }
   .publicationControl { padding: 1rem; border-radius: 10px; }
   .publicationActions > button { flex: 1 1 100%; }
+  .readinessPanel summary { grid-template-columns: auto minmax(0, 1fr); }
+  .readinessDisclosure { grid-column: 2; }
 }

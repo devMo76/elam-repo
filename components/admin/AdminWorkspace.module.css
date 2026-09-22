@@ -214,6 +214,7 @@
 }
 
 .actions { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.actionHint { display: block; max-inline-size: 16rem; color: var(--muted); font-size: 0.75rem; line-height: 1.55; }
 .mutation { display: grid; gap: 0.4rem; }
 .roleControl { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; }
 .inlineSelect { min-block-size: 40px; border: 1px solid var(--hairline); border-radius: var(--radius-card); background: var(--surface); color: var(--body); padding-inline: 0.5rem; font: inherit; }

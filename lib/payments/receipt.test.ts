@@ -14,7 +14,10 @@ vi.mock("@/lib/email/resend", async (importOriginal) => {
 });
 
 import { ResendApiError, sendEmail } from "@/lib/email/resend";
-import { attemptPaymentReceipt } from "@/lib/payments/receipt";
+import {
+  attemptPaymentReceipt,
+  processPendingPaymentReceipts,
+} from "@/lib/payments/receipt";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const orderId = "70000000-0000-4000-8000-000000000001";
@@ -128,5 +131,35 @@ describe("payment receipt delivery", () => {
       target_order: orderId,
       error_code: "resend_http_503",
     });
+  });
+
+  it("retries queued work through the same idempotent receipt claim", async () => {
+    const queueLimit = vi.fn().mockResolvedValue({
+      data: [{ order_id: orderId }],
+      error: null,
+    });
+    const queueAdmin = {
+      from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          neq: vi.fn().mockReturnValue({
+            order: vi.fn().mockReturnValue({ limit: queueLimit }),
+          }),
+        }),
+      }),
+    };
+    const { admin } = createReceiptAdmin();
+    vi.mocked(createAdminClient)
+      .mockReturnValueOnce(queueAdmin as never)
+      .mockReturnValueOnce(admin as never);
+
+    await expect(processPendingPaymentReceipts()).resolves.toEqual({
+      selected: 1,
+      sent: 1,
+      failed: 0,
+      skipped: 0,
+    });
+
+    expect(queueLimit).toHaveBeenCalledWith(25);
+    expect(sendEmail).toHaveBeenCalledOnce();
   });
 });

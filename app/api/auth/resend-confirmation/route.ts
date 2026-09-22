@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { getSafeRedirectPath } from "@/lib/auth/redirect";
 import { resendConfirmationSchema } from "@/lib/auth/schemas";
 import { getPublicEnvironment } from "@/lib/env/public";
 import { createApiError, parseJsonBody } from "@/lib/http/api-response";
@@ -17,7 +18,10 @@ export async function POST(request: Request) {
     "/auth/callback",
     environment.NEXT_PUBLIC_SITE_URL,
   );
-  confirmationUrl.searchParams.set("next", "/");
+  confirmationUrl.searchParams.set(
+    "next",
+    getSafeRedirectPath(parsed.data.next ?? null, "/account"),
+  );
 
   const supabase = await createClient();
   const { error } = await supabase.auth.resend({

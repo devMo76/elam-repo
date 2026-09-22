@@ -19,17 +19,21 @@ function statusLabel(status: UploadState) {
 }
 
 export function PersistentInstructorVideoUpload({
+  courseId,
+  courseTitle,
   lessonId,
   lessonTitle,
   initialStatus,
   onStatusChange,
 }: {
+  courseId: string;
+  courseTitle: string;
   lessonId: string;
   lessonTitle: string;
   initialStatus: UploadState;
   onStatusChange: (status: UploadState) => void;
 }) {
-  const { startUpload, trackLesson, uploads } = useInstructorUploads();
+  const { cancelUpload, startUpload, trackLesson, uploads } = useInstructorUploads();
   const upload = uploads[lessonId];
   const status = upload?.mediaStatus ?? initialStatus;
   const progress = upload?.isClientUpload
@@ -47,8 +51,8 @@ export function PersistentInstructorVideoUpload({
   const reportedStatus = useRef(status);
 
   useEffect(() => {
-    trackLesson({ lessonId, lessonTitle, mediaStatus: initialStatus });
-  }, [initialStatus, lessonId, lessonTitle, trackLesson]);
+    trackLesson({ courseId, courseTitle, lessonId, lessonTitle, mediaStatus: initialStatus });
+  }, [courseId, courseTitle, initialStatus, lessonId, lessonTitle, trackLesson]);
 
   useEffect(() => {
     if (status === reportedStatus.current) return;
@@ -61,7 +65,12 @@ export function PersistentInstructorVideoUpload({
       <span className={styles.status}>
         {upload?.isPreparing ? "يجري تجهيز الرفع" : upload?.isClientUpload ? "جارٍ رفع الفيديو" : statusLabel(status)}
       </span>
-      {isBusy ? (
+      {upload?.requiresFile ? (
+        <div className={styles.uploadRecovery}>
+          <span>لا يمكن استئناف الملف بعد إعادة تحميل الصفحة. ألغِ الرفع السابق، ثم اختر الملف نفسه أو ملفًا بديلًا.</span>
+          <button className={styles.dangerTextButton} onClick={() => void cancelUpload(lessonId)} type="button">إلغاء الرفع السابق</button>
+        </div>
+      ) : isBusy ? (
         <div className={styles.uploadProgress} aria-live="polite">
           {hasMeasurableProgress ? (
             <>
@@ -88,6 +97,8 @@ export function PersistentInstructorVideoUpload({
               event.currentTarget.value = "";
               if (file) {
                 void startUpload({
+                  courseId,
+                  courseTitle,
                   lessonId,
                   lessonTitle,
                   fallbackStatus: initialStatus,

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { Logo } from "@/components/ui/Logo";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 
 import styles from "./AdminShell.module.css";
 
@@ -31,7 +32,7 @@ export function AdminShell({
   const pathname = usePathname();
 
   return (
-    <main className={styles.page}>
+    <main className={styles.page} id="main-content" tabIndex={-1}>
       <aside className={styles.sidebar} aria-label="تنقل الإدارة">
         <div className={styles.identity}>
           <Link aria-label="لوحة إدارة إلام" className={styles.brand} href="/admin">
@@ -53,7 +54,10 @@ export function AdminShell({
             </Link>
           ))}
         </nav>
-        <Link className={styles.backLink} href="/courses">العودة إلى الموقع</Link>
+        <div className={styles.sidebarActions}>
+          <Link className={styles.backLink} href="/courses">العودة إلى الموقع</Link>
+          <SignOutButton className={styles.signOutButton} />
+        </div>
       </aside>
       <div className={styles.workspace}>{children}</div>
     </main>

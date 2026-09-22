@@ -15,7 +15,7 @@ export const authoringCourseStatusSchema = z.enum([
 ]);
 
 export const createAuthoringCourseRequestSchema = z.strictObject({
-  slug: courseSlugSchema,
+  slug: courseSlugSchema.optional(),
   department: requiredText(32),
   courseCode: optionalText(32),
   title: requiredText(160),
@@ -57,6 +57,17 @@ export const reorderModulesRequestSchema = z.strictObject({
 
 export const createLessonRequestSchema = z.strictObject({
   title: requiredText(160),
+});
+
+export const createLessonsRequestSchema = z.union([
+  createLessonRequestSchema,
+  z.strictObject({
+    titles: z.array(requiredText(160)).min(1).max(50),
+  }),
+]);
+
+export const duplicateLessonRequestSchema = z.strictObject({
+  action: z.literal("duplicate"),
 });
 
 export const updateLessonRequestSchema = z
@@ -128,6 +139,10 @@ export const authoringLessonResponseSchema = z.strictObject({
   data: authoringLessonSchema,
 });
 
+export const authoringLessonListResponseSchema = z.strictObject({
+  data: z.array(authoringLessonSchema),
+});
+
 export const reorderModulesResponseSchema = z.strictObject({
   data: z.strictObject({ moduleIds: z.array(z.uuid()) }),
 });
@@ -176,6 +191,63 @@ export const instructorAuthoringProfileResponseSchema = z.strictObject({
   data: instructorAuthoringProfileSchema,
 });
 
+export const courseReadinessTargetSchema = z.enum([
+  "details",
+  "curriculum",
+  "lesson",
+  "media",
+  "profile",
+]);
+
+export const courseReadinessBlockerCodeSchema = z.enum([
+  "course_identity_invalid",
+  "course_module_required",
+  "course_lesson_required",
+  "lesson_media_not_ready",
+]);
+
+export const courseReadinessWarningCodeSchema = z.enum([
+  "course_cover_missing",
+  "course_subtitle_missing",
+  "course_description_missing",
+  "instructor_avatar_missing",
+  "instructor_headline_missing",
+  "instructor_bio_missing",
+  "paid_course_preview_missing",
+  "course_unusually_short",
+  "lesson_description_missing",
+]);
+
+const courseReadinessIssueFields = {
+  message: z.string().min(1),
+  target: courseReadinessTargetSchema.optional(),
+  entityId: z.uuid().optional(),
+};
+
+export const courseReadinessBlockerSchema = z.strictObject({
+  code: courseReadinessBlockerCodeSchema,
+  ...courseReadinessIssueFields,
+});
+
+export const courseReadinessWarningSchema = z.strictObject({
+  code: courseReadinessWarningCodeSchema,
+  ...courseReadinessIssueFields,
+});
+
+export const courseReadinessSchema = z.strictObject({
+  canSubmit: z.boolean(),
+  blockers: z.array(courseReadinessBlockerSchema),
+  warnings: z.array(courseReadinessWarningSchema),
+});
+
+export const courseSubmissionReadinessErrorResponseSchema = z.strictObject({
+  error: z.strictObject({
+    code: z.literal("course_not_ready"),
+    message: z.string().min(1),
+    blockers: z.array(courseReadinessBlockerSchema).min(1),
+  }),
+});
+
 export type CreateAuthoringCourseRequest = z.infer<
   typeof createAuthoringCourseRequestSchema
 >;
@@ -185,4 +257,18 @@ export type UpdateAuthoringCourseRequest = z.infer<
 export type UpdateLessonRequest = z.infer<typeof updateLessonRequestSchema>;
 export type UpdateInstructorProfileRequest = z.infer<
   typeof updateInstructorProfileRequestSchema
+>;
+export type AuthoringCourse = z.infer<typeof authoringCourseSchema>;
+export type InstructorAuthoringProfile = z.infer<
+  typeof instructorAuthoringProfileSchema
+>;
+export type CourseReadiness = z.infer<typeof courseReadinessSchema>;
+export type CourseReadinessBlocker = z.infer<
+  typeof courseReadinessBlockerSchema
+>;
+export type CourseReadinessWarning = z.infer<
+  typeof courseReadinessWarningSchema
+>;
+export type CourseSubmissionReadinessErrorResponse = z.infer<
+  typeof courseSubmissionReadinessErrorResponseSchema
 >;

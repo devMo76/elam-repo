@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { createApiError } from "@/lib/http/api-response";
 import {
+  cancelLessonVideoUpload,
   requestLessonVideoUpload,
   VideoUploadRequestError,
 } from "@/lib/video/upload";
@@ -34,6 +35,32 @@ export async function POST(
       500,
       "video_upload_failed",
       "The video upload could not be prepared.",
+    );
+  }
+}
+
+export async function DELETE(
+  _request: Request,
+  { params }: UploadRouteContext,
+) {
+  const result = z.uuid().safeParse((await params).lessonId);
+
+  if (!result.success) {
+    return createApiError(404, "lesson_not_found", "The lesson was not found.");
+  }
+
+  try {
+    await cancelLessonVideoUpload(result.data);
+    return new Response(null, { status: 204 });
+  } catch (error) {
+    if (error instanceof VideoUploadRequestError) {
+      return createApiError(error.status, error.code, error.message);
+    }
+
+    return createApiError(
+      500,
+      "video_cancel_failed",
+      "The video could not be cancelled.",
     );
   }
 }

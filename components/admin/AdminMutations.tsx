@@ -55,16 +55,18 @@ export function AdminRoleControl({
 }
 
 export function AdminCourseActions({
+  canPublish,
   courseId,
   courseTitle,
   currentStatus,
 }: {
+  canPublish: boolean;
   courseId: string;
   courseTitle: string;
   currentStatus: "draft" | "in_review" | "published" | "archived";
 }) {
   const actions = [
-    currentStatus !== "published"
+    currentStatus !== "published" && canPublish
       ? { status: "published" as const, label: "نشر", confirmation: `سيُنشر مقرر ${courseTitle} ويصبح متاحًا للمتعلمين.` }
       : null,
     currentStatus !== "draft"
@@ -77,6 +79,7 @@ export function AdminCourseActions({
 
   return (
     <div className={styles.actions}>
+      {!canPublish && currentStatus !== "published" ? <small className={styles.actionHint}>لا يمكن النشر قبل اكتمال المحتوى والفيديوهات.</small> : null}
       {actions.map((action) => (
         <AdminMutationButton
           action={action.label}

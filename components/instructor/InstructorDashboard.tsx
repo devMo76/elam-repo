@@ -1,14 +1,26 @@
-import Link from "next/link";
+import { InstructorLink as Link } from "./InstructorNavigationBlocker";
 
 import { getInstructorCourses } from "@/components/instructor/instructor-data";
 import { InstructorEmptyState, InstructorPageHeader, InstructorSection, instructorWorkspaceStyles as styles } from "@/components/instructor/InstructorPage";
 import { getCourseStructureSummary, instructorCourseStatusLabel } from "@/lib/authoring/presentation";
 import { getInstructorStatistics } from "@/lib/authoring/statistics";
 import { getInstructorView } from "@/lib/authoring/view";
+import { measureServerOperation } from "@/lib/observability/server";
 
 export default async function InstructorDashboard() {
   const { viewer } = await getInstructorView("/studio");
-  const [courses, statistics] = await Promise.all([getInstructorCourses(), getInstructorStatistics()]);
+  const [courses, statistics] = await Promise.all([
+    measureServerOperation(
+      "supabase.studio.course-list",
+      "supabase",
+      getInstructorCourses,
+    ),
+    measureServerOperation(
+      "supabase.studio.statistics",
+      "supabase",
+      getInstructorStatistics,
+    ),
+  ]);
   const countsByCourseId = new Map(statistics.data.map((item) => [item.courseId, item.enrollmentCount]));
   const draftCount = courses.filter((course) => course.status === "draft").length;
   const publishedCount = courses.filter((course) => course.status === "published").length;

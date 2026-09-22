@@ -11,10 +11,14 @@ vi.mock("@/lib/payments/confirmation", () => ({
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(),
 }));
+vi.mock("@/lib/payments/receipt-scheduling", () => ({
+  schedulePaymentReceipt: vi.fn(),
+}));
 
 import { GET } from "@/app/api/payments/callback/route";
 import { getPublicEnvironment } from "@/lib/env/public";
 import { confirmMoyasarPayment } from "@/lib/payments/confirmation";
+import { schedulePaymentReceipt } from "@/lib/payments/receipt-scheduling";
 import { createClient } from "@/lib/supabase/server";
 
 const paymentId = "90000000-0000-4000-8000-000000000001";
@@ -94,5 +98,8 @@ describe("payment callback route", () => {
       kind: "callback",
       expectedUserId: userId,
     });
+    expect(schedulePaymentReceipt).toHaveBeenCalledWith(
+      "70000000-0000-4000-8000-000000000001",
+    );
   });
 });

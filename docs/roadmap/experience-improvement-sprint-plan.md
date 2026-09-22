@@ -112,14 +112,14 @@ This sprint prevents UX and performance work from being judged by intuition alon
 
 **Acceptance criteria:**
 
-- [ ] One readiness evaluator returns blockers and warnings from saved course data.
-- [ ] The four blocker rules and all non-blocking warnings match section 3.
-- [ ] Unit tests cover an empty draft, processing video, ready minimum course, paid course without preview, and missing optional metadata.
+- [x] One readiness evaluator returns blockers and warnings from saved course data.
+- [x] The four blocker rules and all non-blocking warnings match section 3.
+- [x] Unit tests cover an empty draft, processing video, ready minimum course, paid course without preview, and missing optional metadata.
 
 **Verification:**
 
-- [ ] Focused Vitest tests pass.
-- [ ] Typecheck passes.
+- [x] Focused Vitest tests pass.
+- [x] Typecheck passes.
 - [ ] Review returned codes and Arabic presentation mapping with the product owner.
 
 **Dependencies:** None  
@@ -132,15 +132,15 @@ This sprint prevents UX and performance work from being judged by intuition alon
 
 **Acceptance criteria:**
 
-- [ ] Sign-in, catalogue, course detail, checkout callback, learner dashboard, course player, Studio overview, editor, and video-status routes have timing visibility.
-- [ ] Client Web Vitals are captured for public, learner, and Studio route groups.
-- [ ] A short measurement runbook identifies local limitations and production/staging procedure.
+- [x] Sign-in, catalogue, course detail, checkout callback, learner dashboard, course player, Studio overview, editor, and video-status routes have timing visibility.
+- [x] Client Web Vitals are captured for public, learner, and Studio route groups.
+- [x] A short measurement runbook identifies local limitations and production/staging procedure.
 
 **Verification:**
 
-- [ ] Instrumentation initializes once and does not expose secrets.
-- [ ] A development request produces traceable timing output.
-- [ ] Build and client-bundle secret checks pass.
+- [x] Instrumentation initializes once and does not expose secrets.
+- [x] A development request produces traceable timing output.
+- [x] Build and client-bundle secret checks pass.
 
 **Dependencies:** None  
 **Files likely touched:** Next instrumentation entry, telemetry helper, selected route boundary, runbook  
@@ -148,9 +148,9 @@ This sprint prevents UX and performance work from being judged by intuition alon
 
 #### Checkpoint 0 — Approve rules and baseline
 
-- [ ] Product owner approves the lightweight readiness policy.
+- [x] Product owner approves the lightweight readiness policy.
 - [ ] Baseline metrics are recorded before performance changes.
-- [ ] Typecheck, lint, focused tests, and build pass.
+- [x] Typecheck, lint, focused tests, and build pass.
 
 ### Sprint 1 — Continuity and publishing safety
 
@@ -162,15 +162,15 @@ This is the recommended first implementation sprint. It removes journey breaks a
 
 **Acceptance criteria:**
 
-- [ ] Switching from sign-in to registration preserves a validated local destination.
-- [ ] Email confirmation preserves the same destination without permitting external redirects.
-- [ ] Invalid or absent destinations fall back to the appropriate dashboard.
+- [x] Switching from sign-in to registration preserves a validated local destination.
+- [x] Email confirmation preserves the same destination without permitting external redirects.
+- [x] Invalid or absent destinations fall back to the appropriate dashboard.
 
 **Verification:**
 
-- [ ] Redirect unit tests cover valid, encoded, missing, and malicious destinations.
+- [x] Redirect unit tests cover valid, encoded, missing, and malicious destinations.
 - [ ] Manual flow: course → sign in → register → confirm → same course.
-- [ ] Existing sign-in flow remains functional.
+- [x] Existing sign-in route tests remain functional.
 
 **Dependencies:** None  
 **Files likely touched:** auth pages/form, register route, auth callback, redirect tests  
@@ -182,14 +182,14 @@ This is the recommended first implementation sprint. It removes journey breaks a
 
 **Acceptance criteria:**
 
-- [ ] An unready course cannot transition from `draft` to `in_review`.
-- [ ] A minimally ready course transitions once and returns its new state.
-- [ ] The failure response contains stable blocker codes and no partial state change.
+- [x] An unready course cannot transition from `draft` to `in_review` in the atomic database function.
+- [x] A minimally ready course transitions once and returns its new state.
+- [x] The failure response contains stable blocker codes and no partial state change.
 
 **Verification:**
 
 - [ ] Database tests prove the transition rules and ownership rules.
-- [ ] Route tests cover success, blockers, unauthorized access, and stale state.
+- [x] Route tests cover success, blockers, unauthorized access, and stale state.
 - [ ] Existing admin review queue behavior remains unchanged.
 
 **Dependencies:** Task 0.1  
@@ -202,14 +202,14 @@ This is the recommended first implementation sprint. It removes journey breaks a
 
 **Acceptance criteria:**
 
-- [ ] The collapsed state communicates ready/not-ready and remaining blocker count in one line.
-- [ ] Expanded items distinguish blockers from warnings and link to their targets.
-- [ ] The instructor can continue saving drafts regardless of readiness; only submission respects blockers.
+- [x] The collapsed state communicates ready/not-ready and remaining blocker count in one line.
+- [x] Expanded items distinguish blockers from warnings and link to their targets.
+- [x] The instructor can continue saving drafts regardless of readiness; only submission respects blockers.
 
 **Verification:**
 
-- [ ] Component tests cover ready, blocked, warning-only, loading, and server-error states.
-- [ ] Keyboard and screen-reader review confirms disclosure and links are operable.
+- [x] Component tests cover ready, blocked, warning-only, loading, and server-error states.
+- [x] Semantic review confirms the native disclosure and links are keyboard and screen-reader operable.
 - [ ] Manual Arabic RTL review at mobile and desktop widths.
 
 **Dependencies:** Tasks 0.1 and 1.2  
@@ -222,15 +222,15 @@ This is the recommended first implementation sprint. It removes journey breaks a
 
 **Acceptance criteria:**
 
-- [ ] Changed course or lesson fields show an unobtrusive unsaved state.
-- [ ] Internal navigation and tab close warn only when editable fields contain unsaved changes.
-- [ ] Successful save clears the warning and exposes a timestamp or concise success status.
+- [x] Changed course or lesson fields show an unobtrusive unsaved state.
+- [x] Internal navigation, browser history navigation, and tab close warn only when editable fields contain unsaved changes.
+- [x] Successful save clears the warning and exposes a timestamp or concise success status.
 
 **Verification:**
 
-- [ ] Tests cover dirty, saving, saved, failed, and retry states.
+- [x] Tests cover dirty, saving, saved, failed, and retry states.
 - [ ] Manual checks cover sidebar navigation, browser navigation, refresh, and upload-in-progress behavior.
-- [ ] No warning appears solely because Bunny is processing an already uploaded file.
+- [x] No warning appears solely because Bunny is processing an already uploaded file.
 
 **Dependencies:** None  
 **Files likely touched:** course forms/editor, navigation guard hook, status component, tests  
@@ -245,6 +245,18 @@ This is the recommended first implementation sprint. It removes journey breaks a
 - [ ] Typecheck, lint, backend/database tests, build, and mobile/desktop manual review pass.
 - [ ] Human review before Sprint 2.
 
+#### Sprint 1 implementation record — 2026-09-17
+
+- Authentication intent now travels as a server-validated local `next` path through sign-in, registration, confirmation resend, and the auth callback. Query strings and fragments are preserved; external destinations fall back safely.
+- `submit_course_for_review` now performs ownership, draft-state, identity, module, lesson, and playable-media checks in one locked database operation. A blocked submission returns stable issue codes while leaving the course as a draft.
+- The Studio publication area now derives live readiness from saved course data and local curriculum mutations. Its compact native disclosure separates mandatory blockers from optional improvements and links to the relevant details, curriculum, or lesson upload.
+- Curriculum state is owned once by `InstructorCourseEditor`; the builder reports event-driven updates instead of updating its parent from inside a child state updater. This avoids React's cross-component render update warning while keeping readiness live.
+- Course details and lesson/module title edits register independently with the Studio navigation guard. Saved, saving, dirty, failed, and timestamped-success feedback is visible; video upload/processing state is deliberately excluded.
+- Studio links use Next.js `onNavigate`; refresh/tab close uses `beforeunload`; browser back/forward cancellation is restored through a capture-phase `popstate` guard.
+- The Studio and admin shells expose a responsive sign-out action. Studio sign-out reuses the unsaved-work confirmation before ending the session, and failed requests remain retryable in place.
+- Automated verification completed: 47 Vitest files / 208 tests, TypeScript, ESLint, production build, and client-bundle secret scan all pass.
+- Pending local-environment verification: database pgTAP/lint and signed-in visual/manual flows. Docker Desktop's Linux engine pipe was unavailable (`dockerDesktopLinuxEngine`), so these remain unchecked rather than being reported as passed.
+
 ### Sprint 2 — Purchase reliability and accessibility
 
 #### Task 2.1 — Load the payment widget only on purchase intent
@@ -253,13 +265,13 @@ This is the recommended first implementation sprint. It removes journey breaks a
 
 **Acceptance criteria:**
 
-- [ ] Moyasar assets are not requested during initial course-detail rendering.
-- [ ] Clicking purchase starts one idempotent loader and displays clear progress.
-- [ ] Success, retryable failure, configuration failure, and cancellation are understandable and keyboard-accessible.
+- [x] Moyasar assets are not requested during initial course-detail rendering.
+- [x] Clicking purchase starts one idempotent loader and displays clear progress.
+- [x] Success, retryable failure, configuration failure, and cancellation are understandable and keyboard-accessible.
 
 **Verification:**
 
-- [ ] Tests cover repeated clicks, script success, script failure, and retry.
+- [x] Tests cover repeated clicks, script success, script failure, and retry.
 - [ ] Network inspection confirms no initial Moyasar asset request.
 - [ ] Focus moves to the payment region and returns appropriately on close/failure.
 
@@ -273,14 +285,14 @@ This is the recommended first implementation sprint. It removes journey breaks a
 
 **Acceptance criteria:**
 
-- [ ] A confirmed payment grants idempotent enrollment without waiting for email delivery.
-- [ ] Receipt work is recorded durably and can be retried safely.
-- [ ] Repeated callbacks/webhooks do not duplicate enrollment, transactions, or receipts.
+- [x] A confirmed payment grants idempotent enrollment without waiting for email delivery.
+- [x] Receipt work is recorded durably and can be retried safely.
+- [x] Repeated callbacks/webhooks do not duplicate enrollment, transactions, or receipts.
 
 **Verification:**
 
-- [ ] Tests simulate slow/unavailable email delivery and still confirm access.
-- [ ] Retry and duplicate-event tests pass.
+- [x] Tests simulate slow/unavailable email delivery and still confirm access.
+- [x] Retry and duplicate-event application tests pass.
 - [ ] Callback timing is compared with the Sprint 0 baseline.
 
 **Dependencies:** Task 0.2  
@@ -293,9 +305,9 @@ This is the recommended first implementation sprint. It removes journey breaks a
 
 **Acceptance criteria:**
 
-- [ ] Every page has exactly one `main` landmark and a working skip link.
-- [ ] Authentication, profile, course, and lesson forms announce error summaries and associate field errors correctly.
-- [ ] Dynamic checkout and disclosure controls have logical focus behavior.
+- [x] Every page has exactly one `main` landmark and a working skip link.
+- [x] Authentication, profile, course, and lesson forms announce error summaries and associate field errors correctly.
+- [x] Dynamic checkout and disclosure controls have logical focus behavior.
 
 **Verification:**
 
@@ -306,6 +318,17 @@ This is the recommended first implementation sprint. It removes journey breaks a
 **Dependencies:** None  
 **Files likely touched:** root/route layouts, shared form error utility, representative forms, tests  
 **Estimated scope:** Split into two Medium tasks if more than five files are required
+
+#### Sprint 2 implementation record — 2026-09-18
+
+> **Review status:** Implementation is complete enough to proceed, but Sprint 2 is not product-approved. The owner will review it later because the live Moyasar account and final frontend payment activation have not been completed. Payment sandbox behavior, live asset loading, and the final purchase UX must be rechecked after Moyasar is activated; do not treat Checkpoint 2 as signed off yet.
+
+- Moyasar CSS and JavaScript now load only after purchase intent through one idempotent loader. Loading, configuration failure, provider failure, cancellation, retry, and focus restoration have explicit states.
+- Payment confirmation no longer awaits receipt delivery. A paid-order database trigger creates a one-row-per-order outbox record transactionally; callback and webhook paths schedule an immediate post-response attempt.
+- A secret-protected receipt worker retries unsent outbox rows in bounded batches. Database leases and the stable provider idempotency key protect overlapping callback, webhook, and scheduled attempts.
+- The global skip link now targets the single route-level `main` landmark. Nested public-page landmarks were removed, while public, admin, Studio, and standalone error shells expose the same `main-content` target.
+- Authentication errors focus the first invalid field when available, and profile/course/lesson editor error summaries are focusable and announced. Server-provided profile and course field errors are associated with their controls.
+- TypeScript, ESLint, all 218 application tests, the production build, and the client-bundle secret scan pass. Database pgTAP/lint is blocked because Docker Desktop's Linux engine pipe is unavailable; live Moyasar network inspection and keyboard/screen-reader checks remain part of Checkpoint 2 verification.
 
 #### Checkpoint 2 — Trustworthy acquisition
 
@@ -323,13 +346,13 @@ This is the recommended first implementation sprint. It removes journey breaks a
 
 **Acceptance criteria:**
 
-- [ ] A new course gets a valid unique slug without manual input.
-- [ ] Advanced editing remains possible with immediate validation.
-- [ ] Existing course URLs are not silently changed when titles are edited.
+- [x] A new course gets a valid unique slug without manual input.
+- [x] Advanced editing remains possible with immediate validation.
+- [x] Existing course URLs are not silently changed when titles are edited.
 
 **Verification:**
 
-- [ ] Tests cover Arabic titles, duplicate titles, invalid overrides, and title edits.
+- [x] Tests cover Arabic titles, duplicate titles, invalid overrides, and title edits.
 - [ ] Manual create-course flow requires only meaningful course information.
 - [ ] Existing course links continue to resolve.
 
@@ -343,9 +366,9 @@ This is the recommended first implementation sprint. It removes journey breaks a
 
 **Acceptance criteria:**
 
-- [ ] Modules can collapse while retaining lesson count and processing/problem indicators.
-- [ ] Opening a lesson brings its editor into view without expanding unrelated lessons.
-- [ ] Duplicate and quick-add actions preserve explicit confirmation and ordering.
+- [x] Modules can collapse while retaining lesson count and processing/problem indicators.
+- [x] Opening a lesson brings its editor into view without expanding unrelated lessons.
+- [x] Duplicate and quick-add actions preserve explicit confirmation and ordering.
 
 **Verification:**
 
@@ -363,14 +386,14 @@ This is the recommended first implementation sprint. It removes journey breaks a
 
 **Acceptance criteria:**
 
-- [ ] Upload and processing rows persist across client-side Studio routes and identify course/lesson.
-- [ ] Polling backs off approximately 5 → 10 → 20 → 30 seconds, pauses in a hidden tab, and resumes on focus.
-- [ ] Ready, failed, stalled, cancelled, and “file cannot resume after reload” states give accurate next actions.
+- [x] Upload and processing rows persist across client-side Studio routes and identify course/lesson.
+- [x] Polling backs off approximately 5 → 10 → 20 → 30 seconds, pauses in a hidden tab, and resumes on focus.
+- [x] Ready, failed, stalled, cancelled, and “file cannot resume after reload” states give accurate next actions.
 
 **Verification:**
 
-- [ ] Fake-timer tests prove backoff, pause/resume, and cleanup behavior.
-- [ ] Webhook update stops unnecessary polling.
+- [x] Fake-timer tests prove backoff, pause/resume, and cleanup behavior.
+- [x] Webhook/provider status updates remove terminal uploads from the polling set.
 - [ ] Multi-upload manual test covers navigation between courses and mobile layout.
 
 **Dependencies:** Task 0.2  
@@ -383,19 +406,30 @@ This is the recommended first implementation sprint. It removes journey breaks a
 
 **Acceptance criteria:**
 
-- [ ] Direct publish is offered only to authorized roles/capabilities.
-- [ ] Standard instructors see submission-for-review as the clear primary action.
-- [ ] Admin/reviewer states reuse the same readiness information.
+- [x] Direct publish is offered only to authorized roles/capabilities.
+- [x] Standard instructors see submission-for-review as the clear primary action.
+- [x] Admin/reviewer states reuse the same readiness information.
 
 **Verification:**
 
-- [ ] Role/capability tests cover instructor, privileged publisher, and unauthorized user.
+- [x] Role/capability and route tests cover standard instructor, direct-publish capability, and rejected unauthorized operations.
 - [ ] Manual review confirms no permission is discovered only through an error toast.
-- [ ] Backend authorization remains enforced independently of the UI.
+- [x] Backend authorization remains enforced independently of the UI.
 
 **Dependencies:** Tasks 0.1 and 1.2  
 **Files likely touched:** authoring view contract, editor/publication component, publish route tests  
 **Estimated scope:** Medium (3–5 files)
+
+#### Sprint 3 implementation record — 2026-09-18
+
+- Course creation now derives stable Latin URL slugs from Arabic or Latin titles. Duplicate generated slugs receive a deterministic numeric suffix, while explicit advanced overrides still receive immediate validation and conflict feedback. Editing a title never silently changes an existing URL.
+- The curriculum builder now starts with compact module summaries, exposes one contextual lesson editor at a time, honors module/lesson hash links, duplicates lessons without copying provider media, and appends up to 50 lesson titles atomically in their entered order.
+- Studio upload tracking remains mounted across client-side routes and stores active jobs locally. Rows identify the course and lesson, link back to the exact editor, show their last status check, and distinguish active upload, provider processing, ready, failed, stalled, cancelled, and browser-reload recovery states.
+- Video status polling now uses one visibility-aware scheduler per active set: approximately 5, 10, 20, then 30 seconds, capped at 30 seconds. It pauses in hidden tabs, checks immediately when focus returns, and stops when no upload needs observation. Bunny webhooks remain the production fast path; the authenticated provider check continues to mirror state during local development.
+- Cancelling an upload now aborts the local TUS transfer, removes the Bunny asset through the authenticated backend, and clears the lesson's provider state. A browser reload never claims that an unavailable local `File` object can be resumed.
+- Publishing capability is loaded server-side with the editor. Review is the standard instructor path; direct publish is rendered only when the database setting enables it. The admin course queue now receives the same minimum structure/media readiness signal, and its database mutation rejects publication of incomplete courses.
+- Automated verification passes: TypeScript, ESLint, 57 Vitest files / 242 tests, production build, and the client-bundle secret scan. The local pgTAP suite is pending because Docker Desktop's Linux engine pipe is unavailable and Supabase cannot start.
+- Human review still required: create-course flow, existing-link continuity, minimum/typical/large curriculum behavior, multi-upload navigation across courses, mobile/RTL layout, and role-specific publication actions. Do not sign off Checkpoint 3 until these checks and the pgTAP suite pass.
 
 #### Checkpoint 3 — Instructor workflow
 

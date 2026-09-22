@@ -1,15 +1,20 @@
 import { CourseCard } from "@/components/catalogue/CourseCard";
 import { PublicShell } from "@/components/marketing/PublicShell";
 import { listPublishedCourses } from "@/lib/catalogue/queries";
+import { measureServerOperation } from "@/lib/observability/server";
 
 import styles from "./page.module.css";
 
 export default async function CoursesPage() {
-  const courses = await listPublishedCourses();
+  const courses = await measureServerOperation(
+    "supabase.catalogue.list",
+    "supabase",
+    listPublishedCourses,
+  );
 
   return (
     <PublicShell>
-      <main className={styles.main}>
+      <div className={styles.main}>
         <header className={styles.intro}>
           <h1>المواد المتوفرة</h1>
           <p>
@@ -29,7 +34,7 @@ export default async function CoursesPage() {
             <p>نعمل على تجهيز المحتوى، فارجع لنا قريبًا.</p>
           </section>
         )}
-      </main>
+      </div>
     </PublicShell>
   );
 }

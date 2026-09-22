@@ -15,3 +15,11 @@ export function getSafeRedirectPath(
 
   return candidate;
 }
+
+export function getSafeRedirectUrl(
+  origin: string,
+  candidate: string | null,
+  fallback = "/",
+) {
+  return new URL(getSafeRedirectPath(candidate, fallback), origin);
+}

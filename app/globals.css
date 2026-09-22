@@ -104,6 +104,24 @@ p {
   color: var(--on-accent);
 }
 
+.skipLink {
+  position: fixed;
+  inset-block-start: 0.75rem;
+  inset-inline-start: 0.75rem;
+  z-index: 1000;
+  translate: 0 -200%;
+  border-radius: var(--radius-card);
+  background: var(--ink);
+  color: var(--on-accent);
+  padding: 0.55rem 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.skipLink:focus-visible {
+  translate: 0;
+}
+
 /* Latin and numeric runs sitting inside Arabic text (course codes such as
    EE 301, durations, prices) are reordered by the bidi algorithm unless
    they are explicitly isolated. Applied by the Num component. */

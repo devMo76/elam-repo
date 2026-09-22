@@ -1,3 +1,5 @@
+import type { CourseReadinessBlocker } from "@/lib/contracts";
+
 export class AuthoringError extends Error {
   constructor(
     public readonly status: number,
@@ -6,6 +8,17 @@ export class AuthoringError extends Error {
   ) {
     super(message);
     this.name = "AuthoringError";
+  }
+}
+
+export class CourseNotReadyError extends AuthoringError {
+  constructor(public readonly blockers: CourseReadinessBlocker[]) {
+    super(
+      422,
+      "course_not_ready",
+      "Complete the required course items before submitting it for review.",
+    );
+    this.name = "CourseNotReadyError";
   }
 }
 

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { InstructorLink as Link } from "./InstructorNavigationBlocker";
 
 import { InstructorEmptyState, InstructorPageHeader, InstructorSection, instructorWorkspaceStyles as styles } from "@/components/instructor/InstructorPage";
 import { getInstructorCourses } from "@/components/instructor/instructor-data";

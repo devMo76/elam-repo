@@ -7,7 +7,7 @@ export function PublicShell({ children }: { children: ReactNode }) {
   return (
     <>
       <SiteHeader />
-      <main className="relative flex-1">
+      <main className="relative flex-1" id="main-content" tabIndex={-1}>
         <span
           id="header-sentinel"
           aria-hidden="true"

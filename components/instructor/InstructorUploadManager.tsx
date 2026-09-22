@@ -1,6 +1,7 @@
 "use client";
 
 import { Upload } from "tus-js-client";
+import Link from "next/link";
 import {
   createContext,
   useCallback,
@@ -16,6 +17,7 @@ import type {
   DirectVideoUploadResponse,
   LessonVideoStatusResponse,
 } from "@/lib/contracts";
+import { createStatusPoller, shouldPollVideoStatus, type StatusPoller } from "@/lib/video/status-poller";
 
 import type { AuthoringApiError, StudioLesson } from "./studio-types";
 import styles from "./InstructorUploadManager.module.css";
@@ -23,6 +25,8 @@ import styles from "./InstructorUploadManager.module.css";
 type UploadState = StudioLesson["mediaStatus"];
 
 type ManagedUpload = {
+  courseId: string;
+  courseTitle: string;
   lessonId: string;
   lessonTitle: string;
   mediaStatus: UploadState;
@@ -30,6 +34,11 @@ type ManagedUpload = {
   processingProgress: number | null;
   isClientUpload: boolean;
   isPreparing: boolean;
+  requiresFile: boolean;
+  isStalled: boolean;
+  isCancelled: boolean;
+  lastCheckedAt: string | null;
+  lastProgressAt: string;
   error: string | null;
 };
 
@@ -37,9 +46,17 @@ type StoredUpload = Pick<
   ManagedUpload,
   | "lessonId"
   | "lessonTitle"
+  | "courseId"
+  | "courseTitle"
   | "mediaStatus"
   | "uploadProgress"
   | "processingProgress"
+  | "isClientUpload"
+  | "requiresFile"
+  | "isStalled"
+  | "isCancelled"
+  | "lastCheckedAt"
+  | "lastProgressAt"
   | "error"
 >;
 
@@ -48,17 +65,24 @@ type UploadManager = {
   trackLesson: (input: {
     lessonId: string;
     lessonTitle: string;
+    courseId: string;
+    courseTitle: string;
     mediaStatus: UploadState;
   }) => void;
   startUpload: (input: {
     lessonId: string;
     lessonTitle: string;
+    courseId: string;
+    courseTitle: string;
     fallbackStatus: UploadState;
     file: File;
   }) => Promise<void>;
+  cancelUpload: (lessonId: string) => Promise<void>;
+  dismissUpload: (lessonId: string) => void;
 };
 
 const STORAGE_KEY = "elam.instructor-video-uploads.v1";
+const STALLED_AFTER_MS = 30 * 60 * 1_000;
 const UploadManagerContext = createContext<UploadManager | null>(null);
 
 function isActive(upload: ManagedUpload) {
@@ -68,6 +92,10 @@ function isActive(upload: ManagedUpload) {
     upload.mediaStatus === "uploading" ||
     upload.mediaStatus === "processing"
   );
+}
+
+function shouldPoll(upload: ManagedUpload) {
+  return shouldPollVideoStatus(upload);
 }
 
 function uploadError(payload: AuthoringApiError | null) {
@@ -84,6 +112,9 @@ function uploadError(payload: AuthoringApiError | null) {
 }
 
 function statusLabel(upload: ManagedUpload) {
+  if (upload.isCancelled) return "أُلغي الفيديو";
+  if (upload.requiresFile) return "توقّف رفع الملف";
+  if (upload.isStalled) return "تأخر تجهيز الفيديو";
   if (upload.isPreparing) return "يجري تجهيز الرفع";
   if (upload.isClientUpload) return "جارٍ رفع الفيديو";
 
@@ -102,6 +133,11 @@ function progressFor(upload: ManagedUpload) {
   return null;
 }
 
+function checkedLabel(value: string | null) {
+  if (!value) return "لم يُتحقق بعد";
+  return `آخر تحقق ${new Intl.DateTimeFormat("ar-SA", { hour: "numeric", minute: "2-digit", second: "2-digit" }).format(new Date(value))}`;
+}
+
 function restoreUploads() {
   if (typeof window === "undefined") return {} as Record<string, ManagedUpload>;
 
@@ -114,8 +150,17 @@ function restoreUploads() {
           upload.lessonId,
           {
             ...upload,
+            courseId: upload.courseId ?? "",
+            courseTitle: upload.courseTitle ?? "المقرر",
+            lessonTitle: upload.lessonTitle ?? "درس بدون عنوان",
             isClientUpload: false,
             isPreparing: false,
+            requiresFile: upload.isClientUpload || upload.requiresFile,
+            isStalled: upload.isStalled ?? false,
+            isCancelled: false,
+            lastCheckedAt: upload.lastCheckedAt ?? null,
+            lastProgressAt: upload.lastProgressAt ?? new Date().toISOString(),
+            error: upload.error ?? null,
           },
         ]),
     );
@@ -128,6 +173,7 @@ export function InstructorUploadProvider({ children }: { children: ReactNode }) 
   const [uploads, setUploads] = useState<Record<string, ManagedUpload>>({});
   const uploadsRef = useRef(uploads);
   const uploadsByLessonRef = useRef(new Map<string, Upload>());
+  const pollerRef = useRef<StatusPoller | null>(null);
   const restoredRef = useRef(false);
 
   useEffect(() => {
@@ -140,9 +186,17 @@ export function InstructorUploadProvider({ children }: { children: ReactNode }) 
       .map<StoredUpload>((upload) => ({
         lessonId: upload.lessonId,
         lessonTitle: upload.lessonTitle,
+        courseId: upload.courseId,
+        courseTitle: upload.courseTitle,
         mediaStatus: upload.mediaStatus,
         uploadProgress: upload.uploadProgress,
         processingProgress: upload.processingProgress,
+        isClientUpload: upload.isClientUpload,
+        requiresFile: upload.requiresFile,
+        isStalled: upload.isStalled,
+        isCancelled: upload.isCancelled,
+        lastCheckedAt: upload.lastCheckedAt,
+        lastProgressAt: upload.lastProgressAt,
         error: upload.error,
       }));
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
@@ -169,6 +223,8 @@ export function InstructorUploadProvider({ children }: { children: ReactNode }) 
   const trackLesson = useCallback((input: {
     lessonId: string;
     lessonTitle: string;
+    courseId: string;
+    courseTitle: string;
     mediaStatus: UploadState;
   }) => {
     if (input.mediaStatus !== "uploading" && input.mediaStatus !== "processing") return;
@@ -178,7 +234,12 @@ export function InstructorUploadProvider({ children }: { children: ReactNode }) 
       if (existing) {
         return {
           ...current,
-          [input.lessonId]: { ...existing, lessonTitle: input.lessonTitle },
+          [input.lessonId]: {
+            ...existing,
+            courseId: input.courseId,
+            courseTitle: input.courseTitle,
+            lessonTitle: input.lessonTitle,
+          },
         };
       }
 
@@ -190,6 +251,11 @@ export function InstructorUploadProvider({ children }: { children: ReactNode }) 
           processingProgress: null,
           isClientUpload: false,
           isPreparing: false,
+          requiresFile: false,
+          isStalled: false,
+          isCancelled: false,
+          lastCheckedAt: null,
+          lastProgressAt: new Date().toISOString(),
           error: null,
         },
       };
@@ -198,7 +264,7 @@ export function InstructorUploadProvider({ children }: { children: ReactNode }) 
 
   const refreshStatuses = useCallback(async () => {
     const pending = Object.values(uploadsRef.current).filter(
-      (upload) => isActive(upload) && !upload.isClientUpload && !upload.isPreparing,
+      shouldPoll,
     );
 
     await Promise.all(
@@ -224,6 +290,12 @@ export function InstructorUploadProvider({ children }: { children: ReactNode }) 
           updateUpload(upload.lessonId, (current) => {
             if (current.isClientUpload || current.isPreparing) return current;
 
+            const checkedAt = new Date().toISOString();
+            const madeProgress =
+              payload.data!.mediaStatus !== current.mediaStatus ||
+              (payload.data!.encodingProgress ?? null) !== current.processingProgress;
+            const lastProgressAt = madeProgress ? checkedAt : current.lastProgressAt;
+
             return {
               ...current,
               mediaStatus: payload.data!.mediaStatus,
@@ -231,6 +303,13 @@ export function InstructorUploadProvider({ children }: { children: ReactNode }) 
                 payload.data!.mediaStatus === "processing"
                   ? payload.data!.encodingProgress
                   : current.processingProgress,
+              requiresFile:
+                current.requiresFile && payload.data!.mediaStatus === "uploading",
+              isStalled:
+                payload.data!.mediaStatus === "processing" &&
+                Date.now() - new Date(lastProgressAt).getTime() >= STALLED_AFTER_MS,
+              lastCheckedAt: checkedAt,
+              lastProgressAt,
               error: null,
             };
           });
@@ -244,21 +323,42 @@ export function InstructorUploadProvider({ children }: { children: ReactNode }) 
     );
   }, [updateUpload]);
 
-  useEffect(() => {
-    const interval = window.setInterval(() => void refreshStatuses(), 5_000);
-    const refreshOnFocus = () => void refreshStatuses();
+  const hasPollableUploads = Object.values(uploads).some(shouldPoll);
 
-    window.addEventListener("focus", refreshOnFocus);
-    document.addEventListener("visibilitychange", refreshOnFocus);
+  useEffect(() => {
+    if (!hasPollableUploads) {
+      pollerRef.current?.stop();
+      pollerRef.current = null;
+      return;
+    }
+
+    const poller = createStatusPoller({
+      poll: refreshStatuses,
+      isVisible: () => document.visibilityState !== "hidden",
+    });
+    pollerRef.current = poller;
+    poller.start();
+
+    const handleFocus = () => poller.resume();
+    const handleVisibility = () => {
+      if (document.visibilityState === "hidden") poller.pause();
+      else poller.resume();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
-      window.clearInterval(interval);
-      window.removeEventListener("focus", refreshOnFocus);
-      document.removeEventListener("visibilitychange", refreshOnFocus);
+      poller.stop();
+      if (pollerRef.current === poller) pollerRef.current = null;
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [refreshStatuses]);
+  }, [hasPollableUploads, refreshStatuses]);
 
-  const startUpload = useCallback(async ({ lessonId, lessonTitle, fallbackStatus, file }: {
+  const startUpload = useCallback(async ({ courseId, courseTitle, lessonId, lessonTitle, fallbackStatus, file }: {
+    courseId: string;
+    courseTitle: string;
     lessonId: string;
     lessonTitle: string;
     fallbackStatus: UploadState;
@@ -270,6 +370,8 @@ export function InstructorUploadProvider({ children }: { children: ReactNode }) 
     setUploads((uploads) => ({
       ...uploads,
       [lessonId]: {
+        courseId,
+        courseTitle,
         lessonId,
         lessonTitle,
         mediaStatus: "uploading",
@@ -277,6 +379,11 @@ export function InstructorUploadProvider({ children }: { children: ReactNode }) 
         processingProgress: null,
         isClientUpload: true,
         isPreparing: true,
+        requiresFile: false,
+        isStalled: false,
+        isCancelled: false,
+        lastCheckedAt: null,
+        lastProgressAt: new Date().toISOString(),
         error: null,
       },
     }));
@@ -312,6 +419,7 @@ export function InstructorUploadProvider({ children }: { children: ReactNode }) 
             ...currentUpload,
             isClientUpload: false,
             uploadProgress: null,
+            requiresFile: true,
             error: "تعذّر رفع الفيديو بعد إعادة المحاولة. تحقّق من اتصالك أو اختر الملف مرة أخرى.",
           }));
         },
@@ -320,6 +428,7 @@ export function InstructorUploadProvider({ children }: { children: ReactNode }) 
             updateUpload(lessonId, (currentUpload) => ({
               ...currentUpload,
               uploadProgress: Math.round((uploaded / total) * 100),
+              lastProgressAt: new Date().toISOString(),
             }));
           }
         },
@@ -330,6 +439,7 @@ export function InstructorUploadProvider({ children }: { children: ReactNode }) 
             mediaStatus: "processing",
             isClientUpload: false,
             uploadProgress: null,
+            lastProgressAt: new Date().toISOString(),
           }));
           void refreshStatuses();
         },
@@ -349,11 +459,57 @@ export function InstructorUploadProvider({ children }: { children: ReactNode }) 
     }
   }, [refreshStatuses, updateUpload]);
 
+  const cancelUpload = useCallback(async (lessonId: string) => {
+    const clientUpload = uploadsByLessonRef.current.get(lessonId);
+
+    try {
+      if (clientUpload) {
+        try {
+          await clientUpload.abort(true);
+        } catch {
+          // The authenticated backend cancellation remains authoritative even
+          // when the browser cannot terminate its TUS request cleanly.
+        }
+      }
+      const response = await fetch(`/api/instructor/lessons/${lessonId}/upload`, { method: "DELETE" });
+      if (!response.ok) throw new Error("cancel failed");
+      uploadsByLessonRef.current.delete(lessonId);
+      updateUpload(lessonId, (current) => ({
+        ...current,
+        mediaStatus: "absent",
+        uploadProgress: null,
+        processingProgress: null,
+        isClientUpload: false,
+        isPreparing: false,
+        requiresFile: false,
+        isStalled: false,
+        isCancelled: true,
+        lastCheckedAt: new Date().toISOString(),
+        error: null,
+      }));
+    } catch {
+      updateUpload(lessonId, (current) => ({
+        ...current,
+        error: "تعذّر إلغاء الفيديو. سيستمر التحقق من حالته؛ حاول مرة أخرى.",
+      }));
+    }
+  }, [updateUpload]);
+
+  const dismissUpload = useCallback((lessonId: string) => {
+    setUploads((current) => {
+      const remaining = { ...current };
+      delete remaining[lessonId];
+      return remaining;
+    });
+  }, []);
+
   const value = useMemo<UploadManager>(() => ({
     uploads,
     trackLesson,
     startUpload,
-  }), [startUpload, trackLesson, uploads]);
+    cancelUpload,
+    dismissUpload,
+  }), [cancelUpload, dismissUpload, startUpload, trackLesson, uploads]);
 
   return <UploadManagerContext.Provider value={value}>{children}</UploadManagerContext.Provider>;
 }
@@ -365,8 +521,10 @@ export function useInstructorUploads() {
 }
 
 export function InstructorUploadPanel() {
-  const { uploads } = useInstructorUploads();
-  const activeUploads = Object.values(uploads).filter(isActive);
+  const { cancelUpload, dismissUpload, uploads } = useInstructorUploads();
+  const activeUploads = Object.values(uploads).filter((upload) =>
+    isActive(upload) || upload.isCancelled || upload.mediaStatus === "ready" || upload.mediaStatus === "failed" || upload.error,
+  );
 
   if (activeUploads.length === 0) return null;
 
@@ -374,7 +532,7 @@ export function InstructorUploadPanel() {
     <aside aria-label="عمليات الفيديو الجارية" className={styles.panel}>
       <div className={styles.panelHeader}>
         <strong>عمليات الفيديو</strong>
-        <span><bdi dir="ltr">{activeUploads.length}</bdi> جارية</span>
+        <span><bdi dir="ltr">{activeUploads.length}</bdi> متابعة</span>
       </div>
       <ul className={styles.uploadList}>
         {activeUploads.map((upload) => {
@@ -384,7 +542,10 @@ export function InstructorUploadPanel() {
           return (
             <li key={upload.lessonId}>
               <div className={styles.uploadHeading}>
-                <strong>{upload.lessonTitle}</strong>
+                <Link href={`/studio/courses/${upload.courseId}#lesson-${upload.lessonId}`}>
+                  <strong>{upload.lessonTitle}</strong>
+                  <small>{upload.courseTitle}</small>
+                </Link>
                 <span>{statusLabel(upload)}</span>
               </div>
               {hasProgress ? (
@@ -401,7 +562,18 @@ export function InstructorUploadPanel() {
                   </div>
                   <bdi dir="ltr">{progress}%</bdi>
                 </div>
-              ) : <p>{upload.isPreparing ? "يجري الاتصال بخدمة الفيديو…" : "يُحدّث تلقائيًا…"}</p>}
+              ) : isActive(upload) ? <p>{upload.isPreparing ? "يجري الاتصال بخدمة الفيديو…" : upload.requiresFile ? "يلزم اختيار الملف من صفحة الدرس." : "يُحدّث تلقائيًا…"}</p> : null}
+              <div className={styles.uploadMeta}>
+                <small>{checkedLabel(upload.lastCheckedAt)}</small>
+                {isActive(upload) && !upload.requiresFile ? (
+                  <button onClick={() => void cancelUpload(upload.lessonId)} type="button">إلغاء</button>
+                ) : (
+                  <button onClick={() => dismissUpload(upload.lessonId)} type="button">إخفاء</button>
+                )}
+              </div>
+              {upload.requiresFile ? <p className={styles.notice}>توقّف رفع الملف بعد إعادة تحميل الصفحة. افتح الدرس واختر الملف مرة أخرى.</p> : null}
+              {upload.isStalled ? <p className={styles.notice}>لم يتقدم تجهيز الفيديو منذ مدة. يمكنك الانتظار أو مراجعة Bunny Stream ثم استبدال الفيديو.</p> : null}
+              {upload.isCancelled ? <p className={styles.notice}>أُلغي الفيديو ولن يستمر رفعه أو تجهيزه.</p> : null}
               {upload.error ? <p className={styles.error} role="alert">{upload.error}</p> : null}
             </li>
           );

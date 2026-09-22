@@ -1,6 +1,6 @@
 begin;
 
-select plan(51);
+select plan(53);
 
 insert into auth.users (id, email, raw_user_meta_data)
 values
@@ -173,6 +173,15 @@ select is(
 select is(
   (
     select count(*)
+    from public.payment_receipts
+    where order_id = (select order_id from payment_order_one)
+  ),
+  1::bigint,
+  'a paid transition durably queues one receipt'
+);
+select is(
+  (
+    select count(*)
     from public.enrollments
     where user_id = '90000000-0000-4000-8000-000000000051'
       and course_id = '40000000-0000-4000-8000-000000000001'
@@ -205,6 +214,15 @@ select is(
   (select count(*) from public.payment_events where provider_event_id = 'event-paid-one'),
   1::bigint,
   'replaying the same event stores one event record'
+);
+select is(
+  (
+    select count(*)
+    from public.payment_receipts
+    where order_id = (select order_id from payment_order_one)
+  ),
+  1::bigint,
+  'replaying a payment event does not duplicate receipt work'
 );
 
 select lives_ok(

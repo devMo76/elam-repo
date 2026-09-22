@@ -5,7 +5,7 @@ import { PublicShell } from "@/components/marketing/PublicShell";
 export default function CourseNotFound() {
   return (
     <PublicShell>
-      <main className="grid min-h-[60vh] place-items-center p-6 text-center">
+      <div className="grid min-h-[60vh] place-items-center p-6 text-center">
         <div>
           <p className="text-sm font-semibold text-elam-secondary">404</p>
           <h1 className="mt-3 text-3xl font-semibold text-elam-primary">
@@ -19,7 +19,7 @@ export default function CourseNotFound() {
             تصفح المواد
           </Link>
         </div>
-      </main>
+      </div>
     </PublicShell>
   );
 }

@@ -1,12 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { Logo } from "@/components/ui/Logo";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 
 import { InstructorUploadPanel } from "./InstructorUploadManager";
+import { InstructorLink as Link, useInstructorNavigationBlocker } from "./InstructorNavigationBlocker";
 import styles from "./InstructorShell.module.css";
 
 const links = [
@@ -29,9 +30,10 @@ export function InstructorShell({
   viewer: { fullName: string };
 }) {
   const pathname = usePathname();
+  const { confirmNavigation } = useInstructorNavigationBlocker();
 
   return (
-    <main className={styles.page}>
+    <main className={styles.page} id="main-content" tabIndex={-1}>
       <aside className={styles.sidebar} aria-label="تنقل استوديو المدرّس">
         <div className={styles.identity}>
           <Link aria-label="استوديو إلام" className={styles.brand} href="/studio">
@@ -57,7 +59,10 @@ export function InstructorShell({
             );
           })}
         </nav>
-        <Link className={styles.backLink} href="/courses">العودة إلى الموقع</Link>
+        <div className={styles.sidebarActions}>
+          <Link className={styles.backLink} href="/courses">العودة إلى الموقع</Link>
+          <SignOutButton beforeSignOut={confirmNavigation} className={styles.signOutButton} />
+        </div>
       </aside>
       <div className={styles.workspace}>{children}</div>
       <InstructorUploadPanel />

@@ -23,7 +23,7 @@ export function LearnerDashboard({
   paymentState: PaymentReturnState | null;
 }) {
   return (
-    <main className={styles.page}>
+    <div className={styles.page}>
       <header className={styles.intro}>
         <h1>أهلًا، {fullName}</h1>
         <p>هذه المواد المسجّل فيها ومسار تقدّمك في كل واحدة منها.</p>
@@ -103,13 +103,13 @@ export function LearnerDashboard({
           </div>
         )}
       </section>
-    </main>
+    </div>
   );
 }
 
 export function LearnerDashboardLoading() {
   return (
-    <main className={styles.page} aria-busy="true" aria-label="جاري تحميل لوحة التعلّم">
+    <div className={styles.page} aria-busy="true" aria-label="جاري تحميل لوحة التعلّم">
       <div className={styles.skeleton}>
         <div className={styles.skeletonLine} />
         <div className={styles.skeletonLine} />
@@ -118,6 +118,6 @@ export function LearnerDashboardLoading() {
         <div className={styles.skeletonCard} />
         <div className={styles.skeletonCard} />
       </div>
-    </main>
+    </div>
   );
 }

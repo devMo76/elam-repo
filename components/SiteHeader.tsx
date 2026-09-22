@@ -8,7 +8,7 @@ import styles from "./SiteHeader.module.css";
 
 const roleLabel = {
   learner: "لوحتي",
-  instructor: "استوديوي",
+  instructor: "الأستوديو",
   admin: "الإدارة",
 };
 

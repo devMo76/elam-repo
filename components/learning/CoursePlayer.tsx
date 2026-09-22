@@ -409,7 +409,7 @@ export function CoursePlayer({
   }, []);
 
   return (
-    <main className={styles.page}>
+    <div className={styles.page}>
       <nav className={styles.breadcrumbs} aria-label="مسار التنقل">
         <Link href="/dashboard">لوحة التعلّم</Link>
         <span aria-hidden="true">/</span>
@@ -519,6 +519,6 @@ export function CoursePlayer({
           ) : null}
         </aside>
       </div>
-    </main>
+    </div>
   );
 }

@@ -38,5 +38,6 @@ export type AuthoringApiError = {
     code?: string;
     message?: string;
     fieldErrors?: Record<string, string[]>;
+    blockers?: import("@/lib/contracts").CourseReadinessBlocker[];
   };
 };

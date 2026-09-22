@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans_Arabic } from "next/font/google";
 import type { ReactNode } from "react";
 
+import { WebVitals } from "@/components/observability/WebVitals";
+
 import "./globals.css";
 
 const arabicSans = IBM_Plex_Sans_Arabic({
@@ -36,6 +38,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
       className={`${arabicSans.variable} ${mono.variable} h-full`}
     >
       <body className="flex min-h-full flex-col bg-surface text-body">
+        <WebVitals />
+        <a className="skipLink" href="#main-content">
+          تخطَّ إلى المحتوى الرئيسي
+        </a>
         {children}
       </body>
     </html>

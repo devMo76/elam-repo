@@ -2,13 +2,19 @@ import "server-only";
 
 import { redirect } from "next/navigation";
 
+import { getSafeRedirectPath } from "./redirect";
 import { getRoleHomePath, getViewer, type ApplicationRole, type Viewer } from "./viewer";
 
-export async function redirectAuthenticatedUser() {
+export async function redirectAuthenticatedUser(requestedPath?: string) {
   const viewer = await getViewer();
 
   if (viewer !== null) {
-    redirect(getRoleHomePath(viewer.role));
+    redirect(
+      getSafeRedirectPath(
+        requestedPath ?? null,
+        getRoleHomePath(viewer.role),
+      ),
+    );
   }
 }
 
