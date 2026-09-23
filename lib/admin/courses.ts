@@ -33,6 +33,12 @@ export async function getAdminCourses(
       title: course.course_title, status: course.course_status,
       instructorId: course.instructor_id, instructorName: course.instructor_name,
       createdAt: course.created_at, publishedAt: course.published_at,
+      readiness: {
+        canPublish: course.module_count > 0 && course.lesson_count > 0 && course.unready_lesson_count === 0,
+        moduleCount: course.module_count,
+        lessonCount: course.lesson_count,
+        unreadyLessonCount: course.unready_lesson_count,
+      },
     })),
     pagination: { page: query.page, pageSize: query.pageSize, totalCount, totalPages: Math.ceil(totalCount / query.pageSize) },
   });
@@ -50,6 +56,7 @@ export async function changeAdminCourseStatus(
 
   if (error?.code === "P0002") throw new AdminCourseError(404, "course_not_found", "The course was not found.");
   if (error?.code === "22023") throw new AdminCourseError(409, "invalid_course_transition", "This course status change is not allowed.");
+  if (error?.code === "23514") throw new AdminCourseError(409, "course_not_ready", "Complete the required course content before publishing it.");
   if (error || !data) throw new AdminCourseError(500, "admin_course_update_failed", "The course status could not be changed.");
 
   return adminCourseStatusResponseSchema.parse({

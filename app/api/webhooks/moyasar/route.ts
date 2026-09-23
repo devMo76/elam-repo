@@ -13,6 +13,7 @@ import {
   moyasarWebhookSchema,
   verifyMoyasarWebhookSecret,
 } from "@/lib/payments/moyasar";
+import { schedulePaymentReceipt } from "@/lib/payments/receipt-scheduling";
 
 export const runtime = "nodejs";
 
@@ -102,11 +103,15 @@ export async function POST(request: Request) {
   }
 
   try {
-    await confirmMoyasarPayment(webhook.data.data.id, {
+    const result = await confirmMoyasarPayment(webhook.data.data.id, {
       kind: "webhook",
       eventId: webhook.data.id,
       eventType: webhook.data.type,
     });
+
+    if (result.orderStatus === "paid") {
+      schedulePaymentReceipt(result.orderId);
+    }
   } catch (error) {
     if (error instanceof PaymentConfirmationError) {
       return createApiError(error.status, error.code, error.message);

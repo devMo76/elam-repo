@@ -19,11 +19,19 @@ export {
 } from "./admin";
 export {
   authoringCourseListResponseSchema,
+  courseReadinessBlockerCodeSchema,
+  courseReadinessBlockerSchema,
+  courseReadinessSchema,
+  courseReadinessTargetSchema,
+  courseReadinessWarningCodeSchema,
+  courseReadinessWarningSchema,
+  courseSubmissionReadinessErrorResponseSchema,
   authoringCourseResponseSchema,
   authoringCourseStatusResponseSchema,
   authoringCourseSchema,
   authoringCourseStatusSchema,
   authoringLessonResponseSchema,
+  authoringLessonListResponseSchema,
   authoringLessonSchema,
   instructorAuthoringProfileResponseSchema,
   instructorAuthoringProfileSchema,
@@ -33,6 +41,8 @@ export {
   authoringModuleSchema,
   createAuthoringCourseRequestSchema,
   createLessonRequestSchema,
+  createLessonsRequestSchema,
+  duplicateLessonRequestSchema,
   createModuleRequestSchema,
   reorderModulesRequestSchema,
   reorderModulesResponseSchema,
@@ -59,6 +69,7 @@ export {
 export {
   checkoutRequestSchema,
   checkoutResponseSchema,
+  freeCourseEnrollmentResponseSchema,
   paymentReturnStateSchema,
 } from "./payments";
 export {
@@ -83,7 +94,13 @@ export type {
   AdminUserListQuery,
 } from "./admin";
 export type {
+  AuthoringCourse,
+  CourseReadiness,
+  CourseReadinessBlocker,
+  CourseReadinessWarning,
+  CourseSubmissionReadinessErrorResponse,
   CreateAuthoringCourseRequest,
+  InstructorAuthoringProfile,
   UpdateAuthoringCourseRequest,
   UpdateLessonRequest,
   UpdateInstructorProfileRequest,

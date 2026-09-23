@@ -49,6 +49,10 @@ jobs:
       - name: Build production application
         run: npm run build
         env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: elam-ci-public-anon-key
+          NEXT_PUBLIC_MOYASAR_PUBLISHABLE_KEY: pk_test_elamci
+          NEXT_PUBLIC_SITE_URL: http://localhost:3001
           SUPABASE_SERVICE_ROLE_KEY: elam-ci-secret-canary-supabase
           MOYASAR_SECRET_KEY: elam-ci-secret-canary-moyasar
           MOYASAR_WEBHOOK_SECRET: elam-ci-secret-canary-webhook
@@ -59,6 +63,10 @@ jobs:
       - name: Verify client bundle contains no server secrets
         run: npm run verify:client-bundle
         env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: elam-ci-public-anon-key
+          NEXT_PUBLIC_MOYASAR_PUBLISHABLE_KEY: pk_test_elamci
+          NEXT_PUBLIC_SITE_URL: http://localhost:3001
           SUPABASE_SERVICE_ROLE_KEY: elam-ci-secret-canary-supabase
           MOYASAR_SECRET_KEY: elam-ci-secret-canary-moyasar
           MOYASAR_WEBHOOK_SECRET: elam-ci-secret-canary-webhook

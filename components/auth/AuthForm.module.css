@@ -1,0 +1,19 @@
+.card { width: min(100%, 30rem); padding: clamp(1.5rem, 5vw, 2.5rem); border: 1px solid var(--hairline); border-radius: 1rem; background: var(--raised); box-shadow: 0 1rem 3rem rgb(10 14 105 / 8%); }
+.heading h1, .heading p { margin: 0; }
+.heading h1 { color: #0b0b66; font-size: clamp(2rem, 5vw, 2.75rem); font-weight: 600; letter-spacing: -0.04em; }
+.heading p { margin-block-start: 0.75rem; color: #565567; line-height: 1.8; }
+.form { display: grid; gap: 1rem; margin-block-start: 2rem; }
+.form label { display: grid; gap: 0.5rem; color: var(--body); font-size: 0.9rem; font-weight: 600; }
+.form input { min-block-size: 2.75rem; padding-inline: 0.75rem; border: 1px solid #c9c5e9; border-radius: 0.5rem; background: var(--raised); color: var(--body); font: inherit; }
+.form input[aria-invalid="true"] { border-color: #a72929; }
+.form label span { color: #9f1d1d; font-size: 0.8125rem; font-weight: 500; }
+.form input:focus { outline: 2px solid #4942a8; outline-offset: 1px; }
+.form button { min-block-size: 3rem; margin-block-start: 0.5rem; border: 0; border-radius: 0.5rem; background: #0b0b66; color: #fff; cursor: pointer; font: inherit; font-weight: 600; }
+.form button:disabled { cursor: wait; opacity: 0.65; }
+.secondaryAction { width: 100%; min-block-size: 3rem; margin-block-start: 1rem; border: 1px solid var(--accent); border-radius: 0.5rem; background: transparent; color: var(--accent); cursor: pointer; font: inherit; font-weight: 600; }
+.secondaryAction:disabled { cursor: wait; opacity: 0.65; }
+.error, .message { margin: 0; padding: 0.75rem; border-radius: 0.5rem; font-size: 0.9rem; line-height: 1.6; }
+.error { background: #fff0f0; color: #9f1d1d; }
+.message { background: #edf9f0; color: #176437; }
+.links { display: flex; flex-wrap: wrap; gap: 0.75rem 1.25rem; margin-block-start: 1.5rem; }
+.links a { color: #4942a8; font-size: 0.9rem; font-weight: 600; text-decoration: none; }

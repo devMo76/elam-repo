@@ -11,10 +11,14 @@ vi.mock("@/lib/payments/confirmation", () => ({
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(),
 }));
+vi.mock("@/lib/payments/receipt-scheduling", () => ({
+  schedulePaymentReceipt: vi.fn(),
+}));
 
 import { GET } from "@/app/api/payments/callback/route";
 import { getPublicEnvironment } from "@/lib/env/public";
 import { confirmMoyasarPayment } from "@/lib/payments/confirmation";
+import { schedulePaymentReceipt } from "@/lib/payments/receipt-scheduling";
 import { createClient } from "@/lib/supabase/server";
 
 const paymentId = "90000000-0000-4000-8000-000000000001";
@@ -46,7 +50,7 @@ describe("payment callback route", () => {
 
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toBe(
-      "https://example.com/?payment=failed",
+      "https://example.com/dashboard?payment=failed",
     );
     expect(confirmMoyasarPayment).not.toHaveBeenCalled();
   });
@@ -68,7 +72,7 @@ describe("payment callback route", () => {
     );
 
     expect(response.headers.get("location")).toBe(
-      "https://example.com/?payment=sign_in_required",
+      "https://example.com/auth/sign-in?next=%2Fdashboard%3Fpayment%3Dsign_in_required",
     );
     expect(confirmMoyasarPayment).not.toHaveBeenCalled();
   });
@@ -88,11 +92,14 @@ describe("payment callback route", () => {
     );
 
     expect(response.headers.get("location")).toBe(
-      "https://example.com/?payment=success",
+      "https://example.com/dashboard?payment=success",
     );
     expect(confirmMoyasarPayment).toHaveBeenCalledWith(paymentId, {
       kind: "callback",
       expectedUserId: userId,
     });
+    expect(schedulePaymentReceipt).toHaveBeenCalledWith(
+      "70000000-0000-4000-8000-000000000001",
+    );
   });
 });

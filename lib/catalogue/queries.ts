@@ -160,6 +160,42 @@ export async function listPublishedCourses() {
   );
 }
 
+/**
+ * Marketing needs the real syllabus preview as well as the catalogue summary.
+ * Keep this query server-side and reuse the same DTO transformation as the
+ * catalogue routes so the landing page cannot drift from the course pages.
+ */
+export async function listPublishedCourseDetails() {
+  const supabase = await createClient();
+  const viewerIdPromise = getAuthenticatedUserId(supabase);
+  const coursesPromise = supabase
+    .from("courses")
+    .select(catalogueCourseDetailSelect)
+    .eq("status", "published")
+    .order("published_at", { ascending: false })
+    .order("slug", { ascending: true });
+
+  const [viewerId, coursesResult] = await Promise.all([
+    viewerIdPromise,
+    coursesPromise,
+  ]);
+
+  if (coursesResult.error) {
+    throw new CatalogueDataError("list published course details");
+  }
+
+  const courses = coursesResult.data.map(parseRawCatalogueCourse);
+  const enrolledCourseIds = await getEnrolledCourseIds(
+    supabase,
+    viewerId ? { id: viewerId, role: "learner" } : null,
+    courses.map((course) => course.id),
+  );
+
+  return courses.map((course) =>
+    toCatalogueCourseDetail(course, enrolledCourseIds.has(course.id)),
+  );
+}
+
 export async function getCatalogueCourseBySlug(slug: string) {
   const parsedSlug = courseSlugSchema.safeParse(slug);
 

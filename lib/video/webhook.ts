@@ -47,16 +47,16 @@ export function verifyBunnyWebhookSignature(
 export function mapBunnyStatus(status: number): MediaStatus | null {
   switch (status) {
     case 0:
-    case 6:
       return "uploading";
     case 1:
     case 2:
+    case 3:
     case 7:
       return "processing";
-    case 3:
     case 4:
       return "ready";
     case 5:
+    case 6:
     case 8:
       return "failed";
     default:

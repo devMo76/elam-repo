@@ -1,6 +1,6 @@
 begin;
 
-select plan(35);
+select plan(43);
 
 insert into auth.users (id, email, raw_user_meta_data)
 values (
@@ -36,6 +36,16 @@ values (
   1
 );
 
+-- The existing submission-success fixture must represent playable content.
+-- Provider-controlled columns may be prepared before assuming a browser role.
+update public.lessons as lesson
+set
+  media_status = 'ready',
+  video_asset_id = 'authoring-readiness-fixture'
+from public.modules as module
+where module.id = lesson.module_id
+  and module.course_id = '40000000-0000-4000-8000-000000000002';
+
 select is(
   has_function_privilege('authenticated', 'public.append_course_module(uuid,text)', 'execute'),
   true,
@@ -45,6 +55,16 @@ select is(
   has_function_privilege('anon', 'public.append_course_module(uuid,text)', 'execute'),
   false,
   'anonymous sessions cannot call authoring transactions'
+);
+select is(
+  has_function_privilege('authenticated', 'public.append_module_lessons(uuid,text[])', 'execute'),
+  true,
+  'authenticated sessions can quick-add lessons atomically'
+);
+select is(
+  has_function_privilege('anon', 'public.duplicate_module_lesson(uuid)', 'execute'),
+  false,
+  'anonymous sessions cannot duplicate lessons'
 );
 
 set local role authenticated;
@@ -162,6 +182,55 @@ select is(
   'Circuit Examples',
   'lesson reorder stores the requested first lesson'
 );
+
+create temporary table bulk_added_lessons as
+select *
+from public.append_module_lessons(
+  '50000000-0000-4000-8000-000000000003',
+  array['Bulk One', 'Bulk Two']
+);
+
+select is(
+  (select count(*) from bulk_added_lessons),
+  2::bigint,
+  'quick-add returns every created lesson'
+);
+select is(
+  (select array_agg(title order by position) from bulk_added_lessons),
+  array['Bulk One', 'Bulk Two'],
+  'quick-add preserves submitted title order'
+);
+
+create temporary table duplicated_lesson as
+select *
+from public.duplicate_module_lesson(
+  (select id from public.lessons where module_id = '50000000-0000-4000-8000-000000000003' and title = 'Circuit Examples')
+);
+
+select is(
+  (select title from duplicated_lesson),
+  'Circuit Examples (نسخة)',
+  'duplicate action gives the copy a clear title'
+);
+select is(
+  (select position from duplicated_lesson),
+  2,
+  'the copy is inserted directly after its source'
+);
+select is(
+  (select media_status from duplicated_lesson),
+  'absent'::public.media_status,
+  'a duplicate never inherits provider video state'
+);
+select throws_ok(
+  $$select public.duplicate_module_lesson('61000000-0000-4000-8000-000000000005')$$,
+  '42501',
+  'Lesson is not available for authoring',
+  'an instructor cannot duplicate another instructor lesson'
+);
+
+select public.delete_draft_module_lesson(id) from duplicated_lesson;
+select public.delete_draft_module_lesson(id) from bulk_added_lessons order by position desc;
 select throws_ok(
   $$select public.reorder_module_lessons(
     '50000000-0000-4000-8000-000000000003',
@@ -267,6 +336,18 @@ with deleted as (
   returning 1
 )
 select is((select count(*) from deleted), 0::bigint, 'direct REST-style deletion cannot remove a published lesson');
+
+reset role;
+select set_config('request.jwt.claim.sub', '', true);
+update public.lessons as lesson
+set
+  media_status = 'ready',
+  video_asset_id = coalesce(lesson.video_asset_id, 'authoring-generated-ready-fixture')
+from public.modules as module
+where module.id = lesson.module_id
+  and module.course_id = '40000000-0000-4000-8000-000000000002';
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '20000000-0000-4000-8000-000000000001', true);
 
 select is(
   (public.submit_course_for_review('40000000-0000-4000-8000-000000000002')).status,

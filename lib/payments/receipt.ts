@@ -127,3 +127,37 @@ export async function attemptPaymentReceipt(orderId: string) {
     return { status: "failed" as const, code };
   }
 }
+
+export async function processPendingPaymentReceipts(limit = 25) {
+  const boundedLimit = Math.min(Math.max(Math.trunc(limit), 1), 100);
+  const admin = createAdminClient();
+  const { data: receipts, error } = await admin
+    .from("payment_receipts")
+    .select("order_id")
+    .neq("status", "sent")
+    .order("updated_at", { ascending: true })
+    .limit(boundedLimit);
+
+  if (error) {
+    throw new ReceiptDeliveryError("receipt_queue_read_failed");
+  }
+
+  const pendingReceipts = receipts ?? [];
+  const summary = { selected: pendingReceipts.length, sent: 0, failed: 0, skipped: 0 };
+
+  // Keep provider pressure bounded while allowing a scheduled run to make
+  // progress within a typical serverless execution window.
+  for (let index = 0; index < pendingReceipts.length; index += 3) {
+    const results = await Promise.all(
+      pendingReceipts
+        .slice(index, index + 3)
+        .map(({ order_id: orderId }) => attemptPaymentReceipt(orderId)),
+    );
+
+    for (const result of results) {
+      summary[result.status] += 1;
+    }
+  }
+
+  return summary;
+}

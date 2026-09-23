@@ -1,19 +1,47 @@
 import "server-only";
 
+import { z } from "zod";
+
+import {
+  courseReadinessBlockerCodeSchema,
+  courseReadinessTargetSchema,
+} from "@/lib/contracts";
+
 import { requireInstructorAuthoringContext } from "./access";
-import { AuthoringError, throwAuthoringDatabaseError } from "./errors";
+import {
+  AuthoringError,
+  CourseNotReadyError,
+  throwAuthoringDatabaseError,
+} from "./errors";
+import { getCourseReadinessBlockerMessage } from "./readiness";
+
+const databaseReadinessBlockerSchema = z.strictObject({
+  code: courseReadinessBlockerCodeSchema,
+  target: courseReadinessTargetSchema,
+  entityId: z.uuid().optional(),
+});
+
+const submissionResultSchema = z.strictObject({
+  course_id: z.uuid(),
+  status: z.enum(["draft", "in_review"]),
+  blockers: z.array(databaseReadinessBlockerSchema),
+});
 
 export async function submitInstructorCourse(courseId: string) {
   const { supabase } = await requireInstructorAuthoringContext();
-  const { data, error } = await supabase.rpc("submit_course_for_review", {
-    target_course_id: courseId,
-  });
+  const { data, error } = await supabase
+    .rpc("submit_course_for_review", {
+      target_course_id: courseId,
+    })
+    .single();
 
   if (error) {
     throwAuthoringDatabaseError(error, "The course could not be submitted.");
   }
 
-  if (!data) {
+  const result = submissionResultSchema.safeParse(data);
+
+  if (!result.success) {
     throw new AuthoringError(
       500,
       "authoring_failed",
@@ -21,7 +49,16 @@ export async function submitInstructorCourse(courseId: string) {
     );
   }
 
-  return { courseId: data.id, status: data.status };
+  if (result.data.blockers.length > 0) {
+    throw new CourseNotReadyError(
+      result.data.blockers.map((blocker) => ({
+        ...blocker,
+        message: getCourseReadinessBlockerMessage(blocker.code),
+      })),
+    );
+  }
+
+  return { courseId: result.data.course_id, status: result.data.status };
 }
 
 export async function publishInstructorCourse(courseId: string) {

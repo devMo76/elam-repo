@@ -1,0 +1,82 @@
+.section {
+  border-bottom: 1px solid var(--hairline);
+  scroll-margin-top: 80px;
+}
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 360px);
+  align-items: start;
+  gap: 72px;
+  max-width: 1280px;
+  margin-inline: auto;
+  padding: 112px 32px;
+}
+.teach {
+  scroll-margin-top: 96px;
+  padding: 32px;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: var(--tint);
+  color: var(--body);
+}
+.teach > svg {
+  color: var(--accent);
+  margin-bottom: 24px;
+}
+.teach h2 {
+  font-size: 28px;
+  font-weight: 700;
+}
+.teach > p {
+  font-size: 18px;
+  margin-top: 16px;
+}
+.application {
+  margin-top: 28px;
+}
+.application summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  list-style: none;
+  background: var(--accent);
+  color: var(--on-accent);
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 500;
+  transition: background 200ms;
+}
+.application summary:hover {
+  background: var(--ink);
+}
+.application p {
+  padding-top: 16px;
+  font-size: 16px;
+}
+.question summary::-webkit-details-marker,
+.application summary::-webkit-details-marker {
+  display: none;
+}
+.question[open]:not([data-expanded="false"]) summary > svg {
+  transform: rotate(180deg);
+}
+@media (max-width: 1023px) {
+  .layout {
+    gap: 32px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 300px);
+    padding-block: 80px;
+  }
+  .teach {
+    padding: 24px;
+  }
+}
+@media (max-width: 767px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 40px;
+    padding-inline: 16px;
+  }
+}

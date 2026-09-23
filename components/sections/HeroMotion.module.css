@@ -1,0 +1,96 @@
+/* CSS starts with the server render: no hydration flash or JS dependency.
+   Keep the headline and image opaque so primary content is immediately visible. */
+@media (prefers-reduced-motion: no-preference) {
+  .hero [data-hero="title"] {
+    animation: settle 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .hero [data-hero="lead"],
+  .hero [data-hero="actions"],
+  .hero [data-hero="point"] {
+    animation: enter 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .hero [data-hero="lead"] {
+    animation-delay: 100ms;
+  }
+  .hero [data-hero="actions"] {
+    animation-delay: 200ms;
+  }
+  .hero [data-hero="point"] {
+    animation-delay: 300ms;
+  }
+  .hero [data-hero="point"]:nth-child(2) {
+    animation-delay: 370ms;
+  }
+  .hero [data-hero="point"]:nth-child(3) {
+    animation-delay: 440ms;
+  }
+  .hero [data-hero="image"] {
+    animation: image-enter 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .hero [data-hero="curve"] {
+    animation: curve-in 800ms ease-out 250ms both;
+  }
+  /* Keyboard focus must never land on a still-fading action. */
+  .hero [data-hero="actions"]:focus-within {
+    animation: none;
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .hero [data-hero="actions"] a {
+    transition:
+      translate 220ms ease-out,
+      box-shadow 220ms ease-out;
+  }
+  .hero [data-hero="actions"] a:is(:hover, :focus-visible) {
+    translate: 0 -3px;
+  }
+  .hero [data-hero="actions"] a:first-child:hover {
+    box-shadow: 0 6px 16px rgb(66 57 146 / 16%);
+  }
+  .hero [data-hero="image"] > div {
+    transition: translate 450ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .hero [data-hero="image"]:hover > div:last-child {
+    translate: 0 -5px;
+  }
+  .hero [data-hero="point"] svg {
+    transition: translate 220ms ease-out;
+  }
+  .hero [data-hero="point"]:hover svg {
+    translate: -3px 0;
+  }
+}
+@keyframes settle {
+  from {
+    transform: translateY(14px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes image-enter {
+  from {
+    transform: translate(-18px, 12px);
+  }
+  to {
+    transform: translate(0, 0);
+  }
+}
+@keyframes curve-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

@@ -14,6 +14,8 @@ vi.mock("@/lib/authoring/modules", () => ({
 }));
 vi.mock("@/lib/authoring/lessons", () => ({
   createModuleLesson: vi.fn(),
+  createModuleLessons: vi.fn(),
+  duplicateModuleLesson: vi.fn(),
   updateModuleLesson: vi.fn(),
   reorderModuleLessons: vi.fn(),
   deleteModuleLesson: vi.fn(),
@@ -26,7 +28,7 @@ import { PUT as reorderModules } from "@/app/api/instructor/courses/[courseId]/m
 import { DELETE as deleteModule, PATCH as renameModule } from "@/app/api/instructor/modules/[moduleId]/route";
 import { POST as createLesson } from "@/app/api/instructor/modules/[moduleId]/lessons/route";
 import { PUT as reorderLessons } from "@/app/api/instructor/modules/[moduleId]/lessons/order/route";
-import { DELETE as deleteLesson, PATCH as updateLesson } from "@/app/api/instructor/lessons/[lessonId]/route";
+import { DELETE as deleteLesson, PATCH as updateLesson, POST as duplicateLesson } from "@/app/api/instructor/lessons/[lessonId]/route";
 import {
   createInstructorCourse,
   getInstructorCourse,
@@ -42,7 +44,9 @@ import {
 } from "@/lib/authoring/modules";
 import {
   createModuleLesson,
+  createModuleLessons,
   deleteModuleLesson,
+  duplicateModuleLesson,
   reorderModuleLessons,
   updateModuleLesson,
 } from "@/lib/authoring/lessons";
@@ -134,6 +138,24 @@ describe("instructor course routes", () => {
     await expect(response.json()).resolves.toEqual({ data: course });
   });
 
+  it("allows the server to generate the creation slug", async () => {
+    vi.mocked(createInstructorCourse).mockResolvedValue(course);
+    const response = await createCourse(jsonRequest("/api/instructor/courses", "POST", {
+      department: course.department,
+      courseCode: course.courseCode,
+      title: course.title,
+      subtitle: null,
+      description: null,
+      priceHalalas: course.priceHalalas,
+      coverUrl: null,
+    }));
+
+    expect(response.status).toBe(201);
+    expect(createInstructorCourse).toHaveBeenCalledWith(
+      expect.not.objectContaining({ slug: expect.anything() }),
+    );
+  });
+
   it("rejects invalid course route identifiers", async () => {
     const response = await getCourse(new Request("http://localhost"), {
       params: Promise.resolve({ courseId: "invalid" }),
@@ -217,6 +239,34 @@ describe("instructor lesson routes", () => {
     expect(response.status).toBe(201);
     expect(createModuleLesson).toHaveBeenCalledWith(moduleId, lesson.title);
     await expect(response.json()).resolves.toEqual({ data: lesson });
+  });
+
+  it("quick-adds validated lesson titles in their submitted order", async () => {
+    const secondLesson = { ...lesson, id: "33333333-3333-4333-8333-333333333334", title: "Second Lesson", position: 2 };
+    vi.mocked(createModuleLessons).mockResolvedValue([lesson, secondLesson]);
+    const response = await createLesson(
+      jsonRequest(`/api/instructor/modules/${moduleId}/lessons`, "POST", {
+        titles: [lesson.title, secondLesson.title],
+      }),
+      { params: Promise.resolve({ moduleId }) },
+    );
+
+    expect(response.status).toBe(201);
+    expect(createModuleLessons).toHaveBeenCalledWith(moduleId, [lesson.title, secondLesson.title]);
+    await expect(response.json()).resolves.toEqual({ data: [lesson, secondLesson] });
+  });
+
+  it("duplicates a lesson through the atomic service", async () => {
+    const duplicate = { ...lesson, id: "33333333-3333-4333-8333-333333333335", title: "First Lesson (نسخة)", position: 2 };
+    vi.mocked(duplicateModuleLesson).mockResolvedValue(duplicate);
+    const response = await duplicateLesson(
+      jsonRequest(`/api/instructor/lessons/${lessonId}`, "POST", { action: "duplicate" }),
+      { params: Promise.resolve({ lessonId }) },
+    );
+
+    expect(response.status).toBe(201);
+    expect(duplicateModuleLesson).toHaveBeenCalledWith(lessonId);
+    await expect(response.json()).resolves.toEqual({ data: duplicate });
   });
 
   it("updates only editable lesson fields", async () => {

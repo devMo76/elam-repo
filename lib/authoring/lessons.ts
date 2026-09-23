@@ -31,6 +31,41 @@ export async function createModuleLesson(moduleId: string, title: string) {
   return toAuthoringLesson(data);
 }
 
+export async function createModuleLessons(moduleId: string, titles: string[]) {
+  const { supabase } = await requireInstructorAuthoringContext();
+  const { data, error } = await supabase.rpc("append_module_lessons", {
+    target_module_id: moduleId,
+    lesson_titles: titles,
+  });
+
+  if (error) {
+    throwAuthoringDatabaseError(error, "The lessons could not be created.");
+  }
+
+  return (data ?? []).map(toAuthoringLesson);
+}
+
+export async function duplicateModuleLesson(lessonId: string) {
+  const { supabase } = await requireInstructorAuthoringContext();
+  const { data, error } = await supabase.rpc("duplicate_module_lesson", {
+    target_lesson_id: lessonId,
+  });
+
+  if (error) {
+    throwAuthoringDatabaseError(error, "The lesson could not be duplicated.");
+  }
+
+  if (!data) {
+    throw new AuthoringError(
+      500,
+      "authoring_failed",
+      "The lesson could not be duplicated.",
+    );
+  }
+
+  return toAuthoringLesson(data);
+}
+
 export async function updateModuleLesson(
   lessonId: string,
   input: UpdateLessonRequest,

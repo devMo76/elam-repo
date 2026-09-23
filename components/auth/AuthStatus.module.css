@@ -1,0 +1,4 @@
+.success, .error { width: min(100% - 2rem, 78rem); margin: 1.5rem auto 0; padding: 1rem 1.25rem; border-radius: 0.75rem; }
+.success { border: 1px solid #b4dfc0; background: #edf9f0; color: #176437; }
+.error { border: 1px solid #f0bbbb; background: #fff0f0; color: #8b2020; }
+.success p, .error p { margin: 0.25rem 0 0; }

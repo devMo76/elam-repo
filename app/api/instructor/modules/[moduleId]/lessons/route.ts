@@ -1,10 +1,14 @@
 import { z } from "zod";
 
-import { createModuleLesson } from "@/lib/authoring/lessons";
+import {
+  createModuleLesson,
+  createModuleLessons,
+} from "@/lib/authoring/lessons";
 import { createAuthoringErrorResponse } from "@/lib/authoring/route-response";
 import {
+  authoringLessonListResponseSchema,
   authoringLessonResponseSchema,
-  createLessonRequestSchema,
+  createLessonsRequestSchema,
 } from "@/lib/contracts";
 import { createApiError, parseJsonBody } from "@/lib/http/api-response";
 
@@ -22,13 +26,21 @@ export async function POST(
     return createApiError(404, "module_not_found", "The module was not found.");
   }
 
-  const body = await parseJsonBody(request, createLessonRequestSchema);
+  const body = await parseJsonBody(request, createLessonsRequestSchema);
 
   if (!body.success) {
     return body.response;
   }
 
   try {
+    if ("titles" in body.data) {
+      const lessons = await createModuleLessons(moduleId.data, body.data.titles);
+      return Response.json(
+        authoringLessonListResponseSchema.parse({ data: lessons }),
+        { status: 201 },
+      );
+    }
+
     const lesson = await createModuleLesson(moduleId.data, body.data.title);
     return Response.json(authoringLessonResponseSchema.parse({ data: lesson }), {
       status: 201,

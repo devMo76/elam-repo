@@ -5,9 +5,11 @@ vi.mock("@/lib/video/bunny", () => ({ getBunnyVideo: vi.fn() }));
 vi.mock("@/lib/video/lesson-access", () => ({
   getManagedVideoLesson: vi.fn(),
 }));
+vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }));
 
 import { getBunnyVideo } from "@/lib/video/bunny";
 import { getManagedVideoLesson } from "@/lib/video/lesson-access";
+import { createAdminClient } from "@/lib/supabase/admin";
 import {
   getLessonVideoStatus,
   VideoStatusRequestError,
@@ -17,6 +19,7 @@ const lessonId = "11111111-1111-4111-8111-111111111111";
 const videoId = "22222222-2222-4222-8222-222222222222";
 const getBunnyVideoMock = vi.mocked(getBunnyVideo);
 const getManagedVideoLessonMock = vi.mocked(getManagedVideoLesson);
+const createAdminClientMock = vi.mocked(createAdminClient);
 
 function allowLesson(
   mediaStatus: "absent" | "uploading" | "processing" | "ready" | "failed",
@@ -37,6 +40,17 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
+function mockLessonStatusUpdate(error: { message: string } | null = null) {
+  const completedUpdate = vi.fn().mockResolvedValue({ error });
+  const scopedUpdate = vi.fn().mockReturnValue({ eq: completedUpdate });
+  const update = vi.fn().mockReturnValue({ eq: scopedUpdate });
+  const from = vi.fn().mockReturnValue({ update });
+
+  createAdminClientMock.mockReturnValue({ from } as never);
+
+  return { from, update, scopedUpdate, completedUpdate };
+}
+
 describe("lesson video encoding status", () => {
   it("returns live Bunny progress while processing", async () => {
     allowLesson("processing", videoId);
@@ -53,6 +67,49 @@ describe("lesson video encoding status", () => {
         mediaStatus: "processing",
         encodingProgress: 47,
       },
+    });
+    expect(createAdminClientMock).not.toHaveBeenCalled();
+  });
+
+  it("synchronizes a completed Bunny video when a webhook cannot reach localhost", async () => {
+    allowLesson("processing", videoId);
+    const update = mockLessonStatusUpdate();
+    getBunnyVideoMock.mockResolvedValue({
+      guid: videoId,
+      videoLibraryId: 741401,
+      length: 132,
+      status: 4,
+      encodeProgress: 100,
+    });
+
+    await expect(getLessonVideoStatus(lessonId)).resolves.toEqual({
+      data: {
+        mediaStatus: "ready",
+        encodingProgress: 100,
+      },
+    });
+    expect(update.update).toHaveBeenCalledWith({
+      media_status: "ready",
+      duration_seconds: 132,
+    });
+    expect(update.scopedUpdate).toHaveBeenCalledWith("id", lessonId);
+    expect(update.completedUpdate).toHaveBeenCalledWith("video_asset_id", videoId);
+  });
+
+  it("reports a controlled error when the synchronized status cannot be saved", async () => {
+    allowLesson("uploading", videoId);
+    mockLessonStatusUpdate({ message: "database unavailable" });
+    getBunnyVideoMock.mockResolvedValue({
+      guid: videoId,
+      videoLibraryId: 741401,
+      length: 0,
+      status: 2,
+      encodeProgress: 10,
+    });
+
+    await expect(getLessonVideoStatus(lessonId)).rejects.toMatchObject({
+      status: 500,
+      code: "video_status_update_failed",
     });
   });
 

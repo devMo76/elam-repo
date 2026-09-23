@@ -1,0 +1,122 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-card);
+  background: var(--raised);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 180ms, transform 180ms;
+}
+
+.card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.card:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 4.25rem;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--tint);
+  padding: 1rem 1.25rem;
+}
+
+.code {
+  color: var(--ink);
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+.freeBadge {
+  border-radius: var(--radius-card);
+  background: var(--accent);
+  color: var(--on-accent);
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 1.25rem;
+}
+
+.body h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.25rem;
+  line-height: 1.55;
+}
+
+.instructor,
+.headline {
+  margin: 0.75rem 0 0;
+  color: var(--body);
+  line-height: 1.6;
+}
+
+.instructor {
+  font-size: 1rem;
+}
+
+.headline {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--hairline);
+}
+
+.meta {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.625rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.rule {
+  width: 1px;
+  height: 1rem;
+  background: var(--hairline);
+}
+
+.duration {
+  display: inline-flex;
+  align-items: baseline;
+  direction: ltr;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.footer strong {
+  flex: none;
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card { transition: none; }
+}

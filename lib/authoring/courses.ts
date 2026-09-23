@@ -7,6 +7,7 @@ import type {
 
 import { requireInstructorAuthoringContext } from "./access";
 import { AuthoringError, throwAuthoringDatabaseError } from "./errors";
+import { createCourseSlugBase, createCourseSlugCandidate } from "./slug";
 import { toAuthoringCourse } from "./transform";
 
 const courseSelect = `
@@ -58,29 +59,39 @@ export async function getInstructorCourse(courseId: string) {
 
 export async function createInstructorCourse(input: CreateAuthoringCourseRequest) {
   const { supabase, user } = await requireInstructorAuthoringContext();
-  const { data, error } = await supabase
-    .from("courses")
-    .insert({
-      slug: input.slug,
-      department: input.department,
-      course_code: input.courseCode,
-      title: input.title,
-      subtitle: input.subtitle,
-      description: input.description,
-      price_halalas: input.priceHalalas,
-      currency: "SAR",
-      status: "draft",
-      cover_url: input.coverUrl,
-      instructor_id: user.id,
-    })
-    .select(courseSelect)
-    .single();
+  const generatedSlugBase = createCourseSlugBase(input.title);
 
-  if (error) {
-    throwAuthoringDatabaseError(error, "The course could not be created.");
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const slug = input.slug ?? createCourseSlugCandidate(generatedSlugBase, attempt);
+    const { data, error } = await supabase
+      .from("courses")
+      .insert({
+        slug,
+        department: input.department,
+        course_code: input.courseCode,
+        title: input.title,
+        subtitle: input.subtitle,
+        description: input.description,
+        price_halalas: input.priceHalalas,
+        currency: "SAR",
+        status: "draft",
+        cover_url: input.coverUrl,
+        instructor_id: user.id,
+      })
+      .select(courseSelect)
+      .single();
+
+    if (!error) return toAuthoringCourse(data);
+
+    if (input.slug !== undefined || error.code !== "23505") {
+      throwAuthoringDatabaseError(error, "The course could not be created.");
+    }
   }
 
-  return toAuthoringCourse(data);
+  throwAuthoringDatabaseError(
+    { code: "23505" },
+    "A unique course URL could not be generated.",
+  );
 }
 
 export async function updateInstructorCourse(

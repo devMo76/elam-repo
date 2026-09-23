@@ -1,8 +1,10 @@
 import "server-only";
 
 import { lessonVideoStatusResponseSchema } from "@/lib/contracts";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getBunnyVideo } from "@/lib/video/bunny";
 import { getManagedVideoLesson } from "@/lib/video/lesson-access";
+import { mapBunnyStatus } from "@/lib/video/webhook";
 
 export class VideoStatusRequestError extends Error {
   constructor(
@@ -66,10 +68,36 @@ export async function getLessonVideoStatus(lessonId: string) {
     );
   }
 
+  const providerStatus = mapBunnyStatus(video.status);
+  const mediaStatus = providerStatus ?? lesson.mediaStatus;
+
+  // A public Bunny webhook is the fast path in production. During local
+  // development it cannot reach localhost, so the authenticated status poll
+  // also mirrors a provider state change into the lesson record.
+  if (providerStatus && providerStatus !== lesson.mediaStatus) {
+    const admin = createAdminClient();
+    const { error } = await admin
+      .from("lessons")
+      .update({
+        media_status: providerStatus,
+        duration_seconds: providerStatus === "ready" ? video.length : null,
+      })
+      .eq("id", lesson.id)
+      .eq("video_asset_id", lesson.videoAssetId);
+
+    if (error) {
+      throw new VideoStatusRequestError(
+        500,
+        "video_status_update_failed",
+        "The video processing status could not be saved.",
+      );
+    }
+  }
+
   return lessonVideoStatusResponseSchema.parse({
     data: {
-      mediaStatus: lesson.mediaStatus,
-      encodingProgress: video.encodeProgress,
+      mediaStatus,
+      encodingProgress: mediaStatus === "failed" ? null : video.encodeProgress,
     },
   });
 }

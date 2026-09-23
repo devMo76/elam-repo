@@ -547,8 +547,11 @@ export type Database = {
           created_at: string
           instructor_id: string
           instructor_name: string
+          lesson_count: number
+          module_count: number
           published_at: string
           total_count: number
+          unready_lesson_count: number
         }[]
       }
       admin_dashboard_summary: {
@@ -648,7 +651,34 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      append_module_lessons: {
+        Args: { lesson_titles: string[]; target_module_id: string }
+        Returns: {
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          is_free_preview: boolean
+          media_status: Database["public"]["Enums"]["media_status"]
+          module_id: string
+          position: number
+          title: string
+          video_asset_id: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "lessons"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       can_access_lesson: { Args: { target_lesson: string }; Returns: boolean }
+      claim_free_course: {
+        Args: { target_course: string }
+        Returns: {
+          course_id: string
+          granted_at: string
+        }[]
+      }
       claim_payment_receipt: {
         Args: { target_order: string }
         Returns: {
@@ -677,6 +707,26 @@ export type Database = {
       delete_draft_module_lesson: {
         Args: { target_lesson_id: string }
         Returns: undefined
+      }
+      duplicate_module_lesson: {
+        Args: { target_lesson_id: string }
+        Returns: {
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          is_free_preview: boolean
+          media_status: Database["public"]["Enums"]["media_status"]
+          module_id: string
+          position: number
+          title: string
+          video_asset_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "lessons"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       get_learner_course_progress: {
         Args: never
@@ -758,27 +808,10 @@ export type Database = {
       submit_course_for_review: {
         Args: { target_course_id: string }
         Returns: {
-          course_code: string | null
-          cover_url: string | null
-          created_at: string
-          currency: string
-          department: string
-          description: string | null
-          id: string
-          instructor_id: string
-          price_halalas: number
-          published_at: string | null
-          slug: string
+          blockers: Json
+          course_id: string
           status: Database["public"]["Enums"]["course_status"]
-          subtitle: string | null
-          title: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "courses"
-          isOneToOne: true
-          isSetofReturn: false
-        }
+        }[]
       }
     }
     Enums: {

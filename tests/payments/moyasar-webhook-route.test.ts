@@ -9,6 +9,9 @@ vi.mock("@/lib/payments/confirmation", () => ({
   confirmMoyasarPayment: vi.fn(),
   PaymentConfirmationError: class PaymentConfirmationError extends Error {},
 }));
+vi.mock("@/lib/payments/receipt-scheduling", () => ({
+  schedulePaymentReceipt: vi.fn(),
+}));
 
 import { POST } from "@/app/api/webhooks/moyasar/route";
 import {
@@ -16,6 +19,7 @@ import {
   getMoyasarWebhookEnvironment,
 } from "@/lib/env/server";
 import { confirmMoyasarPayment } from "@/lib/payments/confirmation";
+import { schedulePaymentReceipt } from "@/lib/payments/receipt-scheduling";
 
 const paymentId = "90000000-0000-4000-8000-000000000001";
 const eventId = "91000000-0000-4000-8000-000000000001";
@@ -85,5 +89,8 @@ describe("Moyasar webhook route", () => {
       eventId,
       eventType: "payment_paid",
     });
+    expect(schedulePaymentReceipt).toHaveBeenCalledWith(
+      "70000000-0000-4000-8000-000000000001",
+    );
   });
 });

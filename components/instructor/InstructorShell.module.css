@@ -1,0 +1,177 @@
+.page {
+  display: grid;
+  grid-template-columns: 17rem minmax(0, 1fr);
+  min-block-size: calc(100dvh - 4.5rem);
+  background: var(--surface);
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  border-inline-end: 1px solid var(--hairline);
+  background: var(--raised);
+  padding: 2rem 1.25rem;
+}
+
+.identity {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.35rem 0.75rem 1.75rem;
+}
+
+.brand {
+  display: inline-flex;
+  block-size: 3rem;
+  inline-size: fit-content;
+  margin-block-end: 0.4rem;
+}
+
+.logo { block-size: 100%; }
+
+.identity p {
+  margin: 0;
+  color: var(--accent);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.identity strong {
+  color: var(--ink);
+  font-size: 1.25rem;
+}
+
+.identity span {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.navigation {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.navigation a,
+.backLink,
+.signOutButton {
+  display: flex;
+  min-block-size: 44px;
+  align-items: center;
+  border-radius: var(--radius-card);
+  color: var(--body);
+  padding-inline: 0.75rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.navigation a:hover,
+.backLink:hover,
+.signOutButton:hover {
+  background: var(--tint);
+  color: var(--accent);
+}
+
+.navigation .activeLink {
+  background: var(--ink);
+  color: var(--on-accent);
+}
+
+.sidebarActions {
+  display: grid;
+  gap: 0.25rem;
+  margin-block-start: auto;
+  border-block-start: 1px solid var(--hairline);
+  padding-block-start: 1.25rem;
+}
+
+.backLink { border-radius: 0; }
+
+.signOutButton {
+  inline-size: 100%;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: start;
+}
+
+.signOutButton:disabled { cursor: wait; opacity: 0.65; }
+.signOutButton:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 35%, transparent); outline-offset: 2px; }
+
+.workspace {
+  min-inline-size: 0;
+  padding: clamp(1.5rem, 4vw, 3.5rem);
+}
+
+@media (max-width: 760px) {
+  .page { display: block; }
+
+  .sidebar {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.65rem 0.9rem;
+    border-block-end: 1px solid var(--hairline);
+    border-inline-end: 0;
+    padding: max(0.65rem, env(safe-area-inset-top)) 0.75rem 0.65rem;
+  }
+
+  .identity {
+    display: flex;
+    min-inline-size: 0;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0;
+  }
+
+  .brand {
+    flex: 0 0 auto;
+    block-size: 2.35rem;
+    margin: 0;
+  }
+
+  .identity p,
+  .identity strong { display: none; }
+
+  .identity span {
+    overflow: hidden;
+    font-size: 0.8125rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .navigation {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 0.4rem;
+    min-inline-size: 0;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    padding-block-end: 0.15rem;
+    scroll-snap-type: inline proximity;
+    scrollbar-width: thin;
+  }
+
+  .navigation a {
+    flex: 0 0 auto;
+    min-block-size: 40px;
+    padding-inline: 0.7rem;
+    font-size: 0.875rem;
+    scroll-snap-align: start;
+  }
+
+  .sidebarActions {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    margin: 0;
+    border: 0;
+    padding: 0;
+  }
+
+  .backLink { display: none; }
+  .signOutButton { inline-size: auto; min-block-size: 40px; padding-inline: 0.7rem; font-size: 0.8125rem; white-space: nowrap; }
+  .workspace { padding: 1.25rem 0.75rem max(2.5rem, env(safe-area-inset-bottom)); }
+}

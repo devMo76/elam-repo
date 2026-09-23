@@ -1,0 +1,77 @@
+.main {
+  width: min(100% - 2rem, 87.5rem);
+  margin-inline: auto;
+  padding-block: clamp(3rem, 6vw, 5rem);
+}
+
+.intro {
+  display: grid;
+  gap: 1rem;
+  max-inline-size: 60ch;
+  margin-block-end: 3rem;
+}
+
+.intro h1 {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(2.25rem, 4vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.intro p {
+  margin: 0;
+  color: var(--body);
+  font-size: 1.125rem;
+  line-height: 1.75;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.empty {
+  padding: 3rem;
+  border: 1px dashed #c9c5e9;
+  border-radius: 1.25rem;
+  background: #fff;
+}
+
+.empty h2,
+.empty p {
+  margin: 0;
+}
+
+.empty h2 {
+  color: #0b0b66;
+  font-size: 1.5rem;
+}
+
+.empty p {
+  margin-block-start: 0.75rem;
+  color: #565567;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .main {
+    width: min(100% - 1.5rem, 87.5rem);
+  }
+
+  .intro {
+    margin-block-end: 2rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

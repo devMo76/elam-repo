@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   registerSchema,
+  resendConfirmationSchema,
   requestPasswordResetSchema,
   signInSchema,
   updatePasswordSchema,
@@ -13,12 +14,14 @@ describe("authentication schemas", () => {
       email: "LEARNER@EXAMPLE.COM",
       password: "safe-password",
       fullName: "  New Learner  ",
+      next: "/courses/signals-and-systems-ee301",
     });
 
     expect(result).toEqual({
       email: "learner@example.com",
       password: "safe-password",
       fullName: "New Learner",
+      next: "/courses/signals-and-systems-ee301",
     });
   });
 
@@ -58,6 +61,39 @@ describe("authentication schemas", () => {
         email: "learner@example.com",
       }).success,
     ).toBe(true);
+  });
+
+  it("accepts only an email for confirmation resends", () => {
+    expect(
+      resendConfirmationSchema.safeParse({
+        email: "learner@example.com",
+      }).success,
+    ).toBe(true);
+    expect(
+      resendConfirmationSchema.safeParse({
+        email: "learner@example.com",
+        role: "admin",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("accepts a bounded redirect candidate for server-side safety validation", () => {
+    expect(
+      resendConfirmationSchema.parse({
+        email: "learner@example.com",
+        next: "/courses/signals-and-systems-ee301?lesson=preview",
+      }),
+    ).toEqual({
+      email: "learner@example.com",
+      next: "/courses/signals-and-systems-ee301?lesson=preview",
+    });
+
+    expect(
+      resendConfirmationSchema.safeParse({
+        email: "learner@example.com",
+        next: "/" + "a".repeat(2_048),
+      }).success,
+    ).toBe(false);
   });
 
   it("validates replacement passwords", () => {

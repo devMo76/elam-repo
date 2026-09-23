@@ -1,6 +1,6 @@
 begin;
 
-select plan(51);
+select plan(53);
 
 insert into auth.users (id, email, raw_user_meta_data)
 values
@@ -86,7 +86,7 @@ from public.create_pending_order(
 
 select is(
   (select amount_halalas from payment_order_one),
-  35000,
+  19900,
   'pending orders use the database course price'
 );
 select is(
@@ -153,7 +153,7 @@ from public.process_verified_moyasar_payment(
   'payment-paid-one',
   'payment_paid',
   'paid',
-  35000,
+  19900,
   'SAR',
   (select order_id from payment_order_one),
   '{"id":"payment-paid-one","status":"paid"}'::jsonb,
@@ -169,6 +169,15 @@ select is(
   (select state_changed from paid_result),
   true,
   'the first paid confirmation changes state'
+);
+select is(
+  (
+    select count(*)
+    from public.payment_receipts
+    where order_id = (select order_id from payment_order_one)
+  ),
+  1::bigint,
+  'a paid transition durably queues one receipt'
 );
 select is(
   (
@@ -189,7 +198,7 @@ from public.process_verified_moyasar_payment(
   'payment-paid-one',
   'payment_paid',
   'paid',
-  35000,
+  19900,
   'SAR',
   (select order_id from payment_order_one),
   '{"id":"payment-paid-one","status":"paid"}'::jsonb,
@@ -206,6 +215,15 @@ select is(
   1::bigint,
   'replaying the same event stores one event record'
 );
+select is(
+  (
+    select count(*)
+    from public.payment_receipts
+    where order_id = (select order_id from payment_order_one)
+  ),
+  1::bigint,
+  'replaying a payment event does not duplicate receipt work'
+);
 
 select lives_ok(
   $test$
@@ -216,7 +234,7 @@ select lives_ok(
       'payment-paid-one',
       'payment_callback',
       'paid',
-      35000,
+      19900,
       'SAR',
       (select order_id from payment_order_one),
       '{"id":"payment-paid-one","status":"paid"}'::jsonb,
@@ -394,7 +412,7 @@ select throws_ok(
       'payment-wrong-metadata',
       'payment_paid',
       'paid',
-      35000,
+      19900,
       'SAR',
       (select order_id from payment_order_two),
       '{"id":"payment-wrong-metadata","status":"paid"}'::jsonb,
@@ -411,7 +429,7 @@ select throws_ok(
     values (
       '90000000-0000-4000-8000-000000000053',
       '40000000-0000-4000-8000-000000000001',
-      35000,
+      19900,
       'SAR'
     )
   $test$,
@@ -429,7 +447,7 @@ select lives_ok(
       'payment-paid-one',
       'payment_refunded',
       'refunded',
-      35000,
+      19900,
       'SAR',
       (select order_id from payment_order_one),
       '{"id":"payment-paid-one","status":"refunded"}'::jsonb,
@@ -470,7 +488,7 @@ from public.process_verified_moyasar_payment(
   'payment-paid-four',
   'payment_paid',
   'paid',
-  35000,
+  19900,
   'SAR',
   (select order_id from payment_order_four),
   '{"id":"payment-paid-four","status":"paid"}'::jsonb,
@@ -491,7 +509,7 @@ from public.process_verified_moyasar_payment(
   'payment-paid-four',
   'payment_voided',
   'voided',
-  35000,
+  19900,
   'SAR',
   (select order_id from payment_order_four),
   '{"id":"payment-paid-four","status":"voided"}'::jsonb,
@@ -529,7 +547,7 @@ select throws_ok(
         'payment-invalid-status',
         'payment_updated',
         null,
-        35000,
+        19900,
         'SAR',
         %L,
         '{"id":"payment-invalid-status"}'::jsonb,

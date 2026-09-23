@@ -18,6 +18,13 @@ export const checkoutResponseSchema = z.strictObject({
   }),
 });
 
+export const freeCourseEnrollmentResponseSchema = z.strictObject({
+  data: z.strictObject({
+    courseId: z.uuid(),
+    grantedAt: z.iso.datetime({ offset: true }),
+  }),
+});
+
 export const paymentReturnStateSchema = z.enum([
   "success",
   "pending",
@@ -27,4 +34,7 @@ export const paymentReturnStateSchema = z.enum([
 
 export type CheckoutRequest = z.infer<typeof checkoutRequestSchema>;
 export type CheckoutResponse = z.infer<typeof checkoutResponseSchema>;
+export type FreeCourseEnrollmentResponse = z.infer<
+  typeof freeCourseEnrollmentResponseSchema
+>;
 export type PaymentReturnState = z.infer<typeof paymentReturnStateSchema>;

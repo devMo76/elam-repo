@@ -16,7 +16,7 @@ import { POST as publishCourse } from "@/app/api/instructor/courses/[courseId]/p
 import { POST as submitCourse } from "@/app/api/instructor/courses/[courseId]/submit/route";
 import { GET as getProfile, PATCH as updateProfile } from "@/app/api/instructor/profile/route";
 import { GET as getStatistics } from "@/app/api/instructor/statistics/route";
-import { AuthoringError } from "@/lib/authoring/errors";
+import { AuthoringError, CourseNotReadyError } from "@/lib/authoring/errors";
 import {
   publishInstructorCourse,
   submitInstructorCourse,
@@ -65,6 +65,42 @@ describe("instructor publication routes", () => {
 
     expect(response.status).toBe(404);
     expect(submitInstructorCourse).not.toHaveBeenCalled();
+  });
+
+  it("returns structured blockers when a draft is not ready", async () => {
+    vi.mocked(submitInstructorCourse).mockRejectedValue(
+      new CourseNotReadyError([
+        {
+          code: "lesson_media_not_ready",
+          message: "Wait for the lesson video to become playable or replace it.",
+          target: "media",
+          entityId: "33333333-3333-4333-8333-333333333333",
+        },
+      ]),
+    );
+
+    const response = await submitCourse(
+      new Request("http://localhost", { method: "POST" }),
+      { params: Promise.resolve({ courseId }) },
+    );
+
+    expect(response.status).toBe(422);
+    await expect(response.json()).resolves.toEqual({
+      error: {
+        code: "course_not_ready",
+        message:
+          "Complete the required course items before submitting it for review.",
+        blockers: [
+          {
+            code: "lesson_media_not_ready",
+            message:
+              "Wait for the lesson video to become playable or replace it.",
+            target: "media",
+            entityId: "33333333-3333-4333-8333-333333333333",
+          },
+        ],
+      },
+    });
   });
 
   it("returns a clear error when direct publishing is disabled", async () => {

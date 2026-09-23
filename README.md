@@ -10,7 +10,7 @@ Arabic, right-to-left course platform built with Next.js App Router.
    commit `.env.local`.
 4. Start Docker Desktop, then start local Supabase with `npm run supabase:start`.
 5. Start the application with `npm run dev`.
-6. Open `http://localhost:3000`.
+6. Open `http://localhost:3001`. The visual reference frontend uses port 3000.
 
 Use `npm run supabase:status` to inspect local endpoints and
 `npm run supabase:stop` when the local stack is no longer needed. Use

@@ -15,6 +15,7 @@ const serverEnvironmentSchema = z.strictObject({
   BUNNY_STREAM_TOKEN_KEY: optionalSecretSchema,
   EMAIL_API_KEY: optionalSecretSchema,
   EMAIL_FROM_ADDRESS: optionalSecretSchema,
+  PAYMENT_RECEIPT_WORKER_SECRET: optionalSecretSchema,
 });
 
 const bunnyStreamEnvironmentSchema = z.strictObject({
@@ -40,6 +41,10 @@ const emailEnvironmentSchema = z.strictObject({
   EMAIL_FROM_ADDRESS: z.string().trim().min(3).max(320),
 });
 
+const paymentReceiptWorkerEnvironmentSchema = z.strictObject({
+  PAYMENT_RECEIPT_WORKER_SECRET: z.string().trim().min(32),
+});
+
 export type ServerEnvironment = z.infer<typeof serverEnvironmentSchema>;
 export type BunnyStreamEnvironment = z.infer<
   typeof bunnyStreamEnvironmentSchema
@@ -51,6 +56,9 @@ export type MoyasarWebhookEnvironment = z.infer<
   typeof moyasarWebhookEnvironmentSchema
 >;
 export type EmailEnvironment = z.infer<typeof emailEnvironmentSchema>;
+export type PaymentReceiptWorkerEnvironment = z.infer<
+  typeof paymentReceiptWorkerEnvironmentSchema
+>;
 
 export function getServerEnvironment(): ServerEnvironment {
   return serverEnvironmentSchema.parse({
@@ -64,6 +72,7 @@ export function getServerEnvironment(): ServerEnvironment {
     BUNNY_STREAM_TOKEN_KEY: process.env.BUNNY_STREAM_TOKEN_KEY,
     EMAIL_API_KEY: process.env.EMAIL_API_KEY,
     EMAIL_FROM_ADDRESS: process.env.EMAIL_FROM_ADDRESS,
+    PAYMENT_RECEIPT_WORKER_SECRET: process.env.PAYMENT_RECEIPT_WORKER_SECRET,
   });
 }
 
@@ -100,5 +109,13 @@ export function getEmailEnvironment(): EmailEnvironment {
   return emailEnvironmentSchema.parse({
     EMAIL_API_KEY: environment.EMAIL_API_KEY,
     EMAIL_FROM_ADDRESS: environment.EMAIL_FROM_ADDRESS,
+  });
+}
+
+export function getPaymentReceiptWorkerEnvironment(): PaymentReceiptWorkerEnvironment {
+  const environment = getServerEnvironment();
+
+  return paymentReceiptWorkerEnvironmentSchema.parse({
+    PAYMENT_RECEIPT_WORKER_SECRET: environment.PAYMENT_RECEIPT_WORKER_SECRET,
   });
 }

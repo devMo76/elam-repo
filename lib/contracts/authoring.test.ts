@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   createAuthoringCourseRequestSchema,
+  createLessonsRequestSchema,
+  duplicateLessonRequestSchema,
   reorderModulesRequestSchema,
   updateInstructorProfileRequestSchema,
   updateLessonRequestSchema,
@@ -22,6 +24,27 @@ const validCourse = {
 describe("authoring contracts", () => {
   it("accepts a valid server-authoritative draft course request", () => {
     expect(createAuthoringCourseRequestSchema.parse(validCourse)).toEqual(validCourse);
+    const courseWithoutSlug = {
+      department: validCourse.department,
+      courseCode: validCourse.courseCode,
+      title: validCourse.title,
+      subtitle: validCourse.subtitle,
+      description: validCourse.description,
+      priceHalalas: validCourse.priceHalalas,
+      coverUrl: validCourse.coverUrl,
+    };
+    expect(createAuthoringCourseRequestSchema.parse(courseWithoutSlug)).toEqual(
+      courseWithoutSlug,
+    );
+  });
+
+  it("rejects an invalid optional slug override", () => {
+    expect(
+      createAuthoringCourseRequestSchema.safeParse({
+        ...validCourse,
+        slug: "Unsafe Arabic رابط",
+      }).success,
+    ).toBe(false);
   });
 
   it("rejects protected and unexpected course fields", () => {
@@ -50,6 +73,18 @@ describe("authoring contracts", () => {
         isFreePreview: true,
       }),
     ).toEqual({ title: "Preview lesson", isFreePreview: true });
+  });
+
+  it("accepts bounded quick-add and explicit duplicate actions", () => {
+    expect(
+      createLessonsRequestSchema.parse({ titles: ["الأول", "الثاني"] }),
+    ).toEqual({ titles: ["الأول", "الثاني"] });
+    expect(duplicateLessonRequestSchema.parse({ action: "duplicate" })).toEqual({
+      action: "duplicate",
+    });
+    expect(
+      createLessonsRequestSchema.safeParse({ titles: Array(51).fill("درس") }).success,
+    ).toBe(false);
   });
 
   it("rejects provider-controlled video fields", () => {

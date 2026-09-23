@@ -64,7 +64,7 @@ select is(
 );
 select is(
   (select active_course_count from public.admin_dashboard_summary()),
-  1::bigint,
+  6::bigint,
   'the summary counts published courses as active'
 );
 

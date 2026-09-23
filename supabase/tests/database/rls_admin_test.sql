@@ -31,13 +31,13 @@ select set_config('request.jwt.claim.sub', '30000000-0000-4000-8000-000000000001
 
 select ok((select count(*) from public.profiles) >= 4, 'administrators can read all profiles');
 select is((select count(*) from public.platform_settings), 1::bigint, 'administrators can read settings');
-select is((select count(*) from public.courses), 4::bigint, 'administrators can read every course state');
-select is((select count(*) from public.modules), 4::bigint, 'administrators can read all modules');
-select is((select count(*) from public.lessons), 5::bigint, 'administrators can read all lessons');
+select is((select count(*) from public.courses), 9::bigint, 'administrators can read every course state');
+select is((select count(*) from public.modules), 9::bigint, 'administrators can read all modules');
+select is((select count(*) from public.lessons), 15::bigint, 'administrators can read all lessons');
 select is((select count(id) from public.orders), 3::bigint, 'administrators can read all orders');
 select is((select count(*) from public.enrollments), 1::bigint, 'administrators can read all enrolments');
 select is((select count(*) from public.lesson_progress), 0::bigint, 'administrators do not bypass own-row progress policy');
-select is((select count(*) from public.admin_audit_log), 0::bigint, 'the audit log starts empty');
+select is((select count(*) from public.admin_audit_log), 3::bigint, 'administrators can read seeded audit history');
 
 select lives_ok(
   $test$
@@ -59,8 +59,8 @@ select is(
 );
 select is(
   (select count(*) from public.admin_audit_log where action = 'settings.update'),
-  1::bigint,
-  'a settings change creates one audit record'
+  2::bigint,
+  'a settings change adds one audit record'
 );
 
 select lives_ok(

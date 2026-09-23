@@ -119,6 +119,12 @@ export const adminCourseListResponseSchema = z.strictObject({
     instructorId: z.uuid(), instructorName: z.string().min(1),
     createdAt: z.iso.datetime({ offset: true }),
     publishedAt: z.iso.datetime({ offset: true }).nullable(),
+    readiness: z.strictObject({
+      canPublish: z.boolean(),
+      moduleCount: nonnegativeSafeInteger,
+      lessonCount: nonnegativeSafeInteger,
+      unreadyLessonCount: nonnegativeSafeInteger,
+    }),
   })),
   pagination: z.strictObject({
     page: z.number().int().positive(), pageSize: z.number().int().positive().max(100),

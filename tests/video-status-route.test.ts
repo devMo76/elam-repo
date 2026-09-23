@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("server-only", () => ({}));
+
 const { MockVideoStatusRequestError } = vi.hoisted(() => ({
   MockVideoStatusRequestError: class extends Error {
     constructor(
