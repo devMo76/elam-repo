@@ -65,3 +65,23 @@ The promotion path is always:
 4. Apply the approved migrations to staging.
 5. Run staging integration tests.
 6. Promote the same approved commit and migrations to production later.
+
+## Staging wiring checklist (fill in without committing secrets)
+
+| System | Setting | Staging value/check |
+| --- | --- | --- |
+| Vercel `elam-staging` | Git repository, root, commit | `devMo76/elam-repo`, `/`, approved candidate SHA |
+| Vercel environment | Public URL | Exact HTTPS staging hostname, also `NEXT_PUBLIC_SITE_URL` |
+| Vercel environment | Public Supabase | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` from **staging** project |
+| Vercel environment | Server Supabase | `SUPABASE_SERVICE_ROLE_KEY` from same **staging** project; never `NEXT_PUBLIC_` |
+| Vercel environment | Payment | `NEXT_PUBLIC_MOYASAR_PUBLISHABLE_KEY=pk_test_…`, `MOYASAR_SECRET_KEY=sk_test_…`, separate staging webhook secret |
+| Vercel environment | Video | Bunny library ID, upload/read-only API keys, token key for approved staging media |
+| Vercel environment | Receipts | `EMAIL_API_KEY`, verified `EMAIL_FROM_ADDRESS`, random `PAYMENT_RECEIPT_WORKER_SECRET` (32+ chars) |
+| Supabase Auth | Site URL | Exact HTTPS staging origin |
+| Supabase Auth | Redirect allowlist | Staging `/auth/callback` (including `next` query values for confirmation and password reset); the app then navigates to `/auth/reset-password` |
+| Moyasar sandbox | Callback/webhook | Staging `/api/payments/callback` and `/api/webhooks/moyasar`; confirm provider's URL format |
+| Bunny | Webhook | Staging `/api/webhooks/video`; confirm its verification flow |
+
+Do not copy `.env.local` into Vercel: it may target the local database and can contain development credentials. Set and review each hosted value in the Vercel project settings, then trigger a fresh build because `NEXT_PUBLIC_*` values are embedded in the client bundle. Inspect *names/presence and environment ownership*, not secret values, in deployment records.
+
+Before pushing migrations, confirm the linked Supabase project ref with the owner and run `supabase db push --dry-run`; then apply only to that staging project. Do not run `supabase db reset --linked`. Keep synthetic seed data out of the eventual production project.

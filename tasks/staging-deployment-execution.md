@@ -1,6 +1,6 @@
 # Staging deployment and sprint sign-off
 
-**Status:** Candidate preview deployed; hosted staging configuration, DNS, and sprint sign-off remain open.
+**Status:** Candidate preview deployed and clean CI passed; hosted staging configuration, DNS, and sprint sign-off remain open.
 
 ## Decision boundary
 
@@ -57,7 +57,7 @@ Use a dedicated Vercel project and dedicated Supabase project with synthetic dat
 ## Current blockers / inputs
 
 - Exact staging hostname and DNS provider: pending owner response.
-- Vercel CLI access and Supabase organization/region: pending owner response. GitHub already produces protected previews from an `elam-staging` Vercel project, but Vercel CLI is logged out and its environment variables/domain assignments are not verified. Supabase CLI currently shows no `elam-staging` project; this repository is not linked to a hosted database.
+- Vercel CLI access and Supabase organization/region: pending owner response. GitHub already produces protected previews from an `elam-staging` Vercel project, but Vercel CLI is logged out and its environment variables/domain assignments are not verified. Supabase CLI currently shows no `elam-staging` project and lists two possible organizations, `Wedad` and `mobile store mock`; the owner must select the organization and region before creation. This repository is not linked to a hosted database.
 - Moyasar sandbox, verified email sender, receipt worker secret, provider webhooks, final Arabic legal/support text, and alert destination: not configured or approved locally.
 - Full local pgTAP suite is not a clean-baseline result because the current database contains additional records/settings. Use disposable CI or a separately provisioned database; never reset the active local database to obtain a green check.
 
@@ -68,4 +68,6 @@ Use a dedicated Vercel project and dedicated Supabase project with synthetic dat
 | 2026-10-02 | Repository/hosting inventory | GitHub remote and auth present; no local Vercel link or Supabase project link | Read-only CLI and file checks |
 | 2026-10-02 | Candidate `b54811b` | Pushed `feat/staging-readiness`; protected Vercel preview succeeded at `https://elam-staging-gyi0sfked-devmo76.vercel.app` | GitHub deployment 6811405876; direct request returned Vercel SSO redirect |
 | 2026-10-02 | Clean CI run 37023937273 | Database job passed; quality job failed only at dependency audit (Next.js critical, brace-expansion high) | [GitHub Actions run](https://github.com/devMo76/elam-repo/actions/runs/37023937273) |
-| 2026-10-02 | Dependency remediation (not yet pushed) | Updated Next.js and matching ESLint config to 16.3.8; `npm audit fix` addressed transitive issue. Local audit zero vulnerabilities; typecheck, lint, 260 tests, and build pass | Local checks; clean CI rerun pending |
+| 2026-10-02 | Dependency remediation | Updated Next.js and matching ESLint config to 16.3.8; `npm audit fix` addressed transitive issue. Local audit zero vulnerabilities; typecheck, lint, 260 tests, and build pass | Local checks; clean CI rerun below |
+| 2026-10-02 | Patched candidate `fa3e0ce` | Pushed branch; protected Vercel preview deployed at `https://elam-staging-qy1ztxty4-devmo76.vercel.app`. Existing Vercel Production deployment remains on `ee440c2`; no main merge or domain change | GitHub deployment 6813618041 |
+| 2026-10-02 | Clean CI rerun | **Both quality and database jobs passed**, including dependency audit, clean seed/pgTAP, DB lint, and generated types | [GitHub Actions run](https://github.com/devMo76/elam-repo/actions/runs/37036787131) |
