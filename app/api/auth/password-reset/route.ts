@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { requestPasswordResetSchema } from "@/lib/auth/schemas";
 import { getPublicEnvironment } from "@/lib/env/public";
 import { createApiError, parseJsonBody } from "@/lib/http/api-response";
+import { checkRateLimits } from "@/lib/http/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
@@ -11,6 +12,12 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return parsed.response;
   }
+
+  const limited = await checkRateLimits(request, [
+    { action: "auth.reset.ip", limit: 10, windowSeconds: 3600 },
+    { action: "auth.reset.email", subject: parsed.data.email, limit: 3, windowSeconds: 3600 },
+  ]);
+  if (limited) return limited;
 
   const environment = getPublicEnvironment();
   const callbackUrl = new URL(

@@ -12,6 +12,9 @@ vi.mock("@/lib/env/public", () => ({
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(),
 }));
+vi.mock("@/lib/http/rate-limit", () => ({
+  checkRateLimits: vi.fn(async () => null),
+}));
 
 import { POST as register } from "@/app/api/auth/register/route";
 import { POST as resendConfirmation } from "@/app/api/auth/resend-confirmation/route";

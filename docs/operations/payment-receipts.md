@@ -16,8 +16,19 @@ outbox row remains retryable.
 1. Generate a random secret of at least 32 characters and set
    `PAYMENT_RECEIPT_WORKER_SECRET` in the deployed server environment.
 2. Configure the deployment scheduler to send `POST` to
-   `/api/jobs/payment-receipts` every five minutes.
+   `/api/jobs/payment-receipts` every five minutes, or a Vercel Cron `GET`
+   to the same path. Do not add a Vercel schedule until the hosting plan is
+   confirmed: [Hobby permits only daily runs](https://vercel.com/docs/cron-jobs/usage-and-pricing),
+   while Pro supports a five-minute schedule. For paid launch on Hobby, use
+   another authenticated five-minute scheduler rather than daily retries.
 3. Send the secret as `Authorization: Bearer <secret>`.
+
+Vercel Cron automatically sends `Authorization: Bearer <CRON_SECRET>` when
+`CRON_SECRET` is configured. Set `CRON_SECRET` and
+`PAYMENT_RECEIPT_WORKER_SECRET` to the **same random 32+ character value** in
+that Vercel project. Cron runs on production deployments of the project, not
+preview deployments; use a separate staging project for staging scheduler
+tests. See [Vercel Cron management](https://vercel.com/docs/cron-jobs/manage-cron-jobs).
 
 Each run selects at most 25 unsent rows and processes three concurrently. The
 database claim function supplies a five-minute lease, while Resend receives the
