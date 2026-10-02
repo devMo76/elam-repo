@@ -42,13 +42,15 @@ The repository script `npm run supabase:reset` includes `--local` deliberately.
 
 ## Vercel staging provisioning
 
-An account owner must complete these external steps:
+An account owner must complete these external steps. GitHub currently deploys previews from an existing Vercel project named `elam-staging`; **inspect and reuse it** rather than creating a duplicate:
 
-1. Create a Vercel project named `elam-staging` linked to this repository.
-2. Configure Node.js 22 and enable pull-request preview deployments.
+1. Verify the existing `elam-staging` project is linked to `devMo76/elam-repo` with repository root `/`, its intended production branch, and Node.js 22.17.1.
+2. Keep pull-request previews protected. A preview deployment alone is not the stable staging hostname.
 3. Add staging environment values through Vercel's encrypted settings.
 4. Use only the staging Supabase project and Moyasar sandbox credentials.
 5. Confirm that no server-only variable appears in a client bundle or deployment log.
+6. Assign the owner-approved staging subdomain only after checking the project's environment values. Configure Supabase Auth Site URL/redirects and provider callbacks for that exact HTTPS origin.
+7. If deployment protection blocks sandbox webhooks, use a provider-compatible automation bypass only for the staging project, keep its secret out of Git, and verify provider signatures independently.
 
 Create a separate Vercel production project later. Production credentials are
 held by the client and deployed jointly, as required by the developer brief.

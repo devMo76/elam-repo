@@ -1,6 +1,6 @@
 # Staging deployment and sprint sign-off
 
-**Status:** Preparing. No hosted staging deployment, DNS change, or sprint sign-off has happened yet.
+**Status:** Candidate preview deployed; hosted staging configuration, DNS, and sprint sign-off remain open.
 
 ## Decision boundary
 
@@ -36,7 +36,7 @@ Use a dedicated Vercel project and dedicated Supabase project with synthetic dat
 
 ### D4 — Provision isolated Vercel staging and hostname
 
-**Acceptance:** Git-linked Vercel project points to `devMo76/elam-repo`, root directory `/`, Node 22.17.1, staging branch/commit, and only staging Supabase/Moyasar sandbox/Bunny/sender credentials. HTTPS staging hostname resolves to this project; `NEXT_PUBLIC_SITE_URL` equals that origin. A temporary `vercel.app` URL may be used first, but auth/payment callbacks must be updated when the canonical staging hostname changes.
+**Acceptance:** Reuse and verify the Git-linked Vercel project that GitHub identifies as `elam-staging`; confirm root directory `/`, Node 22.17.1, staging branch/commit, and only staging Supabase/Moyasar sandbox/Bunny/sender credentials. HTTPS staging hostname resolves to this project; `NEXT_PUBLIC_SITE_URL` equals that origin. A temporary `vercel.app` URL may be used first, but auth/payment callbacks must be updated when the canonical staging hostname changes.
 
 **Verification:** Build/deployment ID, redacted environment-variable name audit, DNS/certificate check, response headers, and client-bundle secret scan. Configure Supabase Auth Site URL and exact callback/reset redirect paths for this hostname. Register staging-only webhook URLs and an authenticated receipt schedule when sandbox services are ready.
 
@@ -57,7 +57,7 @@ Use a dedicated Vercel project and dedicated Supabase project with synthetic dat
 ## Current blockers / inputs
 
 - Exact staging hostname and DNS provider: pending owner response.
-- Vercel team/project and Supabase organization/region: pending owner response. Supabase CLI currently shows no `elam-staging` project; this repository is not linked to a hosted project.
+- Vercel CLI access and Supabase organization/region: pending owner response. GitHub already produces protected previews from an `elam-staging` Vercel project, but Vercel CLI is logged out and its environment variables/domain assignments are not verified. Supabase CLI currently shows no `elam-staging` project; this repository is not linked to a hosted database.
 - Moyasar sandbox, verified email sender, receipt worker secret, provider webhooks, final Arabic legal/support text, and alert destination: not configured or approved locally.
 - Full local pgTAP suite is not a clean-baseline result because the current database contains additional records/settings. Use disposable CI or a separately provisioned database; never reset the active local database to obtain a green check.
 
@@ -66,3 +66,6 @@ Use a dedicated Vercel project and dedicated Supabase project with synthetic dat
 | Date | Item | Result | Evidence |
 | --- | --- | --- | --- |
 | 2026-10-02 | Repository/hosting inventory | GitHub remote and auth present; no local Vercel link or Supabase project link | Read-only CLI and file checks |
+| 2026-10-02 | Candidate `b54811b` | Pushed `feat/staging-readiness`; protected Vercel preview succeeded at `https://elam-staging-gyi0sfked-devmo76.vercel.app` | GitHub deployment 6811405876; direct request returned Vercel SSO redirect |
+| 2026-10-02 | Clean CI run 37023937273 | Database job passed; quality job failed only at dependency audit (Next.js critical, brace-expansion high) | [GitHub Actions run](https://github.com/devMo76/elam-repo/actions/runs/37023937273) |
+| 2026-10-02 | Dependency remediation (not yet pushed) | Updated Next.js and matching ESLint config to 16.3.8; `npm audit fix` addressed transitive issue. Local audit zero vulnerabilities; typecheck, lint, 260 tests, and build pass | Local checks; clean CI rerun pending |
