@@ -14,7 +14,7 @@ Sprints 0–2 repository work and outstanding acceptance checks are recorded in 
 
 ## Sprint 1 — Production-like staging
 
-- [ ] 1.1 Provision separate Vercel/Supabase staging and apply migrations.
+- [ ] 1.1 Provision separate Railway/Supabase staging and apply migrations.
 - [ ] 1.2 Configure custom SMTP/auth recovery and test with an external mailbox.
 - [ ] 1.3 Verify approved catalogue and real Bunny media/access.
 - [ ] Checkpoint 1: auth and video journeys pass on staging.

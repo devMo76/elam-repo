@@ -7,17 +7,17 @@ This is an execution sheet, not evidence that hosted staging has passed. Use a d
 1. Configure Moyasar sandbox secret, webhook secret, publishable key, and callback/webhook URLs in staging. Use the provider's published sandbox test instruments only.
 2. With a new learner, buy a paid course; compare provider payment ID, one order, one enrolment, and one receipt outbox row. Repeat the callback and webhook; counts must remain one.
 3. Exercise rejected, delayed, and provider-unavailable responses. The dashboard must show the order and offer a *recheck of the existing payment*, never create a second charge. A different learner must receive 404/403 for another learner's order.
-4. Configure a verified email sender and a random receipt-worker secret. Schedule authenticated `GET /api/jobs/payment-receipts` using the same value as `CRON_SECRET` on Vercel, or an external scheduler. Confirm sent, failed/retry, and support recovery from a real mailbox.
+4. Configure a verified email sender and a random receipt-worker secret. Schedule the separate Railway cron service to run `npm run jobs:payment-receipts` every five minutes with the same secret as the web service. Confirm sent, failed/retry, and support recovery from a real mailbox.
 5. Reconcile a provider refund/reversal with order, entitlement, and receipt handling. Record the support action and timing. No live transaction is authorized by this sheet.
 
 ## Trust/recovery (Sprint 4)
 
 - Obtain approved Arabic terms, privacy, refund, merchant identity, support contact, invoice treatment, and instructor compensation terms from the owner. Publish them before paid launch; the current footer placeholders are not acceptable.
 - Check actual response headers on all app routes. Baseline CSP is enforced; the broader CSP is **report-only** because issuer/3-D Secure and Bunny origins require staging traces. Narrow it and enforce after the full auth/video/payment flow passes. Confirm no checkout, 3-D Secure, playback, or email verification regression.
-- Confirm 429 on repeated sign-in/register/reset/resend/checkout/recheck, 503 fail-closed when the shared database limiter is unavailable, and no shared-IP false positives at the expected launch traffic. The limiter uses Vercel's trusted forwarded IP header; a non-Vercel deployment needs a trusted proxy header. Schedule `select public.prune_api_rate_limits()` with service-role access at least daily, or add it to a secured maintenance job.
+- Confirm 429 on repeated sign-in/register/reset/resend/checkout/recheck, 503 fail-closed when the shared database limiter is unavailable, and no shared-IP false positives at the expected launch traffic. On Railway, verify the trusted client-IP forwarding behavior and reject spoofed headers before relying on IP-based limits. Schedule `select public.prune_api_rate_limits()` with service-role access at least daily, or add it to a secured maintenance job.
 - Audit admin MFA/provider configuration, service-role and webhook secrets, preview protection, Supabase RLS, storage policy, webhook replay, and instructor/admin role separation. Do not expose keys in screenshots or logs.
 - Connect retained error tracking plus uptime, failed payment confirmation, receipt backlog, video playback, and cost alerts. Assign an on-call owner; test an alert and acknowledgement.
-- Rehearse staging database backup/restore and Vercel deployment rollback; record restore point, elapsed time, data loss, and the incident owner. Do not reset the active local or production database.
+- Rehearse staging database backup/restore and Railway deployment rollback; record restore point, elapsed time, data loss, and the incident owner. Do not reset the active local or production database.
 
 ## Release candidate (Sprint 5)
 

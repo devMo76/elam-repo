@@ -1,6 +1,6 @@
 # Production launch plan
 
-**Status:** In progress, 2026-10-02. Sprint 0 scope approval and Sprint 1 hosted acceptance remain open; see [execution record](sprints-0-2-execution.md).
+**Status:** In progress, 2026-10-02. Sprint 0 scope approval and Sprint 1 hosted acceptance remain open; see [execution record](sprints-0-2-execution.md). Hosting decision amended to Railway; prior Vercel previews do not count as Railway staging acceptance.
 
 **Execution checklist:** [todo.md](todo.md)
 
@@ -47,7 +47,7 @@ Provider setup and independent feature work can overlap. Live payment activation
 
 ## Sprint 1 — Production-like staging and content
 
-**1.1 Hosted staging.** Provision separate Vercel and Supabase staging projects, apply versioned migrations, configure auth redirects/TLS, and exclude production credentials. Acceptance: preview and staging smoke tests work against staging data only. Verification: migrate, register, verify, sign in, inspect secret boundaries. Depends on 0.2 and owner account access. Likely files: staging/deployment runbooks. Size: Medium plus external setup.
+**1.1 Hosted staging.** Provision separate Railway and Supabase staging projects, apply versioned migrations, configure auth redirects/TLS, and exclude production credentials. Acceptance: staging smoke tests work against staging data only. Verification: migrate, register, verify, sign in, inspect secret boundaries. Depends on 0.2 and owner account access. Likely files: staging/deployment runbooks. Size: Medium plus external setup.
 
 **1.2 Auth email.** Configure custom SMTP and authenticated sender DNS; test confirmation, reset, resend, and expired links with a non-team mailbox. Acceptance: external users receive and can use messages; errors recover cleanly. Verification: real inbox and DNS checks. Depends on 1.1. Likely files: auth templates/configuration notes, auth code only for observed defects. Size: Medium.
 
@@ -99,7 +99,7 @@ Provider setup and independent feature work can overlap. Live payment activation
 
 ## Sprint 6 — Production cutover and launch
 
-**6.1 Production environment.** Apply approved migrations to dedicated production Supabase, connect Vercel and domain/TLS, set real secrets/redirects/webhooks/email, publish approved content and support/legal pages. Add canonical metadata, robots, sitemap, and per-course sharing metadata. Acceptance: no synthetic seed or test key; production smoke test passes. Verification: redacted config, migration, DNS/TLS, secret-scan, and route checks. Depends on Sprint 5 and 4.1. Likely files: production runbook, metadata/robots/sitemap routes. Size: several Small tasks plus external setup.
+**6.1 Production environment.** Apply approved migrations to dedicated production Supabase, connect isolated Railway production service and domain/TLS, set real secrets/redirects/webhooks/email, publish approved content and support/legal pages. Add canonical metadata, robots, sitemap, and per-course sharing metadata. Acceptance: no synthetic seed or test key; production smoke test passes. Verification: redacted config, migration, DNS/TLS, secret-scan, and route checks. Depends on Sprint 5 and 4.1. Likely files: production runbook, metadata/robots/sitemap routes. Size: several Small tasks plus external setup.
 
 **6.2 Soft launch.** Invite a small cohort; complete free and controlled live paid journeys, receipt, refund, and support; reconcile every payment daily. Acceptance: one low-value live purchase/refund reconciles across Moyasar, order, enrolment, and receipt; defects are fixed/retested and alert owners observe actual operation. Verification: owner-supervised transaction ledger and incident log. Depends on 6.1 and 3.4. Likely files: launch evidence/runbook. Size: operational checkpoint.
 

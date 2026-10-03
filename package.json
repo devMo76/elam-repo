@@ -9,6 +9,8 @@
     "dev": "next dev --port 3001",
     "build": "next build",
     "start": "next start --port 3001",
+    "start:railway": "next start --hostname 0.0.0.0",
+    "jobs:payment-receipts": "node scripts/trigger-payment-receipts.mjs",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "test": "npm run test:backend",

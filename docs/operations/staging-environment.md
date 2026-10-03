@@ -7,12 +7,13 @@ Elam uses all three of these environments:
 | Environment | Database | Application hosting | Data |
 |---|---|---|---|
 | Local | Supabase CLI and Docker | Local Next.js server | Synthetic only |
-| Staging | Dedicated Supabase.com project | Dedicated Vercel project | Synthetic only |
-| Production | Separate Supabase.com project | Separate Vercel project | Production |
+| Staging | Dedicated Supabase.com project | Railway staging web service | Synthetic only |
+| Production | Separate Supabase.com project | Separate Railway production service/environment | Production |
 
-Vercel is selected as the application host because it is the PRD recommendation
-and directly supports the fixed Next.js App Router stack. Staging and production
-must use separate projects and credentials.
+Railway replaces the former Vercel hosting plan. Keep staging and production
+services, Supabase projects, and provider credentials isolated. The old Vercel
+GitHub integration remains in place until Railway staging has passed; do not
+route the staging domain or live users to it.
 
 ## Repository-managed configuration
 
@@ -40,20 +41,22 @@ An account owner must complete these external steps:
 Never run `supabase db reset` against a linked staging or production project.
 The repository script `npm run supabase:reset` includes `--local` deliberately.
 
-## Vercel staging provisioning
+## Railway staging provisioning
 
-An account owner must complete these external steps. GitHub currently deploys previews from an existing Vercel project named `elam-staging`; **inspect and reuse it** rather than creating a duplicate:
+An account owner must connect Railway before these external steps:
 
-1. Verify the existing `elam-staging` project is linked to `devMo76/elam-repo` with repository root `/`, its intended production branch, and Node.js 22.17.1.
-2. Keep pull-request previews protected. A preview deployment alone is not the stable staging hostname.
-3. Add staging environment values through Vercel's encrypted settings.
+1. Create an `elam-staging` Railway project/service from `devMo76/elam-repo`, repository root `/`, on the approved staging commit/branch. Confirm Node.js 22.17.1 from `package.json`.
+2. Build with `npm ci` and `npm run build`; start with `npm run start:railway`. Railway supplies `PORT`; the start script binds to `0.0.0.0` and does not hard-code port 3001.
+3. Add staging environment values through Railway's service variables before building. Do not import `.env.local`.
 4. Use only the staging Supabase project and Moyasar sandbox credentials.
 5. Confirm that no server-only variable appears in a client bundle or deployment log.
-6. Assign the owner-approved staging subdomain only after checking the project's environment values. Configure Supabase Auth Site URL/redirects and provider callbacks for that exact HTTPS origin.
-7. If deployment protection blocks sandbox webhooks, use a provider-compatible automation bypass only for the staging project, keep its secret out of Git, and verify provider signatures independently.
+6. Generate a temporary Railway URL to smoke-test, then add the owner-approved staging subdomain. Add **both** CNAME and TXT records shown by Railway at the DNS provider; confirm HTTPS.
+7. Configure Supabase Auth Site URL/redirects and provider callbacks for that exact HTTPS origin.
+8. Add a separate Railway cron service from the same repository. Override its build command to `npm ci` (it does not need a Next.js build), set start command `npm run jobs:payment-receipts`, schedule `*/5 * * * *`, and variables `RECEIPT_WORKER_URL=https://<staging-host>` plus the same `PAYMENT_RECEIPT_WORKER_SECRET` as the web service. Verify its run exits and reports a result.
 
-Create a separate Vercel production project later. Production credentials are
-held by the client and deployed jointly, as required by the developer brief.
+Create an isolated production Railway environment/service later. Production
+credentials are held by the owner and deployed jointly, as required by the
+developer brief. Railway does not replace Supabase, Bunny, Moyasar, or Resend.
 
 ## Promotion rule
 
@@ -61,27 +64,30 @@ The promotion path is always:
 
 1. Apply migrations and seeds locally.
 2. Run database and application verification.
-3. Merge the reviewed pull request.
-4. Apply the approved migrations to staging.
+3. Provision Railway with staging-only variables, but do not expose a public hostname yet.
+4. Apply the approved migrations to the verified staging Supabase project, then deploy the approved commit/branch to Railway.
 5. Run staging integration tests.
-6. Promote the same approved commit and migrations to production later.
+6. Promote the same approved commit and migrations to isolated production later.
 
 ## Staging wiring checklist (fill in without committing secrets)
 
 | System | Setting | Staging value/check |
 | --- | --- | --- |
-| Vercel `elam-staging` | Git repository, root, commit | `devMo76/elam-repo`, `/`, approved candidate SHA |
-| Vercel environment | Public URL | Exact HTTPS staging hostname, also `NEXT_PUBLIC_SITE_URL` |
-| Vercel environment | Public Supabase | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` from **staging** project |
-| Vercel environment | Server Supabase | `SUPABASE_SERVICE_ROLE_KEY` from same **staging** project; never `NEXT_PUBLIC_` |
-| Vercel environment | Payment | `NEXT_PUBLIC_MOYASAR_PUBLISHABLE_KEY=pk_test_…`, `MOYASAR_SECRET_KEY=sk_test_…`, separate staging webhook secret |
-| Vercel environment | Video | Bunny library ID, upload/read-only API keys, token key for approved staging media |
-| Vercel environment | Receipts | `EMAIL_API_KEY`, verified `EMAIL_FROM_ADDRESS`, random `PAYMENT_RECEIPT_WORKER_SECRET` (32+ chars) |
+| Railway `elam-staging` | Git repository, root, commit | `devMo76/elam-repo`, `/`, approved candidate SHA |
+| Railway web service | Public URL | Exact HTTPS staging hostname, also `NEXT_PUBLIC_SITE_URL` |
+| Railway web service | Public Supabase | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` from **staging** project |
+| Railway web service | Server Supabase | `SUPABASE_SERVICE_ROLE_KEY` from same **staging** project; never `NEXT_PUBLIC_` |
+| Railway web service | Payment | `NEXT_PUBLIC_MOYASAR_PUBLISHABLE_KEY=pk_test_…`, `MOYASAR_SECRET_KEY=sk_test_…`, separate staging webhook secret |
+| Railway web service | Video | Bunny library ID, upload/read-only API keys, token key for approved staging media |
+| Railway web service | Receipts | `EMAIL_API_KEY`, verified `EMAIL_FROM_ADDRESS`, random `PAYMENT_RECEIPT_WORKER_SECRET` (32+ chars) |
+| Railway cron service | Receipt retry | Build `npm ci`; `RECEIPT_WORKER_URL`, matching `PAYMENT_RECEIPT_WORKER_SECRET`; start command exits |
 | Supabase Auth | Site URL | Exact HTTPS staging origin |
 | Supabase Auth | Redirect allowlist | Staging `/auth/callback` (including `next` query values for confirmation and password reset); the app then navigates to `/auth/reset-password` |
 | Moyasar sandbox | Callback/webhook | Staging `/api/payments/callback` and `/api/webhooks/moyasar`; confirm provider's URL format |
 | Bunny | Webhook | Staging `/api/webhooks/video`; confirm its verification flow |
 
-Do not copy `.env.local` into Vercel: it may target the local database and can contain development credentials. Set and review each hosted value in the Vercel project settings, then trigger a fresh build because `NEXT_PUBLIC_*` values are embedded in the client bundle. Inspect *names/presence and environment ownership*, not secret values, in deployment records.
+Do not copy `.env.local` into Railway: it may target the local database and can contain development credentials. Set and review each hosted value in Railway service variables, then trigger a fresh build because `NEXT_PUBLIC_*` values are embedded in the client bundle. Inspect *names/presence and environment ownership*, not secret values, in deployment records.
+
+Before launch, verify how Railway's edge sets the client IP forwarding headers. The current shared rate limiter reads `x-forwarded-for` outside Vercel; it must not trust an attacker-supplied address. Test with a forged header and fix the trust boundary if Railway does not overwrite it. Start with one web replica; multi-replica caching and signed-in behavior need load tests.
 
 Before pushing migrations, confirm the linked Supabase project ref with the owner and run `supabase db push --dry-run`; then apply only to that staging project. Do not run `supabase db reset --linked`. Keep synthetic seed data out of the eventual production project.
