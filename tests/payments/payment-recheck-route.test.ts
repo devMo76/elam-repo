@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
+vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: vi.fn() }));
 vi.mock("@/lib/payments/confirmation", () => ({
   confirmMoyasarPayment: vi.fn(),
   PaymentConfirmationError: class PaymentConfirmationError extends Error {
@@ -13,6 +14,7 @@ vi.mock("@/lib/http/rate-limit", () => ({ checkRateLimits: vi.fn(async () => nul
 
 import { POST } from "@/app/api/payments/recheck/route";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { confirmMoyasarPayment } from "@/lib/payments/confirmation";
 import { schedulePaymentReceipt } from "@/lib/payments/receipt-scheduling";
 import { checkRateLimits } from "@/lib/http/rate-limit";
@@ -29,22 +31,25 @@ function request(body: object) {
 
 function mockClient(order: { status: string; moyasar_payment_id: string | null } | null) {
   const maybeSingle = vi.fn().mockResolvedValue({ data: order, error: null });
-  const eq = vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ maybeSingle }) });
+  const ownerEq = vi.fn().mockReturnValue({ maybeSingle });
+  const eq = vi.fn().mockReturnValue({ eq: ownerEq });
+  const from = vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ eq }) });
+  vi.mocked(createAdminClient).mockReturnValue({ from } as never);
   vi.mocked(createClient).mockResolvedValue({
     auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: userId } }, error: null }) },
-    from: vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ eq }) }),
   } as never);
-  return { eq, maybeSingle };
+  return { from, eq, ownerEq, maybeSingle };
 }
 
 beforeEach(() => vi.clearAllMocks());
 
 describe("payment recheck", () => {
   it("does not verify an order owned by someone else", async () => {
-    const { eq } = mockClient(null);
+    const { eq, ownerEq } = mockClient(null);
     const response = await POST(request({ orderId }));
     expect(response.status).toBe(404);
     expect(eq).toHaveBeenCalledWith("id", orderId);
+    expect(ownerEq).toHaveBeenCalledWith("user_id", userId);
     expect(confirmMoyasarPayment).not.toHaveBeenCalled();
   });
 
@@ -64,7 +69,7 @@ describe("payment recheck", () => {
   });
 
   it("reconfirms an existing payment for its verified owner and schedules its receipt", async () => {
-    mockClient({ status: "paid", moyasar_payment_id: paymentId });
+    const { from, ownerEq } = mockClient({ status: "paid", moyasar_payment_id: paymentId });
     vi.mocked(confirmMoyasarPayment).mockResolvedValue({
       orderId, orderStatus: "paid", enrollmentId: "80000000-0000-4000-8000-000000000001", stateChanged: false,
     });
@@ -72,7 +77,19 @@ describe("payment recheck", () => {
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ data: { status: "paid", accessGranted: true } });
     expect(confirmMoyasarPayment).toHaveBeenCalledWith(paymentId, { kind: "callback", expectedUserId: userId });
+    expect(from).toHaveBeenCalledWith("orders");
+    expect(ownerEq).toHaveBeenCalledWith("user_id", userId);
     expect(schedulePaymentReceipt).toHaveBeenCalledWith(orderId);
+  });
+
+  it("does not use the service role for an unauthenticated request", async () => {
+    mockClient(null);
+    vi.mocked(createClient).mockResolvedValue({
+      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }) },
+    } as never);
+    const response = await POST(request({ orderId }));
+    expect(response.status).toBe(401);
+    expect(createAdminClient).not.toHaveBeenCalled();
   });
 
   it("accepts a callback payment ID but still verifies order ownership", async () => {

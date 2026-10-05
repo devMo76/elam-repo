@@ -20,8 +20,15 @@ export type LearnerPurchase = {
 
 export async function getLearnerPurchases(userId: string): Promise<LearnerPurchase[]> {
   const supabase = await createClient();
-  // The user's Supabase client enforces orders RLS in addition to this filter.
-  const { data: orders, error } = await supabase.from("orders")
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user || user.id !== userId) {
+    throw new Error("Learner purchases could not be loaded.");
+  }
+
+  // The payment reference is not selectable by authenticated clients. Keep
+  // the service-role read on the server and scope it to the verified user.
+  const admin = createAdminClient();
+  const { data: orders, error } = await admin.from("orders")
     .select("id, course_id, amount_halalas, currency, status, created_at, paid_at, moyasar_payment_id")
     .eq("user_id", userId).order("created_at", { ascending: false }).limit(20);
   if (error) throw new Error("Learner purchases could not be loaded.");
@@ -29,7 +36,6 @@ export async function getLearnerPurchases(userId: string): Promise<LearnerPurcha
 
   const courseIds = [...new Set(orders.map((order) => order.course_id))];
   const orderIds = orders.map((order) => order.id);
-  const admin = createAdminClient();
   const [courses, receipts, enrollments] = await Promise.all([
     admin.from("courses").select("id, title, slug").in("id", courseIds),
     admin.from("payment_receipts").select("order_id, status").in("order_id", orderIds),

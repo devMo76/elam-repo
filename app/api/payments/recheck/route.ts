@@ -4,6 +4,7 @@ import { createApiError } from "@/lib/http/api-response";
 import { checkRateLimits } from "@/lib/http/rate-limit";
 import { confirmMoyasarPayment, PaymentConfirmationError } from "@/lib/payments/confirmation";
 import { schedulePaymentReceipt } from "@/lib/payments/receipt-scheduling";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -28,7 +29,9 @@ export async function POST(request: Request) {
 
   let paymentId: string;
   if ("orderId" in body.data) {
-    const { data: order, error } = await supabase.from("orders")
+    // This column is intentionally unavailable to authenticated clients.
+    // The service-role lookup must remain scoped to the verified owner.
+    const { data: order, error } = await createAdminClient().from("orders")
       .select("status, moyasar_payment_id").eq("id", body.data.orderId)
       .eq("user_id", user.id).maybeSingle();
     if (error) return createApiError(500, "order_lookup_failed", "The order could not be checked.");
