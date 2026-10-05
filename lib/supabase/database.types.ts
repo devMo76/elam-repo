@@ -44,6 +44,27 @@ export type Database = {
           },
         ]
       }
+      api_rate_limit_buckets: {
+        Row: {
+          action: string
+          hits: number
+          key_hash: string
+          window_start: string
+        }
+        Insert: {
+          action: string
+          hits: number
+          key_hash: string
+          window_start: string
+        }
+        Update: {
+          action?: string
+          hits?: number
+          key_hash?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       courses: {
         Row: {
           course_code: string | null
@@ -190,6 +211,38 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lesson_resources: {
+        Row: {
+          byte_size: number
+          file_name: string
+          lesson_id: string
+          storage_path: string
+          updated_at: string
+        }
+        Insert: {
+          byte_size: number
+          file_name: string
+          lesson_id: string
+          storage_path: string
+          updated_at?: string
+        }
+        Update: {
+          byte_size?: number
+          file_name?: string
+          lesson_id?: string
+          storage_path?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_resources_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: true
+            referencedRelation: "lessons"
             referencedColumns: ["id"]
           },
         ]
@@ -691,6 +744,15 @@ export type Database = {
         Args: { email_id: string; target_order: string }
         Returns: undefined
       }
+      consume_api_rate_limit: {
+        Args: {
+          target_action: string
+          target_key_hash: string
+          target_limit: number
+          target_window_seconds: number
+        }
+        Returns: boolean
+      }
       create_pending_order: {
         Args: { target_course: string; target_user: string }
         Returns: {
@@ -780,6 +842,7 @@ export type Database = {
           state_changed: boolean
         }[]
       }
+      prune_api_rate_limits: { Args: never; Returns: number }
       record_lesson_progress: {
         Args: {
           expected_revision: number

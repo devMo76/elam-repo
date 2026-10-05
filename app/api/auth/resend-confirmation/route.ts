@@ -4,6 +4,7 @@ import { getSafeRedirectPath } from "@/lib/auth/redirect";
 import { resendConfirmationSchema } from "@/lib/auth/schemas";
 import { getPublicEnvironment } from "@/lib/env/public";
 import { createApiError, parseJsonBody } from "@/lib/http/api-response";
+import { checkRateLimits } from "@/lib/http/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
@@ -12,6 +13,12 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return parsed.response;
   }
+
+  const limited = await checkRateLimits(request, [
+    { action: "auth.resend.ip", limit: 10, windowSeconds: 3600 },
+    { action: "auth.resend.email", subject: parsed.data.email, limit: 3, windowSeconds: 3600 },
+  ]);
+  if (limited) return limited;
 
   const environment = getPublicEnvironment();
   const confirmationUrl = new URL(

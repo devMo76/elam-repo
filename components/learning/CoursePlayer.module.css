@@ -290,6 +290,38 @@
   font-size: 0.9375rem;
 }
 
+.lessonNavigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+  margin-block-start: 1rem;
+}
+
+.pdfLink {
+  display: inline-flex;
+  min-block-size: 44px;
+  align-items: center;
+  margin-block-start: 1rem;
+  color: var(--accent);
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+}
+
+.lessonNavigation button {
+  min-block-size: 44px;
+  border: 1px solid var(--accent);
+  background: var(--surface);
+  color: var(--accent);
+  padding: 0.65rem 1rem;
+  cursor: pointer;
+}
+
+.lessonNavigation button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 @media (max-width: 900px) {
   .layout {
     grid-template-columns: 1fr;

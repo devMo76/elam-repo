@@ -7,6 +7,7 @@ import { formatArabicLessonCount } from "@/lib/catalogue/presentation";
 import type { AuthoringApiError, StudioLesson, StudioModule } from "./studio-types";
 import { useInstructorUnsavedChanges } from "./InstructorNavigationBlocker";
 import { PersistentInstructorVideoUpload } from "./PersistentInstructorVideoUpload";
+import { InstructorLessonPdf } from "./InstructorLessonPdf";
 import styles from "./InstructorWorkspace.module.css";
 
 type ApiData<T> = { data?: T } & AuthoringApiError;
@@ -595,6 +596,7 @@ function InstructorLessonEditor({
             </label>
           </div>
           <PersistentInstructorVideoUpload courseId={courseId} courseTitle={courseTitle} lessonId={lesson.id} lessonTitle={lesson.title} initialStatus={lesson.mediaStatus} onStatusChange={(mediaStatus) => replaceLesson({ ...lesson, mediaStatus })} />
+          <InstructorLessonPdf lessonId={lesson.id} />
         </div>
         <div className={styles.rowActions}>
           {hasUnsavedTitle ? <span className={styles.unsaved}>غير محفوظ</span> : null}

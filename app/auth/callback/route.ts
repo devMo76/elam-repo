@@ -1,9 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { getSafeRedirectUrl } from "@/lib/auth/redirect";
+import { getPublicEnvironment } from "@/lib/env/public";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
+  // Railway may expose the internal listening address in request.nextUrl.
+  // Authentication redirects must use the configured public site URL.
+  const siteUrl = getPublicEnvironment().NEXT_PUBLIC_SITE_URL;
   const code = request.nextUrl.searchParams.get("code");
   const nextPath = request.nextUrl.searchParams.get("next");
 
@@ -13,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     if (!error) {
       const successUrl = getSafeRedirectUrl(
-        request.nextUrl.origin,
+        siteUrl,
         nextPath,
         "/account",
       );
@@ -23,9 +27,7 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const errorUrl = request.nextUrl.clone();
-  errorUrl.pathname = "/";
-  errorUrl.search = "";
+  const errorUrl = new URL("/", siteUrl);
   errorUrl.searchParams.set("auth_error", "confirmation_failed");
 
   return NextResponse.redirect(errorUrl);

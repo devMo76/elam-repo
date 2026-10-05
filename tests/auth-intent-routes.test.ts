@@ -12,6 +12,9 @@ vi.mock("@/lib/env/public", () => ({
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(),
 }));
+vi.mock("@/lib/http/rate-limit", () => ({
+  checkRateLimits: vi.fn(async () => null),
+}));
 
 import { POST as register } from "@/app/api/auth/register/route";
 import { POST as resendConfirmation } from "@/app/api/auth/resend-confirmation/route";
@@ -42,6 +45,24 @@ function jsonRequest(pathname: string, body: object) {
 }
 
 describe("authentication destination continuity", () => {
+  it("uses the public site URL after verification behind Railway's proxy", async () => {
+    const response = await confirmEmail(
+      new NextRequest("https://0.0.0.0:8080/auth/callback?code=valid-code&next=%2Faccount"),
+    );
+
+    expect(response.headers.get("location")).toBe("https://elam.example/account?auth=verified");
+    expect(exchangeCodeForSession).toHaveBeenCalledWith("valid-code");
+  });
+
+  it("keeps failed verification redirects on the public site", async () => {
+    exchangeCodeForSession.mockResolvedValueOnce({ error: new Error("Invalid code") });
+    const response = await confirmEmail(
+      new NextRequest("https://0.0.0.0:8080/auth/callback?code=invalid-code&next=%2Faccount"),
+    );
+
+    expect(response.headers.get("location")).toBe("https://elam.example/?auth_error=confirmation_failed");
+  });
+
   it("carries a course destination into the registration confirmation link", async () => {
     const next = "/courses/signals-and-systems-ee301?lesson=preview";
     const response = await register(

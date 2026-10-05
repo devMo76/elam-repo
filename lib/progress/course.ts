@@ -17,6 +17,7 @@ const courseDetailSelect = [
 
 export type LearningCourseDetail = CatalogueCourseDetail & {
   completedLessonIds: string[];
+  resumeLessonId: string | null;
 };
 
 export async function getLearningCourseById(
@@ -33,7 +34,7 @@ export async function getLearningCourseById(
         .from("courses")
         .select(courseDetailSelect)
         .eq("id", parsedCourseId.data)
-        .eq("status", "published")
+        .in("status", ["published", "archived"])
         .maybeSingle(),
       supabase.auth.getUser(),
     ]);
@@ -50,7 +51,7 @@ export async function getLearningCourseById(
   );
 
   if (userError || !user.user) {
-    return { ...catalogueCourse, completedLessonIds: [] };
+    return { ...catalogueCourse, completedLessonIds: [], resumeLessonId: null };
   }
 
   const lessonIds = catalogueCourse.modules.flatMap((module) =>
@@ -70,10 +71,14 @@ export async function getLearningCourseById(
         .in("lesson_id", lessonIds)
         .not("completed_at", "is", null)
     : Promise.resolve({ data: [], error: null });
-  const [{ data: enrollment, error: enrollmentError }, { data: completedLessons, error: completedLessonsError }] =
-    await Promise.all([enrollmentPromise, completedLessonsPromise]);
+  const recentLessonPromise = lessonIds.length > 0
+    ? supabase.from("lesson_progress").select("lesson_id").in("lesson_id", lessonIds)
+        .order("updated_at", { ascending: false }).limit(1)
+    : Promise.resolve({ data: [], error: null });
+  const [{ data: enrollment, error: enrollmentError }, { data: completedLessons, error: completedLessonsError }, { data: recentLessons, error: recentLessonError }] =
+    await Promise.all([enrollmentPromise, completedLessonsPromise, recentLessonPromise]);
 
-  if (enrollmentError || completedLessonsError) {
+  if (enrollmentError || completedLessonsError || recentLessonError) {
     throw new Error("Learning enrolment could not be loaded.");
   }
 
@@ -81,5 +86,6 @@ export async function getLearningCourseById(
     ...catalogueCourse,
     isEnrolled: enrollment !== null,
     completedLessonIds: completedLessons.map((lesson) => lesson.lesson_id),
+    resumeLessonId: recentLessons[0]?.lesson_id ?? null,
   };
 }

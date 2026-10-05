@@ -45,6 +45,8 @@ describe("Supabase service-role boundary", () => {
 
     expect(matches.sort()).toEqual([
       "lib/env/server.ts",
+      "lib/http/rate-limit.test.ts",
+      "lib/http/rate-limit.ts",
       "lib/supabase/admin.ts",
     ]);
   });
