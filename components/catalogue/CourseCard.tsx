@@ -6,6 +6,7 @@ import {
   formatArabicLessonCount,
 } from "@/lib/catalogue/presentation";
 import { formatArabicMinutes } from "@/lib/format";
+import { CourseLabel } from "@/components/ui/CourseLabel";
 import styles from "./CourseCard.module.css";
 
 const sarFormatter = new Intl.NumberFormat("ar-SA", {
@@ -21,9 +22,9 @@ export function CourseCard({ course }: { course: CatalogueCourseSummary }) {
   return (
     <Link className={styles.card} href={`/courses/${course.slug}`}>
       <div className={styles.cardHeader}>
-        <span className={styles.code} dir="ltr">
+        <CourseLabel className={styles.code}>
           {courseCardCode(course.courseCode, course.department)}
-        </span>
+        </CourseLabel>
         {course.priceHalalas === 0 ? <span className={styles.freeBadge}>مجاني</span> : null}
       </div>
       <div className={styles.body}>

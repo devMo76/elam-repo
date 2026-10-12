@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { PublicShell } from "@/components/marketing/PublicShell";
 import { FreeCourseEnrollmentButton } from "@/components/catalogue/FreeCourseEnrollmentButton";
+import { CourseLabel } from "@/components/ui/CourseLabel";
 import { PaidCourseCheckoutButton } from "@/components/catalogue/PaidCourseCheckoutButton";
 import { formatArabicLessonCount } from "@/lib/catalogue/presentation";
 import { getCatalogueCourseBySlug } from "@/lib/catalogue/queries";
@@ -48,9 +49,9 @@ export default async function CourseDetailPage({
 
         <section className={styles.hero}>
           <div className={styles.courseSummary}>
-            <span className={styles.courseCode} dir="ltr">
+            <CourseLabel className={styles.courseCode}>
               {course.courseCode ?? course.department}
-            </span>
+            </CourseLabel>
             <h1>{course.title}</h1>
             {course.subtitle ? <p className={styles.subtitle}>{course.subtitle}</p> : null}
             {course.description ? (

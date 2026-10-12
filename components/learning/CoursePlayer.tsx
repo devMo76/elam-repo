@@ -13,12 +13,13 @@ import {
   type LessonPlaybackResponse,
 } from "@/lib/contracts";
 import { Duration } from "@/components/ui/Duration";
+import { LessonPdf } from "./LessonPdf";
 import { detachPlayerEventListeners, type PlayerEventListener } from "@/lib/video/player-events";
 
 import styles from "./CoursePlayer.module.css";
 
 type CourseLesson = CatalogueCourseDetail["modules"][number]["lessons"][number];
-type LearningCourseDetail = CatalogueCourseDetail & { completedLessonIds: string[] };
+type LearningCourseDetail = CatalogueCourseDetail & { completedLessonIds: string[]; resumeLessonId: string | null };
 
 type BunnyPlayer = {
   on: (event: string, callback: PlayerEventListener) => void;
@@ -106,21 +107,32 @@ function BunnyPlaybackFrame({
   const lastPersistedPositionRef = useRef(playback.progress?.positionSeconds ?? 0);
   const revisionRef = useRef(playback.progress?.revision ?? 0);
   const isSavingRef = useRef(false);
+  const pendingSaveRef = useRef<{ markComplete: boolean; force: boolean } | null>(null);
+  const completedRef = useRef(Boolean(playback.progress?.completedAt));
   const [playerScriptReady, setPlayerScriptReady] = useState(false);
   const [isMarkingComplete, setIsMarkingComplete] = useState(false);
   const [saveStatus, setSaveStatus] = useState(
-    playback.progress?.completedAt ? "مكتمل" : "",
+    playback.progress?.completedAt ? "تمت المشاهدة" : "",
   );
 
-  const saveProgress = useCallback(
-    async (markComplete = false, force = false) => {
+  const saveProgressRef = useRef<(markComplete?: boolean, force?: boolean) => Promise<void>>(async () => {});
+  const saveProgress = async (markComplete = false, force = false) => {
+      if (markComplete && completedRef.current) return;
       const positionSeconds = Math.max(0, Math.floor(positionRef.current));
       const hasMeaningfulChange =
-        markComplete ||
+        (markComplete && !completedRef.current) ||
         force ||
         positionSeconds - lastPersistedPositionRef.current >= 15;
 
-      if (!hasMeaningfulChange || isSavingRef.current) return;
+      if (!hasMeaningfulChange) return;
+      if (isSavingRef.current) {
+        const pending = pendingSaveRef.current;
+        pendingSaveRef.current = {
+          markComplete: markComplete || Boolean(pending?.markComplete),
+          force: force || Boolean(pending?.force),
+        };
+        return;
+      }
 
       isSavingRef.current = true;
       if (markComplete) setIsMarkingComplete(true);
@@ -160,20 +172,27 @@ function BunnyPlaybackFrame({
 
         revisionRef.current = saved.data.data.revision;
         lastPersistedPositionRef.current = saved.data.data.positionSeconds;
-        positionRef.current = saved.data.data.positionSeconds;
+        // Playback may have advanced while the request was in flight.
+        if (positionRef.current === positionSeconds) {
+          positionRef.current = saved.data.data.positionSeconds;
+        }
 
         const completed = saved.data.data.completedAt !== null;
-        setSaveStatus(completed ? "مكتمل ومحفوظ" : "تم حفظ التقدّم");
+        completedRef.current = completed;
+        setSaveStatus(completed ? "تمت المشاهدة" : "تم حفظ التقدّم");
         onProgressSaved(lessonId, completed);
       } catch {
         setSaveStatus("تعذر حفظ التقدّم.");
       } finally {
         isSavingRef.current = false;
         if (markComplete) setIsMarkingComplete(false);
+        const pending = pendingSaveRef.current;
+        pendingSaveRef.current = null;
+        if (pending) void saveProgressRef.current(pending.markComplete, pending.force);
       }
-    },
-    [lessonId, onConflict, onProgressSaved],
-  );
+  };
+
+  useEffect(() => { saveProgressRef.current = saveProgress; });
 
   useEffect(() => {
     const saveOnExit = () => {
@@ -219,11 +238,11 @@ function BunnyPlaybackFrame({
       if (position === null) return;
 
       positionRef.current = position;
-      void saveProgress();
+      void saveProgressRef.current();
     };
-    const onPause = () => void saveProgress(false, true);
-    const onSeeked = () => void saveProgress(false, true);
-    const onEnded = () => void saveProgress(true, true);
+    const onPause = () => void saveProgressRef.current(false, true);
+    const onSeeked = () => void saveProgressRef.current(false, true);
+    const onEnded = () => void saveProgressRef.current(true, true);
 
     player.on("ready", onReady);
     player.on("timeupdate", onTimeUpdate);
@@ -240,7 +259,7 @@ function BunnyPlaybackFrame({
         ["ended", onEnded],
       ]);
     };
-  }, [playerScriptReady, playback.playbackUrl, saveProgress]);
+  }, [playerScriptReady, playback.playbackUrl]);
 
   return (
     <>
@@ -268,7 +287,7 @@ function BunnyPlaybackFrame({
           onClick={() => void saveProgress(true, true)}
           type="button"
         >
-          {isMarkingComplete ? "جارٍ الحفظ" : "تحديد الدرس كمكتمل"}
+          {isMarkingComplete ? "جارٍ الحفظ" : "تحديد الدرس تمت مشاهدته"}
         </button>
         <span aria-live="polite" className={styles.saveStatus}>
           {saveStatus}
@@ -379,6 +398,7 @@ export function CoursePlayer({
   const lessons = course.modules.flatMap((module) => module.lessons);
   const defaultLesson =
     lessons.find((lesson) => lesson.id === initialLessonId) ??
+    lessons.find((lesson) => lesson.id === course.resumeLessonId) ??
     (course.isEnrolled
       ? lessons[0]
       : lessons.find((lesson) => lesson.isFreePreview)) ??
@@ -389,6 +409,10 @@ export function CoursePlayer({
   );
   const selectedLesson = lessons.find((lesson) => lesson.id === selectedLessonId) ?? null;
   const canAccessSelectedLesson = selectedLesson !== null && (course.isEnrolled || selectedLesson.isFreePreview);
+  const accessibleLessons = lessons.filter((lesson) => course.isEnrolled || lesson.isFreePreview);
+  const currentIndex = accessibleLessons.findIndex((lesson) => lesson.id === selectedLessonId);
+  const previousLesson = currentIndex > 0 ? accessibleLessons[currentIndex - 1] : null;
+  const nextLesson = currentIndex >= 0 ? accessibleLessons[currentIndex + 1] ?? null : null;
   const completionPercentage = lessons.length === 0
     ? 0
     : Math.round((completedLessons.size / lessons.length) * 100);
@@ -402,6 +426,7 @@ export function CoursePlayer({
     if (!completed) return;
 
     setCompletedLessons((current) => {
+      if (current.has(lessonId)) return current;
       const next = new Set(current);
       next.add(lessonId);
       return next;
@@ -452,7 +477,10 @@ export function CoursePlayer({
                 </p>
               </header>
               {canAccessSelectedLesson ? (
-                <PlaybackPanel key={selectedLesson.id} lesson={selectedLesson} onProgressSaved={onProgressSaved} />
+                <>
+                  <PlaybackPanel key={selectedLesson.id} lesson={selectedLesson} onProgressSaved={onProgressSaved} />
+                  <LessonPdf key={selectedLesson.id} lessonId={selectedLesson.id} />
+                </>
               ) : (
                 <PlayerState
                   action={<Link className={styles.catalogueLink} href={"/courses/" + course.slug}>عرض المادة</Link>}
@@ -460,6 +488,10 @@ export function CoursePlayer({
                   title="هذا الدرس مقفل"
                 />
               )}
+              <nav className={styles.lessonNavigation} aria-label="التنقل بين الدروس">
+                <button disabled={!previousLesson} onClick={() => previousLesson && selectLesson(previousLesson)} type="button">الدرس السابق</button>
+                <button disabled={!nextLesson} onClick={() => nextLesson && selectLesson(nextLesson)} type="button">الدرس التالي</button>
+              </nav>
             </>
           ) : (
             <PlayerState
@@ -501,7 +533,7 @@ export function CoursePlayer({
                     >
                       <span className={styles.lessonTitle}>{lesson.title}</span>
                       <span className={styles.lessonEnd}>
-                        {isCompleted ? <span className={styles.done}>مكتمل</span> : null}
+                        {isCompleted ? <span className={styles.done}>تمت المشاهدة</span> : null}
                         {lesson.isFreePreview ? <span className={styles.free}>مجاني</span> : null}
                         {!isAllowed ? <span className={styles.locked}>مقفل</span> : null}
                       </span>
