@@ -22,5 +22,18 @@ Typecheck, lint and production build pass. Latin/numeric regression cases preser
 `Num` styling. Computed font checks succeeded; screenshot attempts were obscured
 by the existing scroll-reveal wrapper remaining transparent in the test browser,
 so no successful visual screenshot comparison is claimed.
-Staging deployment is
-separate; no push/deployment is implied by this local fix.
+## Staging rollout (2026-10-12)
+
+Owner authorized deployment. Typography-only release
+`ce1431773a025627f2511afec4f0e6c84e3ddade` pushed to `feat/staging-readiness`;
+unrelated pending edits and course-detail wording were excluded. No database,
+variable, DNS, healthcheck or other-service change required.
+
+Railway deployment `7f1c9e5f-8fd8-4d35-aac9-a0b88f63f305` triggered directly for
+that exact commit; Railway reports **SUCCESS**. Live HTTPS checks at 1440px and
+390px confirm landing/catalogue Arabic labels use IBM Plex Sans Arabic and
+automatic direction, both pages return 200 and have no horizontal overflow.
+Railway diagnosed missing GitHub App installation for `devMo76/elam-repo`
+(`NO_INSTALLATION`): branch configuration alone does not enable push deployment.
+Owner must install/authorize the Railway GitHub App for this repository to enable
+future automatic deployments. No installation/account permission was changed.
