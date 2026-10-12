@@ -75,6 +75,7 @@ export type Database = {
           description: string | null
           id: string
           instructor_id: string
+          instructor_published_edits_allowed: boolean
           price_halalas: number
           published_at: string | null
           slug: string
@@ -91,6 +92,7 @@ export type Database = {
           description?: string | null
           id?: string
           instructor_id: string
+          instructor_published_edits_allowed?: boolean
           price_halalas: number
           published_at?: string | null
           slug: string
@@ -107,6 +109,7 @@ export type Database = {
           description?: string | null
           id?: string
           instructor_id?: string
+          instructor_published_edits_allowed?: boolean
           price_halalas?: number
           published_at?: string | null
           slug?: string
@@ -253,6 +256,7 @@ export type Database = {
           duration_seconds: number | null
           id: string
           is_free_preview: boolean
+          is_pending: boolean
           media_status: Database["public"]["Enums"]["media_status"]
           module_id: string
           position: number
@@ -264,6 +268,7 @@ export type Database = {
           duration_seconds?: number | null
           id?: string
           is_free_preview?: boolean
+          is_pending?: boolean
           media_status?: Database["public"]["Enums"]["media_status"]
           module_id: string
           position: number
@@ -275,6 +280,7 @@ export type Database = {
           duration_seconds?: number | null
           id?: string
           is_free_preview?: boolean
+          is_pending?: boolean
           media_status?: Database["public"]["Enums"]["media_status"]
           module_id?: string
           position?: number
@@ -295,18 +301,21 @@ export type Database = {
         Row: {
           course_id: string
           id: string
+          is_pending: boolean
           position: number
           title: string
         }
         Insert: {
           course_id: string
           id?: string
+          is_pending?: boolean
           position: number
           title: string
         }
         Update: {
           course_id?: string
           id?: string
+          is_pending?: boolean
           position?: number
           title?: string
         }
@@ -563,6 +572,7 @@ export type Database = {
           description: string | null
           id: string
           instructor_id: string
+          instructor_published_edits_allowed: boolean
           price_halalas: number
           published_at: string | null
           slug: string
@@ -649,6 +659,10 @@ export type Database = {
           revenue_halalas: number
         }[]
       }
+      admin_set_course_edit_permission: {
+        Args: { allow_edits: boolean; target_course_id: string }
+        Returns: boolean
+      }
       admin_user_directory: {
         Args: {
           filter_role?: Database["public"]["Enums"]["user_role"]
@@ -674,6 +688,7 @@ export type Database = {
         Returns: {
           course_id: string
           id: string
+          is_pending: boolean
           position: number
           title: string
         }
@@ -691,6 +706,7 @@ export type Database = {
           duration_seconds: number | null
           id: string
           is_free_preview: boolean
+          is_pending: boolean
           media_status: Database["public"]["Enums"]["media_status"]
           module_id: string
           position: number
@@ -711,6 +727,7 @@ export type Database = {
           duration_seconds: number | null
           id: string
           is_free_preview: boolean
+          is_pending: boolean
           media_status: Database["public"]["Enums"]["media_status"]
           module_id: string
           position: number
@@ -777,6 +794,7 @@ export type Database = {
           duration_seconds: number | null
           id: string
           is_free_preview: boolean
+          is_pending: boolean
           media_status: Database["public"]["Enums"]["media_status"]
           module_id: string
           position: number
@@ -859,6 +877,10 @@ export type Database = {
       record_payment_receipt_failure: {
         Args: { error_code: string; target_order: string }
         Returns: undefined
+      }
+      release_course_additions: {
+        Args: { target_course_id: string }
+        Returns: number
       }
       reorder_course_modules: {
         Args: { ordered_module_ids: string[]; target_course_id: string }

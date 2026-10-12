@@ -6,7 +6,7 @@ import { SignOutButton } from "./SignOutButton";
 
 const roleLabel = {
   learner: "لوحة التعلّم",
-  instructor: "استوديو المدرّس",
+  instructor: "استوديو الشارح",
   admin: "الإدارة",
 };
 

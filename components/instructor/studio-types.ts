@@ -5,6 +5,7 @@ export type StudioLesson = {
   position: number;
   durationSeconds: number | null;
   isFreePreview: boolean;
+  isPending?: boolean;
   mediaStatus: "absent" | "uploading" | "processing" | "ready" | "failed";
 };
 
@@ -14,6 +15,7 @@ export type StudioModule = {
   title: string;
   position: number;
   lessons: StudioLesson[];
+  isPending?: boolean;
 };
 
 export type StudioCourse = {
@@ -27,6 +29,7 @@ export type StudioCourse = {
   priceHalalas: number;
   currency: "SAR";
   status: "draft" | "in_review" | "published" | "archived";
+  publishedEditsAllowed?: boolean;
   coverUrl: string | null;
   createdAt: string;
   publishedAt: string | null;

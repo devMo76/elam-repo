@@ -5,13 +5,47 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { adminCourseListResponseSchema, adminCourseStatusResponseSchema } from "@/lib/contracts";
 import type { AdminCourseListQuery } from "@/lib/contracts";
 import type { Database } from "@/lib/supabase/database.types";
+import { adminCourseEditPermissionResponseSchema } from "@/lib/contracts/admin";
 
 type AdminCourseStatus = "draft" | "published" | "archived";
+
+export async function getAdminCourseEditPermissions(supabase: SupabaseClient<Database>, courseIds: string[]) {
+  if (courseIds.length === 0) return new Map<string, boolean>();
+  const { data, error } = await supabase.from("courses")
+    .select("id, instructor_published_edits_allowed").in("id", courseIds);
+  if (error || !data) throw new AdminCourseError(500, "admin_courses_failed", "Course permissions could not be loaded.");
+  return new Map(data.map((course) => [course.id, course.instructor_published_edits_allowed]));
+}
 
 export class AdminCourseError extends Error {
   constructor(public readonly status: number, public readonly code: string, message: string) {
     super(message);
   }
+}
+
+// Permission storage only: live authoring still requires the enforcement and
+// pending-content safeguards. Do not infer edit access from this endpoint alone.
+export async function changeAdminCourseEditPermission(
+  supabase: SupabaseClient<Database>,
+  courseId: string,
+  publishedEditsAllowed: boolean,
+) {
+  const { data, error } = await supabase.rpc("admin_set_course_edit_permission", {
+    target_course_id: courseId,
+    allow_edits: publishedEditsAllowed,
+  });
+
+  if (error?.code === "42501") throw new AdminCourseError(403, "forbidden", "Administrator role required.");
+  if (error?.code === "P0002") throw new AdminCourseError(404, "course_not_found", "The course was not found.");
+  if (error?.code === "22023") throw new AdminCourseError(422, "invalid_edit_permission", "The edit permission must be true or false.");
+  // False is a successful revocation, not an absent RPC result.
+  if (error || typeof data !== "boolean") {
+    throw new AdminCourseError(500, "admin_course_permission_failed", "The edit permission could not be changed.");
+  }
+
+  return adminCourseEditPermissionResponseSchema.parse({
+    data: { courseId, publishedEditsAllowed: data },
+  });
 }
 
 export async function getAdminCourses(

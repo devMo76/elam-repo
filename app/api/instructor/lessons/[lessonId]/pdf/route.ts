@@ -9,25 +9,18 @@ export const runtime = "nodejs";
 const bucket = "lesson-pdfs";
 type Context = { params: Promise<{ lessonId: string }> };
 
-async function editableLesson(context: Context) {
+async function editableLesson(context: Context, operation: "inspect" | "modify" = "modify") {
   const parsed = z.uuid().safeParse((await context.params).lessonId);
   if (!parsed.success) return { error: createApiError(404, "lesson_not_found", "Lesson not found.") };
-  const access = await getManagedVideoLesson(parsed.data);
+  const access = await getManagedVideoLesson(parsed.data, operation);
   if (!access.success) return { error: createApiError(access.status, access.code, access.message) };
 
   const admin = createAdminClient();
-  const { data: lesson, error } = await admin.from("lessons")
-    .select("module:modules!inner(course:courses!inner(status))")
-    .eq("id", parsed.data).single();
-  if (error || !lesson) return { error: createApiError(404, "lesson_not_found", "Lesson not found.") };
-  if (lesson.module.course.status !== "draft") {
-    return { error: createApiError(409, "course_not_editable", "PDFs can only be edited in a draft course.") };
-  }
   return { lessonId: parsed.data, admin };
 }
 
 export async function GET(_request: Request, context: Context) {
-  const access = await editableLesson(context);
+  const access = await editableLesson(context, "inspect");
   if (access.error) return access.error;
   const { data, error } = await access.admin!.from("lesson_resources")
     .select("file_name, byte_size").eq("lesson_id", access.lessonId!).maybeSingle();

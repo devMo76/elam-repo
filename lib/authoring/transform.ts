@@ -5,6 +5,7 @@ import {
 } from "@/lib/contracts";
 
 type RawLesson = {
+  is_pending?: boolean;
   id: string;
   module_id: string;
   title: string;
@@ -15,6 +16,7 @@ type RawLesson = {
 };
 
 type RawModule = {
+  is_pending?: boolean;
   id: string;
   course_id: string;
   title: string;
@@ -23,6 +25,7 @@ type RawModule = {
 };
 
 type RawCourse = {
+  instructor_published_edits_allowed?: boolean;
   id: string;
   slug: string;
   department: string;
@@ -41,6 +44,7 @@ type RawCourse = {
 
 export function toAuthoringModule(rawModule: RawModule) {
   return authoringModuleSchema.parse({
+    isPending: rawModule.is_pending ?? false,
     id: rawModule.id,
     courseId: rawModule.course_id,
     title: rawModule.title,
@@ -53,6 +57,7 @@ export function toAuthoringModule(rawModule: RawModule) {
 
 export function toAuthoringLesson(rawLesson: RawLesson) {
   return authoringLessonSchema.parse({
+    isPending: rawLesson.is_pending ?? false,
     id: rawLesson.id,
     moduleId: rawLesson.module_id,
     title: rawLesson.title,
@@ -65,6 +70,7 @@ export function toAuthoringLesson(rawLesson: RawLesson) {
 
 export function toAuthoringCourse(course: RawCourse) {
   return authoringCourseSchema.parse({
+    publishedEditsAllowed: course.instructor_published_edits_allowed ?? false,
     id: course.id,
     slug: course.slug,
     department: course.department,

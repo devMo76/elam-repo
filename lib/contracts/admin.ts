@@ -97,6 +97,17 @@ export const adminCourseStatusActionSchema = z.strictObject({
   status: z.enum(["draft", "published", "archived"]),
 });
 
+export const adminCourseEditPermissionActionSchema = z.strictObject({
+  publishedEditsAllowed: z.boolean(),
+});
+
+export const adminCourseEditPermissionResponseSchema = z.strictObject({
+  data: z.strictObject({
+    courseId: z.uuid(),
+    publishedEditsAllowed: z.boolean(),
+  }),
+});
+
 export const adminCourseStatusResponseSchema = z.strictObject({
   data: z.strictObject({
     courseId: z.uuid(),

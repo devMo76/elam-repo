@@ -44,11 +44,27 @@
 .secondaryLink {
   background: var(--raised);
   color: var(--accent);
+  font-family: inherit;
+  cursor: pointer;
 }
 
 .secondaryLink:hover { background: var(--tint); }
 
 .section { margin-block-start: 2rem; }
+
+.formFieldset { margin: 0; padding: 0; border: 0; min-inline-size: 0; }
+.workspaceOutline { list-style: none; margin: 0; padding: 0; }
+.workspaceOutline li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .75rem; padding-block: .85rem; border-block-end: 1px solid var(--hairline); }
+.workspaceOutline span { color: var(--muted); font-size: .875rem; }
+.videoActivity { margin-block: 1rem; padding: .75rem 1rem; background: var(--tint); border-radius: var(--radius-card); font-size: .875rem; }
+.videoActivity summary { cursor: pointer; min-block-size: 44px; }
+.videoActivity ul { padding-inline-start: 1rem; }
+.videoActivity li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; }
+.curriculumLayout { display: grid; grid-template-columns: minmax(10rem, 15rem) minmax(0, 1fr); gap: 1.25rem; align-items: start; }
+.unitNavigation { display: grid; gap: .5rem; position: sticky; inset-block-start: 5rem; }
+.unitNavigation button { text-align: start; }
+.unitNavigation button[aria-current="true"] { background: var(--tint); color: var(--accent); border-color: var(--accent); }
+@media(max-width:760px) { .curriculumLayout { grid-template-columns: minmax(0, 1fr); } .unitNavigation { position: static; display: flex; overflow-x: auto; } .unitNavigation button { flex-shrink: 0; } }
 
 .sectionHeading {
   display: flex;
@@ -215,8 +231,9 @@
   padding-block-start: 1rem;
 }
 
-.pdfAttachment input[type="file"] {
-  max-inline-size: 100%;
+.pdfAttachment p {
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .skeleton {
@@ -314,13 +331,17 @@
 .advancedFields .field { max-inline-size: 34rem; }
 
 .formFooter {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: var(--raised);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem 1.5rem;
   border-block-start: 1px solid var(--hairline);
-  padding-block-start: 1rem;
+  padding-block: 1rem max(1rem, env(safe-area-inset-bottom));
 }
 
 .formFooter p { max-inline-size: 42rem; margin: 0; color: var(--muted); font-size: 0.9rem; }
@@ -369,6 +390,7 @@
 .module, .lesson, #course-details, #curriculum { scroll-margin-block-start: 1rem; }
 
 .curriculum {
+  container-type: inline-size;
   display: grid;
   gap: 1rem;
   border: 1px solid var(--hairline);
@@ -388,10 +410,12 @@
 .addRow .field { flex: 1 1 18rem; }
 .addRow .primaryButton { flex: 0 0 auto; }
 
-.moduleList { border-block-start: 1px solid var(--hairline); }
+.moduleList { min-inline-size: 0; border-block-start: 1px solid var(--hairline); }
 
 .module {
   display: grid;
+  min-inline-size: 0;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.9rem;
   padding-block: 1.25rem;
 }
@@ -431,11 +455,12 @@
 .moduleToggle small { color: var(--muted); font-size: 0.8125rem; font-weight: 400; }
 .moduleSignals { display: flex; flex: 0 0 auto; flex-wrap: wrap; justify-content: end; gap: 0.35rem 0.65rem; }
 .moduleSignals .problemSignal { color: #9c1c35; font-weight: 700; }
-.moduleBody { display: grid; gap: 0.9rem; border-block-start: 1px solid var(--hairline); padding-block-start: 0.9rem; }
+.moduleBody { display: grid; grid-template-columns: minmax(0, 1fr); min-inline-size: 0; gap: 0.9rem; border-block-start: 1px solid var(--hairline); padding-block-start: 0.9rem; }
 .inlineForm { display: flex; flex: 1 1 18rem; align-items: center; gap: 0.5rem; }
 .inlineForm input,
 .addLessonRow input,
 .lessonFields > input {
+  min-inline-size: 0;
   min-block-size: 40px;
   border: 1px solid var(--hairline);
   border-radius: var(--radius-card);
@@ -446,6 +471,17 @@
 }
 
 .inlineForm input { flex: 1; color: var(--ink); font-weight: 700; }
+.addLessonRow input { flex: 1 1 12rem; }
+
+@container (max-width: 700px) {
+  .curriculumLayout { grid-template-columns: minmax(0, 1fr); }
+  .unitNavigation { position: static; display: flex; overflow-x: auto; min-inline-size: 0; }
+  .unitNavigation button { flex-shrink: 0; }
+  .lessonSummary { grid-template-columns: auto minmax(0, 1fr) !important; }
+  .lessonSummary > .rowActions { grid-column: 1 / -1; }
+  .lessonToggle { flex-direction: column; align-items: start; }
+  .lessonToggle span { white-space: normal !important; }
+}
 
 .textButton,
 .dangerTextButton,
@@ -467,6 +503,8 @@
 
 .lesson {
   display: grid;
+  min-inline-size: 0;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.75rem;
   border-block-start: 1px solid var(--hairline);
   padding-block: 0.85rem;
@@ -528,8 +566,29 @@
 .quickAdd form { display: grid; gap: 0.65rem; }
 .quickAdd textarea { min-block-size: 7rem; }
 .quickAdd .textButton { justify-self: start; }
+.mobileLessonBack { display: none; }
 
 @media (max-width: 760px) {
+  .mobileLessonBack { display: inline-flex; align-items: center; justify-self: start; }
+  .curriculumFocused > .addRow,
+  .curriculumFocused .unitNavigation,
+  .curriculumFocused .moduleSummary,
+  .curriculumFocused .moduleBody > .inlineForm,
+  .curriculumFocused .moduleBody > .addLessonRow,
+  .curriculumFocused .moduleBody > .quickAdd,
+  .curriculumFocused .lesson:not(.selectedLesson) { display: none; }
+  .curriculumFocused .moduleBody { border: 0; padding-block-start: 0; }
+  .curriculumFocused .module, .curriculumFocused .lesson { padding-block: 0; }
+  .curriculumFocused .lessonSummary > .rowActions { order: 3; }
+  .curriculumFocused .selectedLesson { display: flex; flex-direction: column; }
+  .curriculumFocused .selectedLesson > .lessonMain { flex-basis: auto; flex-shrink: 0; }
+  .curriculumFocused .selectedLesson > .lessonSummary > .lessonToggle { flex-shrink: 0; }
+  .curriculumFocused .selectedLesson > .lessonSummary { display: contents; }
+  .curriculumFocused .selectedLesson .lessonPosition { display: none; }
+  .curriculumFocused .selectedLesson > .lessonSummary > .rowActions { order: 3; }
+  .textButton, .dangerTextButton, .quietButton, .dangerButton,
+  .lessonToggle, .uploadButton, .quickAdd summary, .checkLabel,
+  .inlineForm input, .addLessonRow input, .lessonFields > input { min-block-size: 44px; }
   .header { align-items: stretch; gap: 0.75rem; padding-block-end: 1.25rem; }
   .header h1 { font-size: 1.5rem; }
   .header p { font-size: 0.9375rem; line-height: 1.7; }
@@ -539,7 +598,7 @@
   .snapshot > div { padding: 0.9rem 1rem; }
   .section { margin-block-start: 1.5rem; }
   .editorNav { flex-wrap: nowrap; overflow-x: auto; margin-block-start: 1rem; padding-block-end: 0.15rem; scrollbar-width: thin; }
-  .editorNav a { flex: 0 0 auto; }
+  .editorNav a, .editorNav button { flex: 0 0 auto; }
   .courseDetails { border-radius: 10px; }
   .courseDetails summary { min-block-size: 52px; padding-inline: 1rem; }
   .courseDetails summary small { display: none; }
