@@ -3,6 +3,7 @@ import { CaretLeft } from "@phosphor-icons/react/dist/ssr";
 import { featured, coursePage, nouns } from "@/lib/copy";
 import type { CatalogueCourseDetail } from "@/lib/contracts";
 import { Num } from "@/components/ui/Num";
+import { CourseLabel } from "@/components/ui/CourseLabel";
 import { Counted } from "@/components/ui/Counted";
 import { Rule } from "@/components/ui/Rule";
 import { Price } from "@/components/ui/Price";
@@ -158,9 +159,9 @@ function CourseIdentity({
     //
     // on-accent on accent measures 9.4:1.
     <div className="flex flex-col items-center justify-center gap-5 bg-accent p-6 text-center md:p-8">
-      <Num className="text-4xl font-medium text-on-accent md:text-5xl">
+      <CourseLabel className="text-4xl font-medium text-on-accent md:text-5xl">
         {code}
-      </Num>
+      </CourseLabel>
 
       {hasPreview ? (
         <span className="rounded-card bg-on-accent px-2.5 py-1 text-xs font-medium text-accent">
