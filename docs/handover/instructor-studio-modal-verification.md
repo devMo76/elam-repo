@@ -1,6 +1,8 @@
 # Instructor studio: verification and staging handover
 
-2026-10-11. Locally implemented; not deployed or owner-approved on staging.
+2026-10-11; updated 2026-10-12. Owner reviewed local updates; staging deployed.
+Full authenticated/provider acceptance pending. See
+[deployment evidence](../operations/instructor-studio-staging-deployment.md).
 Scope: admin-enabled, non-destructive published edits and private additions.
 Cover, descriptions and PDFs remain optional. Existing live media cannot be
 replaced/deleted by instructors in this first release.
@@ -24,8 +26,8 @@ replaced/deleted by instructors in this first release.
 5. Test with separate admin, owning instructor, other instructor, learner and
    anonymous sessions; configure real staging storage/Bunny privately.
 
-No new API key is introduced. No staging deployment/provider change was performed
-in this local implementation session.
+No new API key is introduced. Six migrations and web release were deployed on
+2026-10-12; provider credentials and DNS were not changed.
 
 ## Owner acceptance checklist
 
@@ -98,7 +100,8 @@ acceptance. Ignored `test-results/` captures cover 320/360/390/768/1440px.
 Results: 327 application tests/68 files; 12 browser tests; 436 database
 assertions/29 files. Database regression used a separate current-schema clone with
 synthetic seed data, preserving development seed drift. It is **not** a fresh
-empty-project migration replay. Verify staging migrations separately.
+empty-project migration replay. Subsequently, 2026-10-12 CI passed fresh database
+rebuild, seed, tests, lint and generated types; staging migrations applied successfully.
 Lint, typecheck, build and client-secret scan passed.
 
 Existing npm audit findings in `sharp` and `source-map-js` remain a separate

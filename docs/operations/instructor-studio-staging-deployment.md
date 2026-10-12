@@ -25,8 +25,34 @@ Production, DNS, provider credentials and unrelated working-tree edits are out o
 
 ## Rollout status
 
-Pending: apply six migrations, verify remote migration history, push the scoped
-release, observe Railway build/runtime and smoke-test the staging routes.
+Completed: six migrations applied; second dry run returned `upToDate: true`,
+no pending migrations/seeds/roles. No staging reset or seed performed.
+
+Release: `b82f23fc6a18c9b528f91f16852fd0081ad7ade0`, pushed to staging branch.
+Railway deployment: `bbc9da6f-0577-4bd8-938d-0746eb23c83e`, **SUCCESS**, built
+that exact commit. Runtime ready on port 8080; HTTP healthcheck succeeded.
+
+Push alone did not create a rollout. Added a staging-web readiness check (`/`,
+120s timeout), reviewed the two-field patch with no variable changes and applied
+it under the owner's deployment authorization. This triggered the branch build;
+no commit pin added. Future automatic push deployment remains to be checked;
+this manual rollout does not establish it. Receipt worker was not changed.
+
+## Verification
+
+- `/`, `/courses`, `/auth/sign-in`: HTTPS 200.
+- Anonymous browser visits to `/studio` and `/admin` end at `/auth/sign-in`, no
+  page errors. Their initial HTTP 200 is a streamed redirect, not dashboard access.
+- Unauthenticated release POST and admin edit-permission PATCH: 401.
+- [CI run 38296873590](https://github.com/devMo76/elam-repo/actions/runs/38296873590):
+  fresh database rebuild/seed, tests, DB lint and generated types pass, closing
+  the prior empty-project migration-replay evidence gap.
+- Quality typecheck/lint/tests/build/client-secret scan pass. Dependency audit
+  fails with seven high findings: five-package development `braces` chain plus
+  `sharp` and `source-map-js`. Overall CI is **not green**. No audit policy was
+  weakened or breaking dependency downgrade attempted. Production security review
+  remains open.
+
 Do not reset/seed staging or enable published editing globally.
 Manual real-video/PDF and cross-role acceptance remains on the
 [verification checklist](../handover/instructor-studio-modal-verification.md).

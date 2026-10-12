@@ -1,6 +1,7 @@
 # Instructor studio: editing, focused dialogs, and mobile navigation
 
-Date: 2026-10-11. Status: locally implemented; staging and owner acceptance pending.
+Date: 2026-10-11; updated 2026-10-12. Status: owner-reviewed and staging deployed;
+full authenticated/provider staging acceptance pending.
 Task list: [instructor-studio-modal-todo.md](../../tasks/instructor-studio-modal-todo.md).
 This proposal is separate from the unfinished production-launch plan.
 

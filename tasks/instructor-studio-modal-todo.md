@@ -1,8 +1,8 @@
 # Instructor studio implementation tasks
 
 Plan: [instructor-studio-modal-plan.md](../docs/roadmap/instructor-studio-modal-plan.md).
-Status: locally implemented and verified on 2026-10-11; owner/staging acceptance
-remains pending. No staging deployment or GitHub push is claimed. Separate from
+Status: locally implemented on 2026-10-11; owner-reviewed and staging deployed on
+2026-10-12. Full authenticated/provider acceptance remains pending. Separate from
 the production-launch tracker.
 Each task is one focused implementation slice; split further if it exceeds about
 five files, especially database or media lifecycle changes.
@@ -91,7 +91,7 @@ Dependencies: 4b, 5, 7. Files: PublicationActions, readiness panel, CourseEditor
 ### Checkpoint B
 - [x] Local desktop/mobile save/CRUD journeys and simulated upload lifecycle checks pass; real provider and staging publication checks remain pending.
 - [x] Closing/switching cannot discard changes or cancel video transfer unexpectedly.
-- [ ] Owner reviews actual dialogs before further polish.
+- [x] Owner reviewed local dialogs and approved deployment on 2026-10-12; final staging acceptance pending.
 
 ## C. Navigation and feedback
 
@@ -132,7 +132,10 @@ Files: this task list, implementation notes, tests/runbooks as needed.
 | Database | 436 assertions across 29 files in isolated current-schema/synthetic database; no development reset | 2026-10-11 |
 | Browser | 12 Edge tests; widths 320/360/390/768/1440, real local CRUD and simulated media | 2026-10-11 |
 | Quality | Lint, typecheck, production build, client-secret scan and whitespace passed | 2026-10-11 |
-| External acceptance | Owner, staging, actual Bunny transfers, real concurrent races, physical phones/Safari/screen reader pending | — |
+| Owner review | Local updates approved; staging deployment authorized | 2026-10-12 |
+| Deployment | Release b82f23f and six migrations live; HTTPS/auth guards verified | 2026-10-12 |
+| CI | Fresh DB replay/tests/lint/types pass; quality passes except seven high audit findings | 2026-10-12 |
+| External acceptance | Real Bunny/PDF, concurrent races, physical phones/Safari/screen reader and final staging acceptance pending | — |
 
 Execution: [instructor-studio-execution.md](../docs/roadmap/instructor-studio-execution.md).
 Manual tests and staging prerequisites:
@@ -140,8 +143,9 @@ Manual tests and staging prerequisites:
 
 ### Remaining external checks
 
-- [ ] Apply reviewed migrations and web code to staging; repeat critical journeys.
+- [x] Apply reviewed migrations and web code to staging; initial HTTPS/auth smoke checks pass.
+- [ ] Repeat authenticated real-provider journeys and obtain staging acceptance.
 - [ ] Exercise actual Bunny transfers and concurrent uploads; mocks are not provider evidence.
 - [ ] Exercise simultaneous permission revoke/release/media finalization.
 - [ ] Verify physical-phone keyboard, Safari and assistive technology.
-- [ ] Collect owner feedback and sign off actual dialogs.
+- [x] Owner reviewed local dialogs and approved deployment; final staging sign-off remains open.

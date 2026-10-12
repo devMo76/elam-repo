@@ -283,3 +283,25 @@ supersedes that historical status.
 
 Acceptance steps and deployment order:
 [instructor-studio-modal-verification.md](../handover/instructor-studio-modal-verification.md).
+
+## 2026-10-12: Owner-reviewed staging deployment
+
+Owner approved local updates and authorized deployment. All six studio migrations
+applied to verified staging project `dnizkyfkltyfibgrftwf`; second dry run confirms
+up to date, no seeds or resets. Only schema was backed up to an ignored local file;
+table-record export was blocked by security review, not retried.
+
+Scoped release `b82f23f` pushed to `feat/staging-readiness`; Railway deployment
+`bbc9da6f-0577-4bd8-938d-0746eb23c83e` succeeded for that commit. Added HTTP readiness
+check `/` (120s). Initial push did not auto-deploy; applying this reviewed two-field
+staging patch triggered the build. Future automatic push behavior remains unverified.
+No production, DNS, provider credential or receipt-worker change.
+
+HTTPS public-page checks pass; anonymous browser studio/admin visits redirect to
+sign-in with no page errors; new write endpoints return 401 unauthenticated.
+CI fresh DB replay/seed/tests/lint/types now pass. Quality tests/build/typecheck/
+lint/secret scan pass, but audit fails on seven high findings (development braces
+chain plus sharp/source-map-js). Do not call overall CI green or production ready.
+
+Authenticated real-provider/cross-role/device acceptance remains pending; see
+[deployment record](../operations/instructor-studio-staging-deployment.md).
