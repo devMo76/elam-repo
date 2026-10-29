@@ -7,7 +7,12 @@ const nextConfig: NextConfig = {
     root: process.cwd(),
   },
   async headers() {
-    return [{ source: "/:path*", headers: getSecurityHeaders(process.env.NEXT_PUBLIC_SUPABASE_URL) }];
+    return [
+      { source: "/:path*", headers: getSecurityHeaders(process.env.NEXT_PUBLIC_SUPABASE_URL) },
+      // Next's configured headers override route-handler values. Keep this
+      // last so callback credentials cannot become a same-origin referrer.
+      { source: "/auth/callback", headers: [{ key: "Referrer-Policy", value: "no-referrer" }] },
+    ];
   },
 };
 

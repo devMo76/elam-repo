@@ -103,3 +103,12 @@ Hosted provider/email and cross-device acceptance remains pending, not passed.
 References: [Supabase email templates](https://supabase.com/docs/guides/auth/auth-email-templates),
 [verifyOtp](https://supabase.com/docs/reference/javascript/auth-verifyotp),
 [PKCE limitations](https://supabase.com/docs/guides/auth/sessions/pkce-flow).
+
+## Staging header follow-up, 2026-10-29
+
+First staging deployment f737b32 passed CI and healthcheck, but hosted smoke
+found the globally configured Referrer-Policy overriding the route's no-referrer.
+Added an explicit final /auth/callback header rule in next.config.ts and a
+configuration regression test. Other routes retain their existing policy.
+Repeat hosted header and cookie-free token verification after redeployment;
+do not infer effective response headers solely from mocked route unit tests.
