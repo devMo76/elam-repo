@@ -44,6 +44,27 @@ export type Database = {
           },
         ]
       }
+      api_rate_limit_buckets: {
+        Row: {
+          action: string
+          hits: number
+          key_hash: string
+          window_start: string
+        }
+        Insert: {
+          action: string
+          hits: number
+          key_hash: string
+          window_start: string
+        }
+        Update: {
+          action?: string
+          hits?: number
+          key_hash?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       courses: {
         Row: {
           course_code: string | null
@@ -54,6 +75,7 @@ export type Database = {
           description: string | null
           id: string
           instructor_id: string
+          instructor_published_edits_allowed: boolean
           price_halalas: number
           published_at: string | null
           slug: string
@@ -70,6 +92,7 @@ export type Database = {
           description?: string | null
           id?: string
           instructor_id: string
+          instructor_published_edits_allowed?: boolean
           price_halalas: number
           published_at?: string | null
           slug: string
@@ -86,6 +109,7 @@ export type Database = {
           description?: string | null
           id?: string
           instructor_id?: string
+          instructor_published_edits_allowed?: boolean
           price_halalas?: number
           published_at?: string | null
           slug?: string
@@ -194,12 +218,45 @@ export type Database = {
           },
         ]
       }
+      lesson_resources: {
+        Row: {
+          byte_size: number
+          file_name: string
+          lesson_id: string
+          storage_path: string
+          updated_at: string
+        }
+        Insert: {
+          byte_size: number
+          file_name: string
+          lesson_id: string
+          storage_path: string
+          updated_at?: string
+        }
+        Update: {
+          byte_size?: number
+          file_name?: string
+          lesson_id?: string
+          storage_path?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_resources_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: true
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
           created_at: string
           duration_seconds: number | null
           id: string
           is_free_preview: boolean
+          is_pending: boolean
           media_status: Database["public"]["Enums"]["media_status"]
           module_id: string
           position: number
@@ -211,6 +268,7 @@ export type Database = {
           duration_seconds?: number | null
           id?: string
           is_free_preview?: boolean
+          is_pending?: boolean
           media_status?: Database["public"]["Enums"]["media_status"]
           module_id: string
           position: number
@@ -222,6 +280,7 @@ export type Database = {
           duration_seconds?: number | null
           id?: string
           is_free_preview?: boolean
+          is_pending?: boolean
           media_status?: Database["public"]["Enums"]["media_status"]
           module_id?: string
           position?: number
@@ -242,18 +301,21 @@ export type Database = {
         Row: {
           course_id: string
           id: string
+          is_pending: boolean
           position: number
           title: string
         }
         Insert: {
           course_id: string
           id?: string
+          is_pending?: boolean
           position: number
           title: string
         }
         Update: {
           course_id?: string
           id?: string
+          is_pending?: boolean
           position?: number
           title?: string
         }
@@ -510,6 +572,7 @@ export type Database = {
           description: string | null
           id: string
           instructor_id: string
+          instructor_published_edits_allowed: boolean
           price_halalas: number
           published_at: string | null
           slug: string
@@ -596,6 +659,10 @@ export type Database = {
           revenue_halalas: number
         }[]
       }
+      admin_set_course_edit_permission: {
+        Args: { allow_edits: boolean; target_course_id: string }
+        Returns: boolean
+      }
       admin_user_directory: {
         Args: {
           filter_role?: Database["public"]["Enums"]["user_role"]
@@ -621,6 +688,7 @@ export type Database = {
         Returns: {
           course_id: string
           id: string
+          is_pending: boolean
           position: number
           title: string
         }
@@ -638,6 +706,7 @@ export type Database = {
           duration_seconds: number | null
           id: string
           is_free_preview: boolean
+          is_pending: boolean
           media_status: Database["public"]["Enums"]["media_status"]
           module_id: string
           position: number
@@ -658,6 +727,7 @@ export type Database = {
           duration_seconds: number | null
           id: string
           is_free_preview: boolean
+          is_pending: boolean
           media_status: Database["public"]["Enums"]["media_status"]
           module_id: string
           position: number
@@ -691,6 +761,15 @@ export type Database = {
         Args: { email_id: string; target_order: string }
         Returns: undefined
       }
+      consume_api_rate_limit: {
+        Args: {
+          target_action: string
+          target_key_hash: string
+          target_limit: number
+          target_window_seconds: number
+        }
+        Returns: boolean
+      }
       create_pending_order: {
         Args: { target_course: string; target_user: string }
         Returns: {
@@ -715,6 +794,7 @@ export type Database = {
           duration_seconds: number | null
           id: string
           is_free_preview: boolean
+          is_pending: boolean
           media_status: Database["public"]["Enums"]["media_status"]
           module_id: string
           position: number
@@ -780,6 +860,7 @@ export type Database = {
           state_changed: boolean
         }[]
       }
+      prune_api_rate_limits: { Args: never; Returns: number }
       record_lesson_progress: {
         Args: {
           expected_revision: number
@@ -796,6 +877,10 @@ export type Database = {
       record_payment_receipt_failure: {
         Args: { error_code: string; target_order: string }
         Returns: undefined
+      }
+      release_course_additions: {
+        Args: { target_course_id: string }
+        Returns: number
       }
       reorder_course_modules: {
         Args: { ordered_module_ids: string[]; target_course_id: string }

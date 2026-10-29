@@ -13,21 +13,22 @@ import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
-function createReturnResponse(state: PaymentReturnState) {
+function createReturnResponse(state: PaymentReturnState, paymentId?: string) {
   const destination = new URL("/dashboard", getPublicEnvironment().NEXT_PUBLIC_SITE_URL);
   destination.searchParams.set("payment", state);
+  if (paymentId && state === "pending") destination.searchParams.set("payment_id", paymentId);
 
   const response = NextResponse.redirect(destination);
   response.headers.set("Cache-Control", "no-store");
   return response;
 }
 
-function createSignInReturnResponse() {
+function createSignInReturnResponse(paymentId: string) {
   const destination = new URL(
     "/auth/sign-in",
     getPublicEnvironment().NEXT_PUBLIC_SITE_URL,
   );
-  destination.searchParams.set("next", "/dashboard?payment=sign_in_required");
+  destination.searchParams.set("next", `/dashboard?payment=sign_in_required&payment_id=${paymentId}`);
 
   const response = NextResponse.redirect(destination);
   response.headers.set("Cache-Control", "no-store");
@@ -51,7 +52,7 @@ export async function GET(request: Request) {
     } = await supabase.auth.getUser();
 
     if (userError || !user) {
-      return createSignInReturnResponse();
+      return createSignInReturnResponse(paymentId.data);
     }
 
     try {
@@ -66,7 +67,7 @@ export async function GET(request: Request) {
       }
 
       if (result.orderStatus === "pending") {
-        return createReturnResponse("pending");
+        return createReturnResponse("pending", paymentId.data);
       }
 
       return createReturnResponse("failed");
@@ -75,7 +76,7 @@ export async function GET(request: Request) {
         error instanceof PaymentConfirmationError &&
         error.code === "payment_provider_unavailable"
       ) {
-        return createReturnResponse("pending");
+        return createReturnResponse("pending", paymentId.data);
       }
 
       return createReturnResponse("failed");

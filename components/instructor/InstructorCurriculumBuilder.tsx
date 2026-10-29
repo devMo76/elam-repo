@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, type Dispatch, type SetStateAction } from "react";
 
 import { AccessibleFormError } from "@/components/ui/AccessibleFormError";
 import { formatArabicLessonCount } from "@/lib/catalogue/presentation";
 import type { AuthoringApiError, StudioLesson, StudioModule } from "./studio-types";
-import { useInstructorUnsavedChanges } from "./InstructorNavigationBlocker";
+import { useInstructorUnsavedChanges, useInstructorPendingOperation, useInstructorNavigationBlocker } from "./InstructorNavigationBlocker";
 import { PersistentInstructorVideoUpload } from "./PersistentInstructorVideoUpload";
+import { InstructorLessonPdf } from "./InstructorLessonPdf";
+import { useInstructorUploads } from "./InstructorUploadManager";
 import styles from "./InstructorWorkspace.module.css";
 
 type ApiData<T> = { data?: T } & AuthoringApiError;
@@ -30,12 +32,14 @@ export function InstructorCurriculumBuilder({
   courseTitle,
   modules,
   editable,
+  published = false,
   onModulesChange,
 }: {
   courseId: string;
   courseTitle: string;
   modules: StudioModule[];
   editable: boolean;
+  published?: boolean;
   onModulesChange: (next: StudioModule[] | ((current: StudioModule[]) => StudioModule[])) => void;
 }) {
   const [newModuleTitle, setNewModuleTitle] = useState("");
@@ -43,6 +47,25 @@ export function InstructorCurriculumBuilder({
   const [errorTarget, setErrorTarget] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [isOrdering, setIsOrdering] = useState(false);
+  const [selectedModule, setSelectedModule] = useState<string | null>(modules[0]?.id ?? null);
+  const [openLessonId, setOpenLessonId] = useState<string | null>(null);
+  const { isBusy } = useInstructorNavigationBlocker();
+  const lessonFocused = modules.some((unit) => unit.lessons.some((lesson) => lesson.id === openLessonId));
+  useInstructorUnsavedChanges(newModuleTitle.trim().length > 0);
+  useInstructorPendingOperation(isCreating || isOrdering);
+  useEffect(() => {
+    function selectTarget() {
+      const target = window.location.hash.slice(1);
+      const match = modules.find((module) => target === `module-${module.id}` || module.lessons.some((lesson) => target === `lesson-${lesson.id}`));
+      if (match) {
+        setSelectedModule(match.id);
+        setOpenLessonId(match.lessons.find((lesson) => target === `lesson-${lesson.id}`)?.id ?? null);
+      }
+    }
+    selectTarget();
+    window.addEventListener("hashchange", selectTarget);
+    return () => window.removeEventListener("hashchange", selectTarget);
+  }, [modules]);
 
   function updateModules(next: StudioModule[] | ((current: StudioModule[]) => StudioModule[])) {
     onModulesChange(next);
@@ -72,6 +95,7 @@ export function InstructorCurriculumBuilder({
       }
 
       updateModules((current) => [...current, payload.data!]);
+      setSelectedModule(payload.data.id);
       setNewModuleTitle("");
     } catch {
       setErrorTarget("new-module-title");
@@ -122,36 +146,47 @@ export function InstructorCurriculumBuilder({
     updateModules((current) => current.filter((module) => module.id !== moduleId));
   }
 
-  if (!editable) {
-    return <p className={styles.readOnlyNotice}>المحتوى محفوظ للعرض في هذه الحالة. أعد المقرر إلى مسودة من خلال الجهة المخوّلة قبل تعديل بنيته.</p>;
-  }
-
   return (
-    <div className={styles.curriculum}>
-      <form className={styles.addRow} onSubmit={createModule}>
+    <div aria-busy={isCreating || isOrdering} className={`${styles.curriculum} ${lessonFocused ? styles.curriculumFocused : ""}`}>
+      {lessonFocused ? <button className={`${styles.textButton} ${styles.mobileLessonBack}`} disabled={isBusy} onClick={() => setOpenLessonId(null)} type="button">العودة إلى الدروس</button> : null}
+      {!editable ? <p className={styles.readOnlyNotice}>المحتوى للعرض فقط في هذه الحالة.</p> : null}
+      {editable ? <form className={styles.addRow} onSubmit={createModule}>
         <label className={styles.field}>
           <span>وحدة جديدة</span>
           <input aria-describedby={errorTarget === "new-module-title" ? "curriculum-error" : undefined} aria-invalid={errorTarget === "new-module-title"} disabled={isCreating} id="new-module-title" onChange={(event) => setNewModuleTitle(event.target.value)} placeholder="مثال: أساسيات الإشارات" required value={newModuleTitle} />
         </label>
         <button className={styles.primaryButton} disabled={isCreating} type="submit">{isCreating ? "جارٍ الإضافة…" : "إضافة وحدة"}</button>
-      </form>
-      {modules.length === 0 ? <p className={styles.readOnlyNotice}>ابدأ بإضافة أول وحدة، ثم أضف دروسها بالترتيب الذي سيظهر للمتعلمين.</p> : null}
+      </form> : null}
+      {isCreating ? <div aria-label="جارٍ إضافة الوحدة" className={styles.skeleton} role="status"><div /><div /></div> : null}
+      {modules.length === 0 ? <p className={styles.readOnlyNotice}>{editable ? "ابدأ بإضافة أول وحدة، ثم أضف دروسها." : "لا يوجد محتوى في هذه الدورة بعد."}</p> : null}
+      <div className={styles.curriculumLayout}>
+      <nav aria-label="وحدات الدورة" className={styles.unitNavigation}>
+        {modules.map((module) => <button aria-current={(selectedModule ?? modules[0]?.id) === module.id ? "true" : undefined}
+          className={styles.secondaryLink} key={module.id} onClick={() => { setSelectedModule(module.id); setOpenLessonId(null); }} type="button">{module.title}{module.isPending ? " · غير منشورة" : ""}</button>)}
+      </nav>
       <div className={styles.moduleList}>
         {modules.map((module, index) => (
+          <div hidden={(modules.some((item) => item.id === selectedModule) ? selectedModule : modules[0]?.id) !== module.id} key={module.id}>
           <InstructorModuleEditor
-            canMoveDown={index < modules.length - 1}
-            canMoveUp={index > 0}
+            canMoveDown={editable && index < modules.length - 1 && (!published || Boolean(module.isPending && modules[index + 1]?.isPending))}
+            canMoveUp={editable && index > 0 && (!published || Boolean(module.isPending && modules[index - 1]?.isPending))}
+            editable={editable}
+            published={published}
             courseId={courseId}
             courseTitle={courseTitle}
             isOrdering={isOrdering}
-            initiallyExpanded={index === 0}
+            initiallyExpanded={true}
             key={module.id}
             module={module}
             onDelete={removeModule}
             onMove={(direction) => void moveModule(module.id, direction)}
             onUpdate={replaceModule}
+            openLessonId={openLessonId}
+            setOpenLessonId={setOpenLessonId}
           />
+          </div>
         ))}
+      </div>
       </div>
       {error ? <AccessibleFormError className={styles.error} id="curriculum-error">{error}</AccessibleFormError> : null}
     </div>
@@ -159,6 +194,8 @@ export function InstructorCurriculumBuilder({
 }
 
 function InstructorModuleEditor({
+  editable,
+  published,
   courseId,
   courseTitle,
   module,
@@ -169,7 +206,11 @@ function InstructorModuleEditor({
   onMove,
   onUpdate,
   onDelete,
+  openLessonId,
+  setOpenLessonId,
 }: {
+  editable: boolean;
+  published: boolean;
   courseId: string;
   courseTitle: string;
   module: StudioModule;
@@ -180,18 +221,27 @@ function InstructorModuleEditor({
   onMove: (direction: -1 | 1) => void;
   onUpdate: (module: StudioModule) => void;
   onDelete: (moduleId: string) => void;
+  openLessonId: string | null;
+  setOpenLessonId: Dispatch<SetStateAction<string | null>>;
 }) {
   const [title, setTitle] = useState(module.title);
   const [newLessonTitle, setNewLessonTitle] = useState("");
   const [bulkLessonTitles, setBulkLessonTitles] = useState("");
   const [isExpanded, setIsExpanded] = useState(initiallyExpanded);
-  const [openLessonId, setOpenLessonId] = useState<string | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errorTarget, setErrorTarget] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isLessonOrdering, setIsLessonOrdering] = useState(false);
   const [isBulkCreating, setIsBulkCreating] = useState(false);
+  const mutable = editable && (!published || Boolean(module.isPending));
+  const { isBusy } = useInstructorNavigationBlocker();
+  const { uploads } = useInstructorUploads();
+  const mediaBusy = module.lessons.some((lesson) => {
+    const upload = uploads[lesson.id];
+    return upload?.isPreparing || upload?.isClientUpload || ["uploading", "processing"].includes(upload?.mediaStatus ?? lesson.mediaStatus);
+  });
+  useInstructorPendingOperation(isSaving || isBulkCreating || isLessonOrdering);
   const hasUnsavedModuleFields = title.trim() !== module.title || newLessonTitle.trim().length > 0 || bulkLessonTitles.trim().length > 0;
   useInstructorUnsavedChanges(hasUnsavedModuleFields);
 
@@ -217,7 +267,7 @@ function InstructorModuleEditor({
     revealTarget();
     window.addEventListener("hashchange", revealTarget);
     return () => window.removeEventListener("hashchange", revealTarget);
-  }, [module.id, module.lessons]);
+  }, [module.id, module.lessons, setOpenLessonId]);
 
   async function rename(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -402,7 +452,7 @@ function InstructorModuleEditor({
   }
 
   return (
-    <section className={styles.module} id={`module-${module.id}`}>
+    <section aria-busy={isSaving || isBulkCreating || isLessonOrdering} className={styles.module} id={`module-${module.id}`}>
       <div className={styles.moduleSummary}>
         <button
           aria-controls={`module-body-${module.id}`}
@@ -424,27 +474,29 @@ function InstructorModuleEditor({
         <div className={styles.rowActions}>
           <button className={styles.textButton} disabled={!canMoveUp || isOrdering} onClick={() => onMove(-1)} type="button">نقل لأعلى</button>
           <button className={styles.textButton} disabled={!canMoveDown || isOrdering} onClick={() => onMove(1)} type="button">نقل لأسفل</button>
-          {!confirmingDelete ? <button className={styles.dangerTextButton} disabled={isSaving} onClick={() => setConfirmingDelete(true)} type="button">حذف الوحدة</button> : null}
+          {mutable && !confirmingDelete ? <button className={styles.dangerTextButton} disabled={isSaving || isBusy || mediaBusy} onClick={() => setConfirmingDelete(true)} type="button">حذف الوحدة</button> : null}
         </div>
       </div>
       {confirmingDelete ? (
         <div className={styles.inlineConfirmation} role="group" aria-label={`تأكيد حذف ${module.title}`}>
           <p>سيُحذف محتوى هذه الوحدة ودروسها من المسودة. هل تريد المتابعة؟</p>
-          <button className={styles.dangerButton} disabled={isSaving} onClick={() => void deleteModule()} type="button">{isSaving ? "جارٍ الحذف…" : "تأكيد الحذف"}</button>
+          <button className={styles.dangerButton} disabled={isSaving || isBusy || mediaBusy} onClick={() => void deleteModule()} type="button">{isSaving ? "جارٍ الحذف…" : "تأكيد الحذف"}</button>
           <button className={styles.quietButton} disabled={isSaving} onClick={() => setConfirmingDelete(false)} type="button">إلغاء</button>
         </div>
       ) : null}
-      {isExpanded ? <div className={styles.moduleBody} id={`module-body-${module.id}`}>
+      <div hidden={!isExpanded} className={styles.moduleBody} id={`module-body-${module.id}`}>
+        {isBulkCreating ? <div aria-label="جارٍ إضافة الدروس" className={styles.skeleton} role="status"><div /><div /></div> : null}
         <form className={styles.inlineForm} onSubmit={rename}>
           <label className="sr-only" htmlFor={`module-title-${module.id}`}>عنوان الوحدة</label>
-          <input aria-describedby={errorTarget === `module-title-${module.id}` ? `module-error-${module.id}` : undefined} aria-invalid={errorTarget === `module-title-${module.id}`} id={`module-title-${module.id}`} onChange={(event) => setTitle(event.target.value)} value={title} />
+          <input disabled={!mutable || isSaving} aria-describedby={errorTarget === `module-title-${module.id}` ? `module-error-${module.id}` : undefined} aria-invalid={errorTarget === `module-title-${module.id}`} id={`module-title-${module.id}`} onChange={(event) => setTitle(event.target.value)} value={title} />
           {title.trim() !== module.title ? <button className={styles.textButton} disabled={isSaving} type="submit">حفظ الاسم</button> : null}
         </form>
         <div className={styles.lessonList}>
         {module.lessons.map((lesson, index) => (
           <InstructorLessonEditor
-            canMoveDown={index < module.lessons.length - 1}
-            canMoveUp={index > 0}
+            canMoveDown={editable && index < module.lessons.length - 1 && (!published || Boolean(lesson.isPending && module.lessons[index + 1]?.isPending))}
+            canMoveUp={editable && index > 0 && (!published || Boolean(lesson.isPending && module.lessons[index - 1]?.isPending))}
+            editable={editable && (!published || Boolean(lesson.isPending))}
             courseId={courseId}
             courseTitle={courseTitle}
             index={index}
@@ -461,12 +513,12 @@ function InstructorModuleEditor({
           />
         ))}
         </div>
-        <form className={styles.addLessonRow} onSubmit={addLesson}>
+        {editable ? <form className={styles.addLessonRow} onSubmit={addLesson}>
           <label className="sr-only" htmlFor={`new-lesson-${module.id}`}>عنوان الدرس الجديد</label>
           <input aria-describedby={errorTarget === `new-lesson-${module.id}` ? `module-error-${module.id}` : undefined} aria-invalid={errorTarget === `new-lesson-${module.id}`} disabled={isSaving} id={`new-lesson-${module.id}`} onChange={(event) => setNewLessonTitle(event.target.value)} placeholder="عنوان الدرس الجديد" required value={newLessonTitle} />
           <button className={styles.textButton} disabled={isSaving} type="submit">إضافة درس</button>
-        </form>
-        <details className={styles.quickAdd}>
+        </form> : null}
+        {editable ? <details className={styles.quickAdd}>
           <summary>إضافة عدة دروس</summary>
           <form onSubmit={addLessons}>
             <label className={styles.field} htmlFor={`bulk-lessons-${module.id}`}>
@@ -475,14 +527,15 @@ function InstructorModuleEditor({
             </label>
             <button className={styles.textButton} disabled={isBulkCreating || !bulkLessonTitles.trim()} type="submit">{isBulkCreating ? "جارٍ الإضافة…" : "إضافة العناوين"}</button>
           </form>
-        </details>
-      </div> : null}
+        </details> : null}
+      </div>
       {error ? <AccessibleFormError className={styles.error} id={`module-error-${module.id}`}>{error}</AccessibleFormError> : null}
     </section>
   );
 }
 
 function InstructorLessonEditor({
+  editable,
   courseId,
   courseTitle,
   lesson,
@@ -498,6 +551,7 @@ function InstructorLessonEditor({
   onToggle,
   onUpdate,
 }: {
+  editable: boolean;
   courseId: string;
   courseTitle: string;
   lesson: StudioLesson;
@@ -518,6 +572,12 @@ function InstructorLessonEditor({
   const [error, setError] = useState<string | null>(null);
   const [titleHasError, setTitleHasError] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [visited, setVisited] = useState(open);
+  const { isBusy } = useInstructorNavigationBlocker();
+  const { uploads } = useInstructorUploads();
+  const upload = uploads[lesson.id];
+  const mediaBusy = Boolean(upload?.isPreparing || upload?.isClientUpload || ["uploading", "processing"].includes(upload?.mediaStatus ?? lesson.mediaStatus));
+  useInstructorPendingOperation(isSaving);
   const hasUnsavedTitle = title.trim() !== lesson.title;
   useInstructorUnsavedChanges(hasUnsavedTitle);
 
@@ -570,31 +630,32 @@ function InstructorLessonEditor({
   }
 
   return (
-    <article className={styles.lesson} id={`lesson-${lesson.id}`}>
+    <article aria-busy={isSaving} className={`${styles.lesson} ${open ? styles.selectedLesson : ""}`} id={`lesson-${lesson.id}`}>
       <div className={styles.lessonSummary}>
         <span className={styles.lessonPosition}><bdi dir="ltr">{index + 1}</bdi></span>
-        <button aria-expanded={open} className={styles.lessonToggle} onClick={onToggle} type="button">
+        <button aria-expanded={open} className={styles.lessonToggle} onClick={() => { setVisited(true); onToggle(); }} type="button">
           <span>{lesson.title}</span>
-          <small>{lesson.mediaStatus === "ready" ? "جاهز" : lesson.mediaStatus === "processing" ? "قيد التجهيز" : lesson.mediaStatus === "uploading" ? "جارٍ الرفع" : lesson.mediaStatus === "failed" ? "يحتاج متابعة" : "بلا فيديو"}</small>
+          <small>{lesson.isPending ? "غير منشور · " : ""}{lesson.mediaStatus === "ready" ? "جاهز" : lesson.mediaStatus === "processing" ? "قيد التجهيز" : lesson.mediaStatus === "uploading" ? "جارٍ الرفع" : lesson.mediaStatus === "failed" ? "يحتاج متابعة" : "بلا فيديو"}</small>
         </button>
         <div className={styles.rowActions}>
           <button className={styles.textButton} disabled={!canMoveUp || isOrdering || isSaving} onClick={() => onMove(-1)} type="button">نقل لأعلى</button>
           <button className={styles.textButton} disabled={!canMoveDown || isOrdering || isSaving} onClick={() => onMove(1)} type="button">نقل لأسفل</button>
-          <button className={styles.textButton} disabled={isSaving || moduleBusy} onClick={onDuplicate} type="button">نسخ الدرس</button>
-          {!confirmingDelete ? <button className={styles.dangerTextButton} disabled={isSaving} onClick={() => setConfirmingDelete(true)} type="button">حذف الدرس</button> : null}
+          {editable ? <button className={styles.textButton} disabled={isSaving || moduleBusy || isBusy} onClick={onDuplicate} type="button">نسخ الدرس</button> : null}
+          {editable && !confirmingDelete ? <button className={styles.dangerTextButton} disabled={isSaving || isBusy || mediaBusy} onClick={() => setConfirmingDelete(true)} type="button">حذف الدرس</button> : null}
         </div>
       </div>
-      {open ? <div className={styles.lessonMain}>
+      {open || visited ? <div hidden={!open} className={styles.lessonMain}>
         <div className={styles.lessonFields}>
           <label className="sr-only" htmlFor={`lesson-title-${lesson.id}`}>عنوان الدرس</label>
-          <input aria-describedby={titleHasError ? `lesson-error-${lesson.id}` : undefined} aria-invalid={titleHasError} id={`lesson-title-${lesson.id}`} onChange={(event) => setTitle(event.target.value)} value={title} />
+          <input disabled={!editable || isSaving} aria-describedby={titleHasError ? `lesson-error-${lesson.id}` : undefined} aria-invalid={titleHasError} id={`lesson-title-${lesson.id}`} onChange={(event) => setTitle(event.target.value)} value={title} />
           <div className={styles.lessonMeta}>
             <label className={styles.checkLabel}>
-              <input checked={lesson.isFreePreview} disabled={isSaving} onChange={(event) => void saveLesson({ isFreePreview: event.target.checked })} type="checkbox" />
+              <input checked={lesson.isFreePreview} disabled={isSaving || !editable} onChange={(event) => void saveLesson({ isFreePreview: event.target.checked })} type="checkbox" />
               درس مجاني للمعاينة
             </label>
           </div>
-          <PersistentInstructorVideoUpload courseId={courseId} courseTitle={courseTitle} lessonId={lesson.id} lessonTitle={lesson.title} initialStatus={lesson.mediaStatus} onStatusChange={(mediaStatus) => replaceLesson({ ...lesson, mediaStatus })} />
+          {editable ? <PersistentInstructorVideoUpload courseId={courseId} courseTitle={courseTitle} lessonId={lesson.id} lessonTitle={lesson.title} initialStatus={lesson.mediaStatus} onStatusChange={(mediaStatus) => replaceLesson({ ...lesson, mediaStatus })} /> : <p className={styles.readOnlyNotice}>الفيديو منشور ومحفوظ؛ الاستبدال والحذف غير متاحين.</p>}
+          <InstructorLessonPdf editable={editable} lessonId={lesson.id} />
         </div>
         <div className={styles.rowActions}>
           {hasUnsavedTitle ? <span className={styles.unsaved}>غير محفوظ</span> : null}
@@ -604,7 +665,7 @@ function InstructorLessonEditor({
       {confirmingDelete ? (
         <div className={styles.inlineConfirmation} role="group" aria-label={`تأكيد حذف ${lesson.title}`}>
           <p>سيُحذف هذا الدرس من المسودة. هل تريد المتابعة؟</p>
-          <button className={styles.dangerButton} disabled={isSaving} onClick={() => void deleteLesson()} type="button">تأكيد الحذف</button>
+          <button className={styles.dangerButton} disabled={isSaving || isBusy || mediaBusy} onClick={() => void deleteLesson()} type="button">تأكيد الحذف</button>
           <button className={styles.quietButton} disabled={isSaving} onClick={() => setConfirmingDelete(false)} type="button">إلغاء</button>
         </div>
       ) : null}

@@ -17,6 +17,8 @@ import {
 const leaveMessage = "لديك تغييرات غير محفوظة. هل تريد مغادرة الصفحة دون حفظها؟";
 
 type NavigationBlockerValue = {
+  isBusy: boolean;
+  setSourceBusy: (sourceId: string, busy: boolean) => void;
   isBlocked: boolean;
   confirmNavigation: () => boolean;
   setSourceDirty: (sourceId: string, dirty: boolean) => void;
@@ -26,6 +28,15 @@ const NavigationBlockerContext = createContext<NavigationBlockerValue | null>(nu
 
 export function InstructorNavigationBlockerProvider({ children }: { children: ReactNode }) {
   const [dirtySources, setDirtySources] = useState<ReadonlySet<string>>(() => new Set());
+  const [busySources, setBusySources] = useState<ReadonlySet<string>>(() => new Set());
+  const isBusy = busySources.size > 0;
+  const setSourceBusy = useCallback((sourceId: string, busy: boolean) => {
+    setBusySources((current) => {
+      const next = new Set(current);
+      if (busy) next.add(sourceId); else next.delete(sourceId);
+      return next;
+    });
+  }, []);
   const restoringHistory = useRef(false);
   const isBlocked = dirtySources.size > 0;
 
@@ -38,12 +49,12 @@ export function InstructorNavigationBlockerProvider({ children }: { children: Re
     });
   }, []);
   const confirmNavigation = useCallback(
-    () => !isBlocked || window.confirm(leaveMessage),
-    [isBlocked],
+    () => !isBusy && (!isBlocked || window.confirm(leaveMessage)),
+    [isBlocked, isBusy],
   );
 
   useEffect(() => {
-    if (!isBlocked) return;
+    if (!isBlocked && !isBusy) return;
 
     const warnBeforeUnload = (event: BeforeUnloadEvent) => {
       event.preventDefault();
@@ -68,11 +79,11 @@ export function InstructorNavigationBlockerProvider({ children }: { children: Re
       window.removeEventListener("beforeunload", warnBeforeUnload);
       window.removeEventListener("popstate", warnBeforeHistoryNavigation, true);
     };
-  }, [confirmNavigation, isBlocked]);
+  }, [confirmNavigation, isBlocked, isBusy]);
 
   const value = useMemo(
-    () => ({ confirmNavigation, isBlocked, setSourceDirty }),
-    [confirmNavigation, isBlocked, setSourceDirty],
+    () => ({ confirmNavigation, isBlocked, setSourceDirty, isBusy, setSourceBusy }),
+    [confirmNavigation, isBlocked, setSourceDirty, isBusy, setSourceBusy],
   );
   return <NavigationBlockerContext.Provider value={value}>{children}</NavigationBlockerContext.Provider>;
 }
@@ -90,19 +101,28 @@ export function useInstructorUnsavedChanges(dirty: boolean) {
 
 export function useInstructorNavigationBlocker() {
   const context = useContext(NavigationBlockerContext);
-  return context ?? { confirmNavigation: () => true, isBlocked: false, setSourceDirty: () => undefined };
+  return context ?? { confirmNavigation: () => true, isBlocked: false, isBusy: false, setSourceDirty: () => undefined, setSourceBusy: () => undefined };
+}
+
+export function useInstructorPendingOperation(busy: boolean) {
+  const context = useContext(NavigationBlockerContext);
+  const setSourceBusy = context?.setSourceBusy;
+  const sourceId = useId();
+  useEffect(() => {
+    setSourceBusy?.(sourceId, busy);
+    return () => setSourceBusy?.(sourceId, false);
+  }, [busy, setSourceBusy, sourceId]);
 }
 
 export function InstructorLink({ onNavigate, ...props }: ComponentProps<typeof Link>) {
-  const { confirmNavigation, isBlocked } = useInstructorNavigationBlocker();
+  const { confirmNavigation } = useInstructorNavigationBlocker();
 
   return (
     <Link
       {...props}
       onNavigate={(event) => {
+        if (!confirmNavigation()) { event.preventDefault(); return; }
         onNavigate?.(event);
-        if (!isBlocked) return;
-        if (!confirmNavigation()) event.preventDefault();
       }}
     />
   );

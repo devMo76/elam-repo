@@ -1,0 +1,17 @@
+.dialog { position: fixed; inset: 0; margin: auto; inline-size: min(68rem, calc(100vw - 3rem)); min-inline-size: 0; max-inline-size: none; max-block-size: calc(100dvh - 3rem); padding: 0; border: 1px solid var(--hairline); border-radius: var(--radius-card); background: var(--raised); color: var(--ink); }
+.dialog::backdrop { background: rgb(8 10 55 / 48%); }
+.header { position: sticky; inset-block-start: 0; z-index: 2; display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1rem 1.5rem; background: var(--raised); border-block-end: 1px solid var(--hairline); }
+.header h2 { margin: 0; font-size: 1.25rem; }
+.header button { min-block-size: 44px; padding-inline: 1rem; border: 1px solid var(--hairline); border-radius: var(--radius-card); background: var(--surface); color: var(--ink); font: inherit; cursor: pointer; }
+.header button:hover { background: var(--tint); }
+.header button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.header button:disabled { opacity: .6; cursor: wait; }
+.body { padding: 1.5rem; overflow-wrap: anywhere; }
+.body [hidden] { display: none !important; }
+.busy { margin: 0; padding: .75rem 1.5rem; background: var(--tint); }
+.drawer { position: fixed; inset: 0 0 0 auto; margin: 0; inline-size: min(22rem, 90vw); block-size: 100dvh; max-block-size: none; border-radius: 0; }
+@media(max-width:760px) {
+  .dialog:not(.drawer) { margin: 0; inline-size: 100vw; block-size: 100dvh; max-block-size: none; border: 0; border-radius: 0; }
+  .header { padding: max(1rem, env(safe-area-inset-top)) 1rem .75rem; }
+  .body { padding: 1rem 1rem max(1rem, env(safe-area-inset-bottom)); }
+}
