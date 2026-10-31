@@ -18,6 +18,7 @@ vi.mock("@/lib/http/rate-limit", () => ({
 
 import { POST as register } from "@/app/api/auth/register/route";
 import { POST as resendConfirmation } from "@/app/api/auth/resend-confirmation/route";
+import { POST as requestPasswordReset } from "@/app/api/auth/password-reset/route";
 import { GET as confirmEmail } from "@/app/auth/callback/route";
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest } from "next/server";
@@ -26,6 +27,7 @@ const signUp = vi.fn();
 const resend = vi.fn();
 const exchangeCodeForSession = vi.fn();
 const verifyOtp = vi.fn();
+const resetPasswordForEmail = vi.fn();
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -33,8 +35,9 @@ beforeEach(() => {
   resend.mockResolvedValue({ data: {}, error: null });
   exchangeCodeForSession.mockResolvedValue({ data: {}, error: null });
   verifyOtp.mockResolvedValue({ data: {}, error: null });
+  resetPasswordForEmail.mockResolvedValue({ data: {}, error: null });
   vi.mocked(createClient).mockResolvedValue({
-    auth: { signUp, resend, exchangeCodeForSession, verifyOtp },
+    auth: { signUp, resend, exchangeCodeForSession, verifyOtp, resetPasswordForEmail },
   } as never);
 });
 
@@ -47,6 +50,54 @@ function jsonRequest(pathname: string, body: object) {
 }
 
 describe("authentication destination continuity", () => {
+  it("requests recovery with a canonical callback and reset-form destination", async () => {
+    const response = await requestPasswordReset(jsonRequest("/api/auth/password-reset", { email: "learner@example.com" }));
+    expect(response.status).toBe(202);
+    expect(resetPasswordForEmail).toHaveBeenCalledWith("learner@example.com", {
+      redirectTo: "https://elam.example/auth/callback?next=%2Fauth%2Freset-password",
+    });
+  });
+
+  it("verifies a recovery token without original-device cookies", async () => {
+    const request = new NextRequest("https://0.0.0.0:8080/auth/callback?token_hash=recovery-token&type=recovery");
+    expect(request.cookies.getAll()).toEqual([]);
+    const response = await confirmEmail(request);
+    expect(verifyOtp).toHaveBeenCalledWith({ token_hash: "recovery-token", type: "recovery" });
+    expect(exchangeCodeForSession).not.toHaveBeenCalled();
+    expect(response.headers.get("location")).toBe("https://elam.example/auth/reset-password");
+    expect(response.headers.get("referrer-policy")).toBe("no-referrer");
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+  });
+
+  it.each(["/dashboard", "https://evil.example", "//evil.example"])(
+    "always sends verified recovery tokens to the reset form despite next=%s",
+    async (next) => {
+      const url = new URL("https://elam.example/auth/callback?token_hash=recovery-token&type=recovery");
+      url.searchParams.set("next", next);
+      const response = await confirmEmail(new NextRequest(url));
+      expect(response.headers.get("location")).toBe("https://elam.example/auth/reset-password");
+    },
+  );
+
+  it("uses a recovery-specific retry destination for expired tokens", async () => {
+    verifyOtp.mockResolvedValueOnce({ error: new Error("Expired recovery token") });
+    const response = await confirmEmail(new NextRequest("https://elam.example/auth/callback?token_hash=used&type=recovery&code=valid"));
+    expect(response.headers.get("location")).toBe("https://elam.example/auth/password-reset?auth_error=recovery_failed");
+    expect(exchangeCodeForSession).not.toHaveBeenCalled();
+  });
+
+  it("keeps legacy recovery-code redirects working without signup-success messages", async () => {
+    const response = await confirmEmail(new NextRequest("https://elam.example/auth/callback?code=valid&next=%2Fauth%2Freset-password"));
+    expect(response.headers.get("location")).toBe("https://elam.example/auth/reset-password");
+    expect(exchangeCodeForSession).toHaveBeenCalledWith("valid");
+  });
+
+  it("does not call an expired legacy recovery link an activation failure", async () => {
+    exchangeCodeForSession.mockResolvedValueOnce({ error: new Error("Invalid code") });
+    const response = await confirmEmail(new NextRequest("https://elam.example/auth/callback?code=used&next=%2Fauth%2Freset-password"));
+    expect(response.headers.get("location")).toBe("https://elam.example/auth/password-reset?auth_error=recovery_failed");
+  });
+
   it("verifies an email token without any registration-browser cookies", async () => {
     const request = new NextRequest(
       "https://0.0.0.0:8080/auth/callback?token_hash=valid-token&type=email&next=%2Faccount",
@@ -80,7 +131,7 @@ describe("authentication destination continuity", () => {
     },
   );
 
-  it.each(["recovery", "invite", "email_change", "signup", "sms", ""])(
+  it.each(["invite", "email_change", "signup", "sms", ""])(
     "does not accept OTP type %s on the signup token path",
     async (type) => {
       const url = new URL("https://elam.example/auth/callback?token_hash=valid-token&code=valid-code");

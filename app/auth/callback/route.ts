@@ -19,19 +19,22 @@ export async function GET(request: NextRequest) {
   const nextPath = request.nextUrl.searchParams.get("next");
   const tokenHash = request.nextUrl.searchParams.get("token_hash");
   const type = request.nextUrl.searchParams.get("type");
+  const isRecovery = type === "recovery" || (tokenHash === null && nextPath === "/auth/reset-password");
 
-  const successUrl = getSafeRedirectUrl(siteUrl, nextPath, "/account");
-  successUrl.searchParams.set("auth", "verified");
+  const successUrl = isRecovery
+    ? new URL("/auth/reset-password", siteUrl)
+    : getSafeRedirectUrl(siteUrl, nextPath, "/account");
+  if (!isRecovery) successUrl.searchParams.set("auth", "verified");
 
   // Unlike the PKCE code exchange, email token verification does not require
   // the cookie from the browser/device where registration began. Never accept
   // arbitrary OTP types here or fall back to a code after a token failure.
   if (tokenHash !== null) {
-    if (tokenHash.length > 0 && tokenHash.length <= 2048 && type === "email") {
+    if (tokenHash.length > 0 && tokenHash.length <= 2048 && (type === "email" || type === "recovery")) {
       const supabase = await createClient();
       const { error } = await supabase.auth.verifyOtp({
         token_hash: tokenHash,
-        type: "email",
+        type,
       });
 
       if (!error) {
@@ -47,8 +50,8 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const errorUrl = new URL("/", siteUrl);
-  errorUrl.searchParams.set("auth_error", "confirmation_failed");
+  const errorUrl = new URL(isRecovery ? "/auth/password-reset" : "/", siteUrl);
+  errorUrl.searchParams.set("auth_error", isRecovery ? "recovery_failed" : "confirmation_failed");
 
   return redirectWithoutCredentials(errorUrl);
 }
