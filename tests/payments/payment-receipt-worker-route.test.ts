@@ -8,7 +8,7 @@ vi.mock("@/lib/payments/receipt", () => ({
   processPendingPaymentReceipts: vi.fn(),
 }));
 
-import { POST } from "@/app/api/jobs/payment-receipts/route";
+import { GET, POST } from "@/app/api/jobs/payment-receipts/route";
 import { getPaymentReceiptWorkerEnvironment } from "@/lib/env/server";
 import { processPendingPaymentReceipts } from "@/lib/payments/receipt";
 
@@ -60,5 +60,17 @@ describe("payment receipt worker route", () => {
     const response = await POST(createRequest());
 
     expect(response.status).toBe(503);
+  });
+
+  it("requires the same bearer secret for scheduled GET invocations", async () => {
+    const unauthorized = await GET(new Request("https://example.com/api/jobs/payment-receipts"));
+    expect(unauthorized.status).toBe(401);
+    expect(processPendingPaymentReceipts).not.toHaveBeenCalled();
+
+    const authorized = await GET(new Request("https://example.com/api/jobs/payment-receipts", {
+      headers: { Authorization: `Bearer ${workerSecret}` },
+    }));
+    expect(authorized.status).toBe(200);
+    expect(processPendingPaymentReceipts).toHaveBeenCalledOnce();
   });
 });

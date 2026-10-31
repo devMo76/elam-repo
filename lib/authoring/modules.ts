@@ -22,7 +22,7 @@ export async function renameCourseModule(moduleId: string, title: string) {
     .from("modules")
     .update({ title })
     .eq("id", moduleId)
-    .select("id, course_id, title, position, courses!inner(status)")
+    .select("id, course_id, title, position, is_pending, courses!inner(status)")
     .neq("courses.status", "archived")
     .maybeSingle();
 

@@ -35,8 +35,16 @@ Errors use the shared contract:
 - A safe error message for `?auth_error=confirmation_failed`.
 - A registration success state with a resend-confirmation action.
 
-The PKCE callback is implemented at `/auth/callback`. The frontend must not
-handle or store access tokens directly.
+The callback at `/auth/callback` accepts legacy PKCE codes, signup email
+`token_hash` links with `type=email`, and password recovery with `type=recovery`.
+Recovery always returns to the reset form and has a separate retry/error state.
+Token verification runs server-side and
+supports opening signup mail on a different device; PKCE codes still need the
+original browser. The frontend must not handle or store access tokens directly.
+The Supabase Confirm signup template must be updated after deploying this code;
+see [cross-device rollout](../../docs/operations/cross-device-email-confirmation.md).
+Reset password has a separate required template change after deployment; see
+[recovery rollout](../../docs/operations/cross-device-password-reset.md).
 
 `next` is always treated as an untrusted redirect candidate. The registration,
 resend, and callback boundaries validate it as a same-origin relative path and

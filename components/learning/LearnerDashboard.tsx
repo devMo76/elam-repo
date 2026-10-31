@@ -1,6 +1,9 @@
 import Link from "next/link";
 
 import type { LearnerCourseProgress, PaymentReturnState } from "@/lib/contracts";
+import type { LearnerPurchase } from "@/lib/payments/history";
+
+import { PurchaseHistory } from "./PurchaseHistory";
 
 import styles from "./LearnerDashboard.module.css";
 
@@ -17,10 +20,14 @@ export function LearnerDashboard({
   fullName,
   courses,
   paymentState,
+  purchases,
+  returnPaymentId,
 }: {
   fullName: string;
   courses: LearnerCourseProgress[];
   paymentState: PaymentReturnState | null;
+  purchases: LearnerPurchase[];
+  returnPaymentId: string | null;
 }) {
   return (
     <div className={styles.page}>
@@ -82,13 +89,9 @@ export function LearnerDashboard({
                     </div>
                   </div>
 
-                  {isArchived ? (
-                    <span className={styles.archived}>مراجعة محفوظة</span>
-                  ) : (
-                    <Link className={styles.continue} href={"/learn/courses/" + course.courseId}>
-                      متابعة التعلّم
-                    </Link>
-                  )}
+                  <Link className={styles.continue} href={"/learn/courses/" + course.courseId}>
+                    {isArchived ? "مراجعة الدروس" : "متابعة التعلّم"}
+                  </Link>
                 </article>
               );
             })}
@@ -103,6 +106,7 @@ export function LearnerDashboard({
           </div>
         )}
       </section>
+      <PurchaseHistory purchases={purchases} returnPaymentId={returnPaymentId} />
     </div>
   );
 }

@@ -7,7 +7,7 @@ import { AuthoringError, throwAuthoringDatabaseError } from "./errors";
 import { toAuthoringLesson } from "./transform";
 
 const lessonSelect =
-  "id, module_id, title, position, duration_seconds, is_free_preview, media_status";
+  "id, module_id, title, position, duration_seconds, is_free_preview, media_status, is_pending";
 
 export async function createModuleLesson(moduleId: string, title: string) {
   const { supabase } = await requireInstructorAuthoringContext();

@@ -5,7 +5,7 @@ import { courseCardCode, formatArabicLessonCount } from "@/lib/catalogue/present
 
 import { featured } from "@/lib/copy";
 import { Duration } from "@/components/ui/Duration";
-import { Num } from "@/components/ui/Num";
+import { CourseLabel } from "@/components/ui/CourseLabel";
 import { Price } from "@/components/ui/Price";
 import { Rule } from "@/components/ui/Rule";
 
@@ -28,9 +28,9 @@ export function PublishedCourseTile({
       href={`/courses/${course.slug}`}
     >
       <div className="flex items-center justify-between border-b border-hairline bg-tint px-5 py-4">
-        <Num className="text-lg font-medium text-ink">
+        <CourseLabel className="text-lg font-medium text-ink">
           {courseCardCode(course.courseCode, course.department)}
-        </Num>
+        </CourseLabel>
 
         {hasFreePreview(course) ? (
           <span className="rounded-card bg-accent px-2.5 py-1 text-xs font-medium text-on-accent">

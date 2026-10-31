@@ -72,7 +72,7 @@ describe("payment callback route", () => {
     );
 
     expect(response.headers.get("location")).toBe(
-      "https://example.com/auth/sign-in?next=%2Fdashboard%3Fpayment%3Dsign_in_required",
+      `https://example.com/auth/sign-in?next=%2Fdashboard%3Fpayment%3Dsign_in_required%26payment_id%3D${paymentId}`,
     );
     expect(confirmMoyasarPayment).not.toHaveBeenCalled();
   });
@@ -101,5 +101,19 @@ describe("payment callback route", () => {
     expect(schedulePaymentReceipt).toHaveBeenCalledWith(
       "70000000-0000-4000-8000-000000000001",
     );
+  });
+
+  it("retains the payment reference when verification is still pending", async () => {
+    vi.mocked(confirmMoyasarPayment).mockResolvedValue({
+      orderId: "70000000-0000-4000-8000-000000000001",
+      orderStatus: "pending",
+      enrollmentId: null,
+      stateChanged: false,
+    } as never);
+    const response = await GET(new Request(`https://example.com/api/payments/callback?id=${paymentId}`));
+    expect(response.headers.get("location")).toBe(
+      `https://example.com/dashboard?payment=pending&payment_id=${paymentId}`,
+    );
+    expect(schedulePaymentReceipt).not.toHaveBeenCalled();
   });
 });

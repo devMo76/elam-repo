@@ -79,11 +79,11 @@ export function InstructorProfileForm({ profile }: { profile: Profile }) {
         </label>
         <label className={`${styles.field} ${styles.wideField}`}>
           <span>نبذة مهنية قصيرة</span>
-          <input aria-describedby={fieldErrors.headline ? "profile-headline-error" : undefined} aria-invalid={Boolean(fieldErrors.headline)} onChange={(event) => setHeadline(event.target.value)} placeholder="مثال: مدرس هندسة كهربائية" value={headline} />
+          <input aria-describedby={fieldErrors.headline ? "profile-headline-error" : undefined} aria-invalid={Boolean(fieldErrors.headline)} onChange={(event) => setHeadline(event.target.value)} placeholder="مثال: شارح هندسة كهربائية" value={headline} />
           {fieldErrors.headline ? <small id="profile-headline-error">{fieldErrors.headline}</small> : null}
         </label>
         <label className={`${styles.field} ${styles.wideField}`}>
-          <span>عن المدرّس</span>
+          <span>عن الشارح</span>
           <textarea aria-describedby={fieldErrors.bio ? "profile-bio-error" : undefined} aria-invalid={Boolean(fieldErrors.bio)} onChange={(event) => setBio(event.target.value)} placeholder="عرّف المتعلمين بخبرتك وطريقة تدريسك." rows={7} value={bio} />
           {fieldErrors.bio ? <small id="profile-bio-error">{fieldErrors.bio}</small> : null}
         </label>

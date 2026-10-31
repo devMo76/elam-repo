@@ -187,11 +187,11 @@ function arabicFieldErrors(payload: CurrentApiError | null): CurrentFieldErrors 
   };
 }
 
-export function AuthPanel({ mode, redirectTo = "/account" }: { mode: CurrentAuthMode; redirectTo?: string }) {
+export function AuthPanel({ mode, redirectTo = "/account", initialError = null }: { mode: CurrentAuthMode; redirectTo?: string; initialError?: string | null }) {
   const router = useRouter();
   const errorSummaryRef = useRef<HTMLParagraphElement>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(initialError);
   const [fieldErrors, setFieldErrors] = useState<CurrentFieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pendingConfirmationEmail, setPendingConfirmationEmail] = useState<string | null>(null);

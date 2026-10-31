@@ -14,10 +14,18 @@ outbox row remains retryable.
 ## Scheduled retry
 
 1. Generate a random secret of at least 32 characters and set
-   `PAYMENT_RECEIPT_WORKER_SECRET` in the deployed server environment.
-2. Configure the deployment scheduler to send `POST` to
-   `/api/jobs/payment-receipts` every five minutes.
-3. Send the secret as `Authorization: Bearer <secret>`.
+   `PAYMENT_RECEIPT_WORKER_SECRET` in the Railway web service.
+2. Create a separate Railway cron service from the same repository. Override
+   its build command to `npm ci` so it does not build the web app. Set its
+   start command to `npm run jobs:payment-receipts` and its cron schedule to
+   `*/5 * * * *` (UTC). It must run once and exit; do not use the web server's
+   start command for this service.
+3. Set `RECEIPT_WORKER_URL` to the HTTPS origin of the web service and set
+   `PAYMENT_RECEIPT_WORKER_SECRET` to the **same value** used by the web service.
+   The script sends an authenticated `POST` to `/api/jobs/payment-receipts`.
+4. Check a cron execution log for a successful HTTP response and a run summary;
+   test a failed attempt and subsequent retry before launch. Keep staging and
+   production secrets and cron services separate.
 
 Each run selects at most 25 unsent rows and processes three concurrently. The
 database claim function supplies a five-minute lease, while Resend receives the

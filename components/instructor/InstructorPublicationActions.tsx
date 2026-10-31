@@ -7,6 +7,7 @@ import type { CourseReadiness, CourseReadinessBlocker, CourseReadinessWarning } 
 import type { InstructorPublishingCapability } from "@/lib/authoring/capabilities";
 import type { AuthoringApiError, StudioCourse } from "./studio-types";
 import styles from "./InstructorWorkspace.module.css";
+import { useInstructorPendingOperation } from "./InstructorNavigationBlocker";
 
 type ReadinessIssue = CourseReadinessBlocker | CourseReadinessWarning;
 
@@ -18,9 +19,9 @@ const issueLabels: Record<ReadinessIssue["code"], string> = {
   course_cover_missing: "إضافة صورة غلاف تجعل صفحة المقرر أوضح.",
   course_subtitle_missing: "يمكنك إضافة وصف قصير للمقرر.",
   course_description_missing: "يمكنك إضافة وصف تفصيلي للمقرر.",
-  instructor_avatar_missing: "يمكنك إضافة صورة لملف المدرّس.",
+  instructor_avatar_missing: "يمكنك إضافة صورة لملف الشارح.",
   instructor_headline_missing: "يمكنك إضافة نبذة مهنية قصيرة.",
-  instructor_bio_missing: "يمكنك إضافة سيرة مختصرة للمدرّس.",
+  instructor_bio_missing: "يمكنك إضافة سيرة مختصرة للشارح.",
   paid_course_preview_missing: "يُفضّل إتاحة درس مجاني لمعاينة المقرر المدفوع.",
   course_unusually_short: "المقرر يحتوي حاليًا على درس واحد فقط.",
   lesson_description_missing: "يمكنك إضافة وصف لهذا الدرس.",
@@ -102,19 +103,22 @@ export function InstructorPublicationActions({
   course,
   readiness,
   onStatusChange,
+  onReleased,
 }: {
   capability: InstructorPublishingCapability;
   course: StudioCourse;
   readiness: CourseReadiness;
   onStatusChange?: (status: StudioCourse["status"]) => void;
+  onReleased?: () => void;
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [pending, setPending] = useState<"submit" | "publish" | null>(null);
+  const [pending, setPending] = useState<"submit" | "publish" | "release" | null>(null);
+  useInstructorPendingOperation(pending !== null);
   const [serverBlockers, setServerBlockers] = useState<CourseReadinessBlocker[] | null>(null);
 
-  async function changeStatus(action: "submit" | "publish") {
+  async function changeStatus(action: "submit" | "publish" | "release") {
     setError(null);
     setMessage(null);
     setServerBlockers(null);
@@ -128,12 +132,12 @@ export function InstructorPublicationActions({
         if (payload?.error?.code === "course_not_ready" && payload.error.blockers?.length) {
           setServerBlockers(payload.error.blockers);
         }
-        setError(publicationError(payload));
+        setError(action === "release" ? "تعذّر نشر الإضافات. تأكد من جاهزية الفيديوهات وصلاحية التعديل ثم حاول مجددًا." : publicationError(payload));
         return;
       }
 
-      onStatusChange?.(payload.data.status);
-      setMessage(payload.data.status === "published" ? "نُشر المقرر بنجاح." : "أُرسل المقرر للمراجعة بنجاح.");
+      if (action === "release") { onReleased?.(); setMessage("نُشرت الإضافات بنجاح."); }
+      else { onStatusChange?.(payload.data.status); setMessage(payload.data.status === "published" ? "نُشر المقرر بنجاح." : "أُرسل المقرر للمراجعة بنجاح."); }
       router.refresh();
     } catch {
       setError("تعذّر الاتصال بالخدمة. تحقّق من الاتصال ثم حاول مرة أخرى.");
@@ -147,7 +151,21 @@ export function InstructorPublicationActions({
   }
 
   if (course.status === "published") {
-    return <p className={styles.readOnlyNotice}>هذا المقرر منشور. تظهر بنية المحتوى للمتابعة هنا، وتبقى التعديلات محصورة في المسودات.</p>;
+    const additions = course.modules.flatMap((module) => module.lessons).filter((lesson) => lesson.isPending);
+    const ready = additions.length > 0 && additions.every((lesson) => lesson.mediaStatus === "ready") &&
+      course.modules.every((module) => !module.isPending || module.lessons.length > 0);
+    return <div className={styles.publicationControl}>
+      <p>{additions.length ? `${additions.length} درس بانتظار النشر.` : "جميع الدروس منشورة."}</p>
+      {course.publishedEditsAllowed ? <>
+        <p className={styles.capabilityNote}>ستظهر الإضافات لجميع المسجلين وتُحدّث نسبة التقدم، دون تغيير الدروس التي تمت مشاهدتها.</p>
+        <button className={styles.primaryButton} disabled={!ready || pending !== null} type="button" onClick={() => {
+          if (window.confirm("نشر الإضافات الجاهزة لجميع المسجلين؟")) void changeStatus("release");
+        }}>{pending === "release" ? "جارٍ نشر الإضافات…" : "نشر الإضافات"}</button>
+        {!ready && additions.length > 0 ? <p role="status">انتظر جاهزية جميع الفيديوهات قبل نشر الإضافات.</p> : null}
+      </> : <p>التعديل غير مفعّل لهذه الدورة.</p>}
+      {message ? <p className={styles.success} role="status">{message}</p> : null}
+      {error ? <p className={styles.error} role="alert">{error}</p> : null}
+    </div>;
   }
 
   if (course.status === "in_review") {

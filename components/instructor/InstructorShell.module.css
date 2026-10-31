@@ -103,15 +103,22 @@
   padding: clamp(1.5rem, 4vw, 3.5rem);
 }
 
+.mobileHeader { display: none; }
+.drawerNavigation { display: flex; flex-direction: column; min-block-size: calc(100dvh - 8rem); gap: 1rem; }
+.drawerEnd { block-size: env(safe-area-inset-bottom); }
+.menuButton { display: grid; place-items: center; inline-size: 44px; block-size: 44px; border: 1px solid var(--hairline); background: var(--raised); color: var(--ink); border-radius: var(--radius-card); cursor: pointer; font-size: 1.3rem; }
+.mobileLogo { block-size: 2.1rem; inline-size: auto; }
+.menuButton:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
 @media (max-width: 760px) {
   .page { display: block; }
-
-  .sidebar {
+  .sidebar { display: none; }
+  .mobileHeader {
     position: sticky;
     inset-block-start: 0;
     z-index: 20;
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr) auto;
     gap: 0.65rem 0.9rem;
     border-block-end: 1px solid var(--hairline);
     border-inline-end: 0;
@@ -133,7 +140,7 @@
   }
 
   .identity p,
-  .identity strong { display: none; }
+  .identity strong { display: block; }
 
   .identity span {
     overflow: hidden;
@@ -174,4 +181,8 @@
   .backLink { display: none; }
   .signOutButton { inline-size: auto; min-block-size: 40px; padding-inline: 0.7rem; font-size: 0.8125rem; white-space: nowrap; }
   .workspace { padding: 1.25rem 0.75rem max(2.5rem, env(safe-area-inset-bottom)); }
+  .drawerNavigation .identity { display: grid; padding-block-end: 1rem; }
+  .drawerNavigation .navigation { display: grid; overflow: visible; }
+  .drawerNavigation .sidebarActions { display: grid; justify-self: stretch; margin-block-start: auto; border-block-start: 1px solid var(--hairline); padding-block-start: 1rem; }
+  .drawerNavigation .backLink { display: flex; }
 }

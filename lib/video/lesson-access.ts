@@ -23,6 +23,7 @@ type LessonAccessResult =
 
 export async function getManagedVideoLesson(
   lessonId: string,
+  operation: "inspect" | "modify" = "inspect",
 ): Promise<LessonAccessResult> {
   const supabase = await createClient();
   const {
@@ -43,7 +44,7 @@ export async function getManagedVideoLesson(
     supabase.from("profiles").select("role").eq("id", user.id).maybeSingle(),
     supabase
       .from("lessons")
-      .select("id, title, module_id, media_status, video_asset_id")
+      .select("id, title, module_id, media_status, video_asset_id, is_pending")
       .eq("id", lessonId)
       .maybeSingle(),
   ]);
@@ -105,7 +106,7 @@ export async function getManagedVideoLesson(
 
   const { data: course, error: courseError } = await supabase
     .from("courses")
-    .select("instructor_id")
+    .select("instructor_id, status, instructor_published_edits_allowed")
     .eq("id", module.course_id)
     .maybeSingle();
 
@@ -130,6 +131,12 @@ export async function getManagedVideoLesson(
       code: "forbidden",
       message: "You cannot manage video for this lesson.",
     };
+  }
+
+  if (operation === "modify" && !(course.status === "draft" ||
+    (course.status === "published" && lesson.is_pending && course.instructor_published_edits_allowed))) {
+    return { success: false, status: 409, code: "course_not_editable",
+      message: "Existing published media cannot be replaced or removed." };
   }
 
   return {

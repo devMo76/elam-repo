@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { AccessibleFormError } from "@/components/ui/AccessibleFormError";
-import { useInstructorUnsavedChanges } from "./InstructorNavigationBlocker";
+import { useInstructorUnsavedChanges, useInstructorPendingOperation } from "./InstructorNavigationBlocker";
+import { getInstructorEditPolicy } from "@/lib/authoring/edit-policy";
 import type { AuthoringApiError, StudioCourse } from "./studio-types";
 import styles from "./InstructorWorkspace.module.css";
 import { getEditorSaveState } from "@/lib/authoring/editor-state";
@@ -95,11 +96,13 @@ function toPayload(fields: CourseFields, includeSlug: boolean) {
 
 function CourseFieldsForm({
   creating = false,
+  commercialLocked = false,
   fields,
   fieldErrors,
   onChange,
 }: {
   creating?: boolean;
+  commercialLocked?: boolean;
   fields: CourseFields;
   fieldErrors: CourseFieldErrors;
   onChange: (field: keyof CourseFields, value: string) => void;
@@ -131,7 +134,7 @@ function CourseFieldsForm({
           </label>
           <label className={styles.field}>
             <span>السعر بالريال السعودي</span>
-            <input {...fieldErrorProps("priceRiyals", displayedErrors)} inputMode="decimal" min="0" onChange={(event) => onChange("priceRiyals", event.target.value)} required step="0.01" type="number" value={fields.priceRiyals} />
+            <input {...fieldErrorProps("priceRiyals", displayedErrors)} disabled={commercialLocked} inputMode="decimal" min="0" onChange={(event) => onChange("priceRiyals", event.target.value)} required step="0.01" type="number" value={fields.priceRiyals} />
             <small>0 للمقرر المجاني.</small>
             <CourseFieldError errors={displayedErrors} field="priceRiyals" />
           </label>
@@ -161,7 +164,7 @@ function CourseFieldsForm({
         <summary>خيارات متقدمة</summary>
         <label className={styles.field}>
           <span>{creating ? "تخصيص رابط المقرر (اختياري)" : "رابط المقرر"}</span>
-          <input {...fieldErrorProps("slug", displayedErrors)} autoCapitalize="none" autoComplete="off" dir="ltr" maxLength={120} onChange={(event) => onChange("slug", event.target.value.toLowerCase())} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder={creating ? "يُنشأ تلقائيًا من العنوان" : undefined} required={!creating} value={fields.slug} />
+          <input {...fieldErrorProps("slug", displayedErrors)} disabled={commercialLocked} autoCapitalize="none" autoComplete="off" dir="ltr" maxLength={120} onChange={(event) => onChange("slug", event.target.value.toLowerCase())} pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder={creating ? "يُنشأ تلقائيًا من العنوان" : undefined} required={!creating} value={fields.slug} />
           <CourseFieldError errors={displayedErrors} field="slug" />
         </label>
       </details>
@@ -177,6 +180,7 @@ export function InstructorCourseCreateForm() {
   const [isSaving, setIsSaving] = useState(false);
   const isDirty = useMemo(() => JSON.stringify(fields) !== JSON.stringify(initialCourseFields), [fields]);
   useInstructorUnsavedChanges(isDirty);
+  useInstructorPendingOperation(isSaving);
 
   function changeField(field: keyof CourseFields, value: string) {
     setFields((current) => ({ ...current, [field]: value }));
@@ -202,7 +206,7 @@ export function InstructorCourseCreateForm() {
         return;
       }
 
-      router.push(`/studio/courses/${payload.data.id}`);
+      router.push(`/studio/courses/${payload.data.id}?panel=content`);
       router.refresh();
     } catch {
       setError("تعذّر الاتصال بالخدمة. تحقّق من الاتصال ثم حاول مرة أخرى.");
@@ -212,8 +216,10 @@ export function InstructorCourseCreateForm() {
   }
 
   return (
-    <form className={styles.formPanel} onSubmit={submit}>
-      <CourseFieldsForm creating fieldErrors={fieldErrors} fields={fields} onChange={changeField} />
+    <form aria-busy={isSaving} className={styles.formPanel} onSubmit={submit}>
+      <fieldset className={styles.formFieldset} disabled={isSaving}>
+        <CourseFieldsForm creating fieldErrors={fieldErrors} fields={fields} onChange={changeField} />
+      </fieldset>
       <div className={styles.formFooter}>
         <p className={isDirty ? styles.unsaved : undefined}>{isDirty ? "توجد بيانات غير محفوظة" : "سيُنشأ المقرر كمسودة."}</p>
         <button className={styles.primaryButton} disabled={isSaving} type="submit">{isSaving ? "جارٍ إنشاء المسودة…" : "إنشاء المسودة"}</button>
@@ -246,6 +252,8 @@ export function InstructorCourseDetailsForm({
   const [isSaving, setIsSaving] = useState(false);
   const [savedFields, setSavedFields] = useState(fields);
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  useInstructorPendingOperation(isSaving);
+  const policy = getInstructorEditPolicy({ status: course.status, isOwner: true, publishedEditsAllowed: course.publishedEditsAllowed });
   const isDirty = useMemo(() => JSON.stringify(fields) !== JSON.stringify(savedFields), [fields, savedFields]);
   const saveState = getEditorSaveState({ dirty: isDirty, saving: isSaving, saved, failed: error !== null });
   useInstructorUnsavedChanges(isDirty);
@@ -287,13 +295,12 @@ export function InstructorCourseDetailsForm({
     }
   }
 
-  if (course.status === "archived") {
-    return <p className={styles.readOnlyNotice}>هذا المقرر مؤرشف، لذلك لا يمكن تعديل تفاصيله أو محتواه.</p>;
-  }
-
   return (
-    <form className={styles.formPanel} onSubmit={submit}>
-      <CourseFieldsForm fieldErrors={fieldErrors} fields={fields} onChange={changeField} />
+    <form aria-busy={isSaving} className={styles.formPanel} onSubmit={submit}>
+      {!policy.canEditDescription ? <p className={styles.readOnlyNotice}>تفاصيل الدورة للعرض فقط في هذه الحالة.</p> : null}
+      <fieldset className={styles.formFieldset} disabled={!policy.canEditDescription || isSaving}>
+        <CourseFieldsForm commercialLocked={!policy.canChangePriceOrSlug} fieldErrors={fieldErrors} fields={fields} onChange={changeField} />
+      </fieldset>
       <div className={styles.formFooter}>
         <p className={saveState === "dirty" || saveState === "failed" ? styles.unsaved : styles.saveStatus} role="status">
           {saveState === "saving"
@@ -306,7 +313,7 @@ export function InstructorCourseDetailsForm({
                   ? `حُفظت الآن، ${lastSavedAt.toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" })}`
                   : "جميع التغييرات محفوظة"}
         </p>
-        <button className={styles.primaryButton} disabled={isSaving} type="submit">{isSaving ? "جارٍ الحفظ…" : "حفظ التفاصيل"}</button>
+        <button className={styles.primaryButton} disabled={isSaving || !policy.canEditDescription || !isDirty} type="submit">{isSaving ? "جارٍ الحفظ…" : "حفظ التفاصيل"}</button>
       </div>
       {error ? <AccessibleFormError className={styles.error}>{error}</AccessibleFormError> : null}
     </form>

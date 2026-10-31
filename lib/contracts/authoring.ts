@@ -89,6 +89,7 @@ export const reorderLessonsRequestSchema = z.strictObject({
 });
 
 export const authoringLessonSchema = z.strictObject({
+  isPending: z.boolean().optional(),
   id: z.uuid(),
   moduleId: z.uuid(),
   title: z.string().min(1),
@@ -99,6 +100,7 @@ export const authoringLessonSchema = z.strictObject({
 });
 
 export const authoringModuleSchema = z.strictObject({
+  isPending: z.boolean().optional(),
   id: z.uuid(),
   courseId: z.uuid(),
   title: z.string().min(1),
@@ -107,6 +109,7 @@ export const authoringModuleSchema = z.strictObject({
 });
 
 export const authoringCourseSchema = z.strictObject({
+  publishedEditsAllowed: z.boolean().optional(),
   id: z.uuid(),
   slug: courseSlugSchema,
   department: z.string().min(1),

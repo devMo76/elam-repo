@@ -199,6 +199,56 @@
   background: var(--tint);
 }
 
+.purchaseList {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.purchase {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-card);
+  background: var(--raised);
+  padding: 1.25rem;
+}
+
+.purchase h3 { color: var(--ink); font-size: 1.1rem; font-weight: 700; }
+.purchase p { margin-block-start: 0.35rem; color: var(--muted); }
+.orderId { overflow-wrap: anywhere; font-size: 0.85rem; }
+.purchaseActions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.purchaseActions a,
+.purchaseActions button,
+.purchaseNotice button {
+  display: inline-flex;
+  min-block-size: 44px;
+  align-items: center;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  color: var(--accent);
+  padding: 0.6rem 1rem;
+  font: inherit;
+  cursor: pointer;
+}
+.purchaseActions button:disabled,
+.purchaseNotice button:disabled { opacity: 0.55; cursor: wait; }
+.purchaseNotice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-block-end: 1rem;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-card);
+  background: var(--tint);
+  padding: 1rem;
+}
+.purchaseEmpty { color: var(--muted); }
+
 .skeleton {
   display: grid;
   gap: 1rem;

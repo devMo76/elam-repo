@@ -45,7 +45,11 @@ describe("Supabase service-role boundary", () => {
 
     expect(matches.sort()).toEqual([
       "lib/env/server.ts",
+      "lib/http/rate-limit.test.ts",
+      "lib/http/rate-limit.ts",
       "lib/supabase/admin.ts",
+      // Node-only Playwright setup, localhost-gated; never imported by app code.
+      "tests/browser/instructor-studio.spec.ts",
     ]);
   });
 });

@@ -29,10 +29,16 @@ function configureClient({
   role,
   instructorId = userId,
   authenticated = true,
+  status = "draft",
+  pending = false,
+  allowed = false,
 }: {
   role: "learner" | "instructor" | "admin";
   instructorId?: string;
   authenticated?: boolean;
+  status?: string;
+  pending?: boolean;
+  allowed?: boolean;
 }) {
   const queries = {
     profiles: createQuery({ data: { role }, error: null }),
@@ -43,12 +49,13 @@ function configureClient({
         module_id: moduleId,
         media_status: "processing",
         video_asset_id: "66666666-6666-4666-8666-666666666666",
+        is_pending: pending,
       },
       error: null,
     }),
     modules: createQuery({ data: { course_id: courseId }, error: null }),
     courses: createQuery({
-      data: { instructor_id: instructorId },
+      data: { instructor_id: instructorId, status, instructor_published_edits_allowed: allowed },
       error: null,
     }),
   };
@@ -71,6 +78,18 @@ afterEach(() => {
 });
 
 describe("managed video lesson access", () => {
+  it.each([
+    ["draft", false, false, true], ["published", false, true, false],
+    ["published", true, true, true], ["published", true, false, false],
+    ["in_review", false, false, false], ["archived", false, false, false],
+  ])("checks modification in %s with pending=%s allowed=%s", async (status, pending, allowed, success) => {
+    configureClient({ role: "instructor", status, pending, allowed });
+    expect((await getManagedVideoLesson(lessonId, "modify")).success).toBe(success);
+  });
+  it("permits inspection of locked published media", async () => {
+    configureClient({ role: "instructor", status: "published" });
+    expect((await getManagedVideoLesson(lessonId, "inspect")).success).toBe(true);
+  });
   it("allows the instructor who owns the course", async () => {
     configureClient({ role: "instructor" });
 

@@ -12,9 +12,13 @@ vi.mock("@/lib/env/public", () => ({
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(),
 }));
+vi.mock("@/lib/http/rate-limit", () => ({
+  checkRateLimits: vi.fn(async () => null),
+}));
 
 import { POST as register } from "@/app/api/auth/register/route";
 import { POST as resendConfirmation } from "@/app/api/auth/resend-confirmation/route";
+import { POST as requestPasswordReset } from "@/app/api/auth/password-reset/route";
 import { GET as confirmEmail } from "@/app/auth/callback/route";
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest } from "next/server";
@@ -22,14 +26,18 @@ import { NextRequest } from "next/server";
 const signUp = vi.fn();
 const resend = vi.fn();
 const exchangeCodeForSession = vi.fn();
+const verifyOtp = vi.fn();
+const resetPasswordForEmail = vi.fn();
 
 beforeEach(() => {
   vi.clearAllMocks();
   signUp.mockResolvedValue({ data: {}, error: null });
   resend.mockResolvedValue({ data: {}, error: null });
   exchangeCodeForSession.mockResolvedValue({ data: {}, error: null });
+  verifyOtp.mockResolvedValue({ data: {}, error: null });
+  resetPasswordForEmail.mockResolvedValue({ data: {}, error: null });
   vi.mocked(createClient).mockResolvedValue({
-    auth: { signUp, resend, exchangeCodeForSession },
+    auth: { signUp, resend, exchangeCodeForSession, verifyOtp, resetPasswordForEmail },
   } as never);
 });
 
@@ -42,6 +50,140 @@ function jsonRequest(pathname: string, body: object) {
 }
 
 describe("authentication destination continuity", () => {
+  it("requests recovery with a canonical callback and reset-form destination", async () => {
+    const response = await requestPasswordReset(jsonRequest("/api/auth/password-reset", { email: "learner@example.com" }));
+    expect(response.status).toBe(202);
+    expect(resetPasswordForEmail).toHaveBeenCalledWith("learner@example.com", {
+      redirectTo: "https://elam.example/auth/callback?next=%2Fauth%2Freset-password",
+    });
+  });
+
+  it("verifies a recovery token without original-device cookies", async () => {
+    const request = new NextRequest("https://0.0.0.0:8080/auth/callback?token_hash=recovery-token&type=recovery");
+    expect(request.cookies.getAll()).toEqual([]);
+    const response = await confirmEmail(request);
+    expect(verifyOtp).toHaveBeenCalledWith({ token_hash: "recovery-token", type: "recovery" });
+    expect(exchangeCodeForSession).not.toHaveBeenCalled();
+    expect(response.headers.get("location")).toBe("https://elam.example/auth/reset-password");
+    expect(response.headers.get("referrer-policy")).toBe("no-referrer");
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+  });
+
+  it.each(["/dashboard", "https://evil.example", "//evil.example"])(
+    "always sends verified recovery tokens to the reset form despite next=%s",
+    async (next) => {
+      const url = new URL("https://elam.example/auth/callback?token_hash=recovery-token&type=recovery");
+      url.searchParams.set("next", next);
+      const response = await confirmEmail(new NextRequest(url));
+      expect(response.headers.get("location")).toBe("https://elam.example/auth/reset-password");
+    },
+  );
+
+  it("uses a recovery-specific retry destination for expired tokens", async () => {
+    verifyOtp.mockResolvedValueOnce({ error: new Error("Expired recovery token") });
+    const response = await confirmEmail(new NextRequest("https://elam.example/auth/callback?token_hash=used&type=recovery&code=valid"));
+    expect(response.headers.get("location")).toBe("https://elam.example/auth/password-reset?auth_error=recovery_failed");
+    expect(exchangeCodeForSession).not.toHaveBeenCalled();
+  });
+
+  it("keeps legacy recovery-code redirects working without signup-success messages", async () => {
+    const response = await confirmEmail(new NextRequest("https://elam.example/auth/callback?code=valid&next=%2Fauth%2Freset-password"));
+    expect(response.headers.get("location")).toBe("https://elam.example/auth/reset-password");
+    expect(exchangeCodeForSession).toHaveBeenCalledWith("valid");
+  });
+
+  it("does not call an expired legacy recovery link an activation failure", async () => {
+    exchangeCodeForSession.mockResolvedValueOnce({ error: new Error("Invalid code") });
+    const response = await confirmEmail(new NextRequest("https://elam.example/auth/callback?code=used&next=%2Fauth%2Freset-password"));
+    expect(response.headers.get("location")).toBe("https://elam.example/auth/password-reset?auth_error=recovery_failed");
+  });
+
+  it("verifies an email token without any registration-browser cookies", async () => {
+    const request = new NextRequest(
+      "https://0.0.0.0:8080/auth/callback?token_hash=valid-token&type=email&next=%2Faccount",
+    );
+    expect(request.cookies.getAll()).toEqual([]);
+    const response = await confirmEmail(request);
+
+    expect(verifyOtp).toHaveBeenCalledWith({ token_hash: "valid-token", type: "email" });
+    expect(exchangeCodeForSession).not.toHaveBeenCalled();
+    expect(response.headers.get("location")).toBe("https://elam.example/account?auth=verified");
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+    expect(response.headers.get("referrer-policy")).toBe("no-referrer");
+  });
+
+  it("preserves course intent without forwarding verification credentials", async () => {
+    const response = await confirmEmail(new NextRequest(
+      "https://elam.example/auth/callback?token_hash=valid-token&type=email&next=%2Fcourses%2Fsignals%3Flesson%3Dpreview",
+    ));
+    expect(response.headers.get("location")).toBe(
+      "https://elam.example/courses/signals?lesson=preview&auth=verified",
+    );
+  });
+
+  it.each(["https://evil.example", "//evil.example", "/\\evil.example"])(
+    "rejects unsafe token confirmation destination %s",
+    async (next) => {
+      const url = new URL("https://elam.example/auth/callback?token_hash=valid-token&type=email");
+      url.searchParams.set("next", next);
+      const response = await confirmEmail(new NextRequest(url));
+      expect(response.headers.get("location")).toBe("https://elam.example/account?auth=verified");
+    },
+  );
+
+  it.each(["invite", "email_change", "signup", "sms", ""])(
+    "does not accept OTP type %s on the signup token path",
+    async (type) => {
+      const url = new URL("https://elam.example/auth/callback?token_hash=valid-token&code=valid-code");
+      url.searchParams.set("type", type);
+      const response = await confirmEmail(new NextRequest(url));
+      expect(response.headers.get("location")).toBe("https://elam.example/?auth_error=confirmation_failed");
+      expect(createClient).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(["", "x".repeat(2049)])("rejects empty or oversized token hashes", async (token) => {
+    const url = new URL("https://elam.example/auth/callback?type=email");
+    url.searchParams.set("token_hash", token);
+    const response = await confirmEmail(new NextRequest(url));
+    expect(response.headers.get("location")).toBe("https://elam.example/?auth_error=confirmation_failed");
+    expect(createClient).not.toHaveBeenCalled();
+  });
+
+  it("fails safely on expired/replayed tokens without falling back to PKCE", async () => {
+    verifyOtp.mockResolvedValueOnce({ error: new Error("Expired token") });
+    const response = await confirmEmail(new NextRequest(
+      "https://elam.example/auth/callback?token_hash=used-token&type=email&code=valid-code",
+    ));
+    expect(response.headers.get("location")).toBe("https://elam.example/?auth_error=confirmation_failed");
+    expect(exchangeCodeForSession).not.toHaveBeenCalled();
+    expect(response.headers.get("cache-control")).toBe("private, no-store");
+  });
+
+  it("does not claim success when the link has no credentials", async () => {
+    const response = await confirmEmail(new NextRequest("https://elam.example/auth/callback"));
+    expect(response.headers.get("location")).toBe("https://elam.example/?auth_error=confirmation_failed");
+    expect(createClient).not.toHaveBeenCalled();
+  });
+
+  it("uses the public site URL after verification behind Railway's proxy", async () => {
+    const response = await confirmEmail(
+      new NextRequest("https://0.0.0.0:8080/auth/callback?code=valid-code&next=%2Faccount"),
+    );
+
+    expect(response.headers.get("location")).toBe("https://elam.example/account?auth=verified");
+    expect(exchangeCodeForSession).toHaveBeenCalledWith("valid-code");
+  });
+
+  it("keeps failed verification redirects on the public site", async () => {
+    exchangeCodeForSession.mockResolvedValueOnce({ error: new Error("Invalid code") });
+    const response = await confirmEmail(
+      new NextRequest("https://0.0.0.0:8080/auth/callback?code=invalid-code&next=%2Faccount"),
+    );
+
+    expect(response.headers.get("location")).toBe("https://elam.example/?auth_error=confirmation_failed");
+  });
+
   it("carries a course destination into the registration confirmation link", async () => {
     const next = "/courses/signals-and-systems-ee301?lesson=preview";
     const response = await register(

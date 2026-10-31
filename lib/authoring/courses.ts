@@ -9,15 +9,16 @@ import { requireInstructorAuthoringContext } from "./access";
 import { AuthoringError, throwAuthoringDatabaseError } from "./errors";
 import { createCourseSlugBase, createCourseSlugCandidate } from "./slug";
 import { toAuthoringCourse } from "./transform";
+import { getInstructorEditPolicy } from "./edit-policy";
 
 const courseSelect = `
   id, slug, department, course_code, title, subtitle, description,
-  price_halalas, currency, status, cover_url, created_at, published_at,
+  price_halalas, currency, status, cover_url, created_at, published_at, instructor_published_edits_allowed,
   modules (
-    id, course_id, title, position,
+    id, course_id, title, position, is_pending,
     lessons (
       id, module_id, title, position, duration_seconds,
-      is_free_preview, media_status
+      is_free_preview, media_status, is_pending
     )
   )
 `;
@@ -99,6 +100,32 @@ export async function updateInstructorCourse(
   input: UpdateAuthoringCourseRequest,
 ) {
   const { supabase, user } = await requireInstructorAuthoringContext();
+  const { data: currentCourse, error: accessError } = await supabase
+    .from("courses")
+    .select("status, slug, price_halalas, instructor_published_edits_allowed")
+    .eq("id", courseId)
+    .eq("instructor_id", user.id)
+    .maybeSingle();
+
+  if (accessError) throwAuthoringDatabaseError(accessError, "The course could not be loaded.");
+  if (!currentCourse) throw new AuthoringError(404, "course_not_found", "The course was not found.");
+
+  const policy = getInstructorEditPolicy({
+    status: currentCourse.status,
+    isOwner: true,
+    publishedEditsAllowed: currentCourse.instructor_published_edits_allowed,
+  });
+  if (!policy.canEditDescription) {
+    throw new AuthoringError(403, "course_details_locked", "Course details cannot be changed in this state.");
+  }
+  // Existing forms may submit unchanged price/slug along with descriptive edits.
+  // Compare values, not just field presence, so those saves remain valid.
+  if (!policy.canChangePriceOrSlug && (
+    (input.slug !== undefined && input.slug !== currentCourse.slug) ||
+    (input.priceHalalas !== undefined && input.priceHalalas !== currentCourse.price_halalas)
+  )) {
+    throw new AuthoringError(403, "course_commercial_fields_locked", "The price and course URL are locked after draft.");
+  }
   const changes = {
     ...(input.slug === undefined ? {} : { slug: input.slug }),
     ...(input.department === undefined ? {} : { department: input.department }),
@@ -115,7 +142,7 @@ export async function updateInstructorCourse(
     .update(changes)
     .eq("id", courseId)
     .eq("instructor_id", user.id)
-    .neq("status", "archived")
+    .eq("status", currentCourse.status)
     .select(courseSelect)
     .maybeSingle();
 

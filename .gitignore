@@ -14,6 +14,8 @@
 
 # Test and tooling output
 /coverage
+/test-results/
+/playwright-report/
 *.tsbuildinfo
 next-env.d.ts
 

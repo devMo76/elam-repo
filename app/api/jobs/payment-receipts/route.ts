@@ -46,3 +46,9 @@ export async function POST(request: Request) {
     );
   }
 }
+
+// Vercel Cron invokes GET. Keep the same bearer check as the manual POST
+// worker; configure CRON_SECRET to the same value as the worker secret.
+export async function GET(request: Request) {
+  return POST(request);
+}

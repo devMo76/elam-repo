@@ -1,7 +1,7 @@
 "use client";
 
 import { Upload } from "tus-js-client";
-import Link from "next/link";
+import { InstructorLink as Link } from "./InstructorNavigationBlocker";
 import {
   createContext,
   useCallback,
@@ -542,7 +542,7 @@ export function InstructorUploadPanel() {
           return (
             <li key={upload.lessonId}>
               <div className={styles.uploadHeading}>
-                <Link href={`/studio/courses/${upload.courseId}#lesson-${upload.lessonId}`}>
+                <Link href={`/studio/courses/${upload.courseId}?panel=content#lesson-${upload.lessonId}`} onNavigate={() => window.dispatchEvent(new CustomEvent("studio:open-lesson", { detail: { courseId: upload.courseId } }))}>
                   <strong>{upload.lessonTitle}</strong>
                   <small>{upload.courseTitle}</small>
                 </Link>

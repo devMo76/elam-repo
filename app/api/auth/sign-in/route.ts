@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { signInSchema } from "@/lib/auth/schemas";
 import { createApiError, parseJsonBody } from "@/lib/http/api-response";
+import { checkRateLimits } from "@/lib/http/rate-limit";
 import {
   measureServerOperation,
   observeServerRequest,
@@ -15,6 +16,12 @@ export async function POST(request: Request) {
     if (!parsed.success) {
       return parsed.response;
     }
+
+    const limited = await checkRateLimits(request, [
+      { action: "auth.signin.ip", limit: 20, windowSeconds: 300 },
+      { action: "auth.signin.email", subject: parsed.data.email, limit: 8, windowSeconds: 900 },
+    ]);
+    if (limited) return limited;
 
     const supabase = await createClient();
     const { data, error } = await measureServerOperation(

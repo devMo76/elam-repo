@@ -10,7 +10,7 @@ type Role = "learner" | "instructor" | "admin";
 
 const roleOptions: Array<{ value: Role; label: string }> = [
   { value: "learner", label: "متعلم" },
-  { value: "instructor", label: "مدرّس" },
+  { value: "instructor", label: "شارح" },
   { value: "admin", label: "مسؤول" },
 ];
 
@@ -59,11 +59,13 @@ export function AdminCourseActions({
   courseId,
   courseTitle,
   currentStatus,
+  publishedEditsAllowed = false,
 }: {
   canPublish: boolean;
   courseId: string;
   courseTitle: string;
   currentStatus: "draft" | "in_review" | "published" | "archived";
+  publishedEditsAllowed?: boolean;
 }) {
   const actions = [
     currentStatus !== "published" && canPublish
@@ -79,6 +81,12 @@ export function AdminCourseActions({
 
   return (
     <div className={styles.actions}>
+      {currentStatus === "published" ? <div>
+        <small className={styles.actionHint}>{publishedEditsAllowed ? "تعديل الشارح مفعّل" : "تعديل الشارح مقفل"}</small>
+        <AdminMutationButton action={publishedEditsAllowed ? "قفل التعديل" : "السماح بالتعديل"}
+          body={{ publishedEditsAllowed: !publishedEditsAllowed }} endpoint={`/api/admin/courses/${courseId}/edit-permission`}
+          confirmation={publishedEditsAllowed ? "منع الشارح من تعديل التفاصيل وإضافة محتوى جديد؟" : "السماح بتعديل التفاصيل وإضافة دروس غير منشورة؟ المحتوى المنشور والسعر والرابط تبقى محفوظة."} />
+      </div> : null}
       {!canPublish && currentStatus !== "published" ? <small className={styles.actionHint}>لا يمكن النشر قبل اكتمال المحتوى والفيديوهات.</small> : null}
       {actions.map((action) => (
         <AdminMutationButton
@@ -141,7 +149,7 @@ export function AdminSettingsForm({
           type="checkbox"
         />
         <span>
-          <strong>النشر المباشر للمدرّسين</strong>
+          <strong>النشر المباشر للشارحين</strong>
           <small>عند تفعيله، يمكن للمقرر استيفاء شروط النشر دون انتظار المراجعة اليدوية.</small>
         </span>
       </label>

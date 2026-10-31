@@ -30,7 +30,7 @@ async function removeUnclaimedVideo(videoId: string) {
 }
 
 export async function requestLessonVideoUpload(lessonId: string) {
-  const access = await getManagedVideoLesson(lessonId);
+  const access = await getManagedVideoLesson(lessonId, "modify");
 
   if (!access.success) {
     throw new VideoUploadRequestError(
@@ -99,7 +99,7 @@ export async function requestLessonVideoUpload(lessonId: string) {
 }
 
 export async function cancelLessonVideoUpload(lessonId: string) {
-  const access = await getManagedVideoLesson(lessonId);
+  const access = await getManagedVideoLesson(lessonId, "modify");
 
   if (!access.success) {
     throw new VideoUploadRequestError(
@@ -111,16 +111,6 @@ export async function cancelLessonVideoUpload(lessonId: string) {
 
   const { lesson } = access;
   if (!lesson.videoAssetId || lesson.mediaStatus === "absent") return;
-
-  try {
-    await deleteBunnyVideo(lesson.videoAssetId);
-  } catch {
-    throw new VideoUploadRequestError(
-      502,
-      "video_cancel_failed",
-      "The video provider could not cancel this video.",
-    );
-  }
 
   const admin = createAdminClient();
   const { error } = await admin
@@ -139,5 +129,12 @@ export async function cancelLessonVideoUpload(lessonId: string) {
       "video_cancel_state_failed",
       "The cancelled video state could not be saved.",
     );
+  }
+  // Clear the binding first: database state/permission checks must succeed before
+  // deleting a provider asset. A release/revocation race cannot delete live video.
+  try {
+    await deleteBunnyVideo(lesson.videoAssetId);
+  } catch {
+    throw new VideoUploadRequestError(502, "video_cancel_failed", "The video provider could not cancel this video.");
   }
 }
