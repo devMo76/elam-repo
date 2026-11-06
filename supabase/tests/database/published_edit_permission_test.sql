@@ -34,7 +34,7 @@ reset role;
 select is((select title from public.courses where id='49110000-0000-4000-8000-000000000003'),'Other instructor','enabled instructor still cannot edit another owner');
 
 select set_config('request.jwt.claim.sub','',true);
-insert into public.courses(id,slug,title,status,instructor_id) values('49110000-0000-4000-8000-000000000004','wide-edit-future','Future course','published','20000000-0000-4000-8000-000000000001');
+insert into public.courses(id,slug,title,price_halalas,status,instructor_id) values('49110000-0000-4000-8000-000000000004','wide-edit-future','Future course',0,'published','20000000-0000-4000-8000-000000000001');
 set local role authenticated;
 select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000001',true);
 select lives_ok($$update public.courses set title='Future corrected' where id='49110000-0000-4000-8000-000000000004'$$,'future published course inherits permission');
@@ -55,7 +55,7 @@ select throws_ok($$select public.admin_set_instructor_edit_permission('ffffffff-
 select is((select count(*) from public.admin_audit_log where action='instructor.edit_permission.change' and subject='20000000-0000-4000-8000-000000000001'),2::bigint,'revocation audited once');
 
 select public.admin_set_instructor_edit_permission('20000000-0000-4000-8000-000000000001',true);
-select lives_ok($$update public.profiles set role='learner' where id='20000000-0000-4000-8000-000000000001'$$,'admin can demote an enabled instructor');
+select lives_ok($$select public.admin_change_user_role('20000000-0000-4000-8000-000000000001','learner')$$,'admin can demote an enabled instructor');
 select is(public.instructor_updates_enabled('20000000-0000-4000-8000-000000000001'),false,'demoted user loses update permission');
 select is((select instructor_published_updates_allowed from public.profiles where id='20000000-0000-4000-8000-000000000001'),false,'permission is cleared rather than silently revived on later promotion');
 

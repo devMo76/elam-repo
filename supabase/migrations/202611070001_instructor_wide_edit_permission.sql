@@ -1,4 +1,11 @@
 -- One instructor-level authority; legacy course flags no longer authorize edits.
+do $$
+begin
+  if exists (select 1 from public.courses where instructor_published_edits_allowed) then
+    raise exception 'Review existing course edit grants before migrating instructor permissions';
+  end if;
+end;
+$$;
 alter table public.profiles add column instructor_published_updates_allowed boolean not null default false;
 
 create function public.instructor_updates_enabled(target_instructor_id uuid)
