@@ -107,6 +107,7 @@ begin
   if auth.uid() is null or not public.is_admin() then
     raise exception using errcode = '42501', message = 'Administrator role required';
   end if;
-  raise exception using errcode = '22023', message = 'Manage published updates on the instructor account';
+  raise exception using errcode = '22023', message = 'Manage published updates on the instructor account',
+    detail = format('Retired course permission request: course=%s, allow_edits=%s', target_course_id, allow_edits);
 end;
 $$;
