@@ -8,6 +8,7 @@ import type { AuthoringApiError, StudioLesson, StudioModule } from "./studio-typ
 import { useInstructorUnsavedChanges, useInstructorPendingOperation, useInstructorNavigationBlocker } from "./InstructorNavigationBlocker";
 import { PersistentInstructorVideoUpload } from "./PersistentInstructorVideoUpload";
 import { InstructorLessonPdf } from "./InstructorLessonPdf";
+import { InstructorVideoPreview } from "./InstructorVideoPreview";
 import { useInstructorUploads } from "./InstructorUploadManager";
 import styles from "./InstructorWorkspace.module.css";
 
@@ -33,6 +34,7 @@ export function InstructorCurriculumBuilder({
   modules,
   editable,
   published = false,
+  active = true,
   onModulesChange,
 }: {
   courseId: string;
@@ -40,6 +42,7 @@ export function InstructorCurriculumBuilder({
   modules: StudioModule[];
   editable: boolean;
   published?: boolean;
+  active?: boolean;
   onModulesChange: (next: StudioModule[] | ((current: StudioModule[]) => StudioModule[])) => void;
 }) {
   const [newModuleTitle, setNewModuleTitle] = useState("");
@@ -182,6 +185,7 @@ export function InstructorCurriculumBuilder({
             onMove={(direction) => void moveModule(module.id, direction)}
             onUpdate={replaceModule}
             openLessonId={openLessonId}
+            previewActive={active && (modules.some((item) => item.id === selectedModule) ? selectedModule : modules[0]?.id) === module.id}
             setOpenLessonId={setOpenLessonId}
           />
           </div>
@@ -207,6 +211,7 @@ function InstructorModuleEditor({
   onUpdate,
   onDelete,
   openLessonId,
+  previewActive,
   setOpenLessonId,
 }: {
   editable: boolean;
@@ -222,6 +227,7 @@ function InstructorModuleEditor({
   onUpdate: (module: StudioModule) => void;
   onDelete: (moduleId: string) => void;
   openLessonId: string | null;
+  previewActive: boolean;
   setOpenLessonId: Dispatch<SetStateAction<string | null>>;
 }) {
   const [title, setTitle] = useState(module.title);
@@ -494,6 +500,7 @@ function InstructorModuleEditor({
         <div className={styles.lessonList}>
         {module.lessons.map((lesson, index) => (
           <InstructorLessonEditor
+            previewActive={previewActive}
             canMoveDown={editable && index < module.lessons.length - 1 && (!published || Boolean(lesson.isPending && module.lessons[index + 1]?.isPending))}
             canMoveUp={editable && index > 0 && (!published || Boolean(lesson.isPending && module.lessons[index - 1]?.isPending))}
             editable={editable && (!published || Boolean(lesson.isPending))}
@@ -535,6 +542,7 @@ function InstructorModuleEditor({
 }
 
 function InstructorLessonEditor({
+  previewActive,
   editable,
   courseId,
   courseTitle,
@@ -551,6 +559,7 @@ function InstructorLessonEditor({
   onToggle,
   onUpdate,
 }: {
+  previewActive: boolean;
   editable: boolean;
   courseId: string;
   courseTitle: string;
@@ -655,6 +664,7 @@ function InstructorLessonEditor({
             </label>
           </div>
           {editable ? <PersistentInstructorVideoUpload courseId={courseId} courseTitle={courseTitle} lessonId={lesson.id} lessonTitle={lesson.title} initialStatus={lesson.mediaStatus} onStatusChange={(mediaStatus) => replaceLesson({ ...lesson, mediaStatus })} /> : <p className={styles.readOnlyNotice}>الفيديو منشور ومحفوظ؛ الاستبدال والحذف غير متاحين.</p>}
+          <InstructorVideoPreview active={previewActive && open && !mediaBusy} lessonId={lesson.id} lessonTitle={lesson.title} mediaStatus={upload?.mediaStatus ?? lesson.mediaStatus} />
           <InstructorLessonPdf editable={editable} lessonId={lesson.id} />
         </div>
         <div className={styles.rowActions}>

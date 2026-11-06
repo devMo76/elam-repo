@@ -1,0 +1,13 @@
+.preview { display: grid; min-inline-size: 0; gap: 0.75rem; border: 1px solid var(--hairline); border-radius: 10px; padding: clamp(0.75rem, 2vw, 1rem); }
+.header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.header h3 { margin: 0; font-size: 1rem; font-weight: 600; color: var(--ink); }
+.header span { color: var(--muted); font-size: 0.875rem; }
+.frame, .loading { display: block; inline-size: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 6px; }
+.frame { background: #111; }
+.loading { display: grid; place-items: center; background: var(--tint); color: var(--muted); animation: pulse 1.5s ease-in-out infinite; }
+.refresh { justify-self: start; min-block-size: 44px; border: 1px solid var(--hairline); border-radius: 6px; padding: 0.5rem 0.85rem; color: var(--accent); background: var(--raised); font: inherit; cursor: pointer; }
+.refresh:disabled { opacity: 0.6; cursor: wait; }
+.refresh:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.error { color: var(--ink); margin: 0; }
+@keyframes pulse { 50% { opacity: 0.55; } }
+@media (prefers-reduced-motion: reduce) { .loading { animation: none; } }

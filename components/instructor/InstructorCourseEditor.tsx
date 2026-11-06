@@ -77,6 +77,7 @@ export function InstructorCourseEditor({ course: initialCourse, publishingCapabi
       }}>
         <div hidden={panel !== "content"} id="curriculum">
           <InstructorCurriculumBuilder courseId={course.id} courseTitle={course.title}
+            active={panel === "content"}
             editable={policy.canPrepareAdditions} published={course.status === "published"} modules={course.modules}
             onModulesChange={(next) => setCourse((current) => ({ ...current, modules: typeof next === "function" ? next(current.modules) : next }))} />
         </div>

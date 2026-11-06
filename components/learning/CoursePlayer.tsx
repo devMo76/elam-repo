@@ -267,7 +267,7 @@ function BunnyPlaybackFrame({
         src="https://assets.mediadelivery.net/playerjs/player-0.1.0.min.js"
         strategy="afterInteractive"
         onError={() => setSaveStatus("تعذر تفعيل تتبّع التقدّم.")}
-        onLoad={() => setPlayerScriptReady(true)}
+        onReady={() => setPlayerScriptReady(true)}
       />
       <div className={styles.frameWrap}>
         <iframe
@@ -320,6 +320,8 @@ function PlaybackPanel({
           signal: controller.signal,
         });
         const payload: unknown = await response.json().catch(() => null);
+
+        if (controller.signal.aborted) return;
 
         if (!response.ok) {
           const apiError = apiErrorResponseSchema.safeParse(payload);
@@ -478,8 +480,8 @@ export function CoursePlayer({
               </header>
               {canAccessSelectedLesson ? (
                 <>
-                  <PlaybackPanel key={selectedLesson.id} lesson={selectedLesson} onProgressSaved={onProgressSaved} />
-                  <LessonPdf key={selectedLesson.id} lessonId={selectedLesson.id} />
+                  <PlaybackPanel key={`playback-${selectedLesson.id}`} lesson={selectedLesson} onProgressSaved={onProgressSaved} />
+                  <LessonPdf key={`pdf-${selectedLesson.id}`} lessonId={selectedLesson.id} />
                 </>
               ) : (
                 <PlayerState
