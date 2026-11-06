@@ -18,6 +18,9 @@ grant execute on function public.instructor_updates_enabled(uuid) to authenticat
 create function public.protect_instructor_update_permission()
 returns trigger language plpgsql security definer set search_path = '' as $$
 begin
+  if tg_op = 'UPDATE' and new.role <> 'instructor' then
+    new.instructor_published_updates_allowed := false;
+  end if;
   if (tg_op = 'INSERT' and new.instructor_published_updates_allowed) or
     (tg_op = 'UPDATE' and new.instructor_published_updates_allowed is distinct from old.instructor_published_updates_allowed) then
     if auth.uid() is null or not public.is_admin() then

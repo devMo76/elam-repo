@@ -255,7 +255,11 @@ test("admin enables and revokes instructor-wide updates with explicit scope conf
 test("enabled instructor can maintain published details and additions while existing media stays protected", async ({ page }) => {
   await openFixture(page, "?studio&readonly&enabled");
   await page.getByRole("button", { name: "تفاصيل الدورة", exact: true }).first().click();
+  const title = page.getByLabel("عنوان المقرر", { exact: true });
+  const originalTitle = await title.inputValue();
+  await title.fill("عنوان مصحح للدورة");
   await expect(page.getByRole("button", { name: "حفظ التفاصيل", exact: true })).toBeEnabled();
+  await title.fill(originalTitle);
   await expect(page.getByLabel(/السعر بالريال السعودي/)).toBeDisabled();
   await page.getByRole("dialog").getByRole("button", { name: "المحتوى", exact: true }).click();
   await expect(page.getByPlaceholder("عنوان الدرس الجديد")).toBeEnabled();
