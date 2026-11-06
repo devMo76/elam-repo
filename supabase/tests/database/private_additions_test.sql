@@ -15,7 +15,7 @@ select set_config('request.jwt.claim.sub', '20000000-0000-4000-8000-000000000001
 select throws_ok($$select public.append_course_module('49130000-0000-4000-8000-000000000001','Denied')$$,
   '42501', 'Course curriculum is locked', 'locked course cannot receive additions');
 select set_config('request.jwt.claim.sub', '30000000-0000-4000-8000-000000000001', true);
-select public.admin_set_course_edit_permission('49130000-0000-4000-8000-000000000001', true);
+select public.admin_set_instructor_edit_permission('20000000-0000-4000-8000-000000000001', true);
 select set_config('request.jwt.claim.sub', '20000000-0000-4000-8000-000000000001', true);
 insert into public.lessons(module_id, title, position, is_free_preview)
 values ('59130000-0000-4000-8000-000000000001', 'Pending preview', 2, true);
@@ -59,7 +59,7 @@ select is((select lesson_count from public.get_learner_course_progress() where c
 select set_config('request.jwt.claim.sub', '30000000-0000-4000-8000-000000000001', true);
 select is((select count(*) from public.admin_audit_log where action='course.additions.release'
   and subject='49130000-0000-4000-8000-000000000001'), 1::bigint, 'one release audit event');
-select public.admin_set_course_edit_permission('49130000-0000-4000-8000-000000000001', false);
+select public.admin_set_instructor_edit_permission('20000000-0000-4000-8000-000000000001', false);
 select set_config('request.jwt.claim.sub', '20000000-0000-4000-8000-000000000001', true);
 select throws_ok($$select public.release_course_additions('49130000-0000-4000-8000-000000000001')$$,
   '42501', 'Course is not available for releasing additions', 'revocation blocks release');

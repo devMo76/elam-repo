@@ -13,7 +13,8 @@ import { getInstructorEditPolicy } from "./edit-policy";
 
 const courseSelect = `
   id, slug, department, course_code, title, subtitle, description,
-  price_halalas, currency, status, cover_url, created_at, published_at, instructor_published_edits_allowed,
+  price_halalas, currency, status, cover_url, created_at, published_at,
+  instructor:profiles!courses_instructor_id_fkey(role, instructor_published_updates_allowed),
   modules (
     id, course_id, title, position, is_pending,
     lessons (
@@ -102,7 +103,7 @@ export async function updateInstructorCourse(
   const { supabase, user } = await requireInstructorAuthoringContext();
   const { data: currentCourse, error: accessError } = await supabase
     .from("courses")
-    .select("status, slug, price_halalas, instructor_published_edits_allowed")
+    .select("status, slug, price_halalas, instructor:profiles!courses_instructor_id_fkey(role, instructor_published_updates_allowed)")
     .eq("id", courseId)
     .eq("instructor_id", user.id)
     .maybeSingle();
@@ -113,7 +114,7 @@ export async function updateInstructorCourse(
   const policy = getInstructorEditPolicy({
     status: currentCourse.status,
     isOwner: true,
-    publishedEditsAllowed: currentCourse.instructor_published_edits_allowed,
+    publishedEditsAllowed: currentCourse.instructor?.role === "instructor" && currentCourse.instructor.instructor_published_updates_allowed,
   });
   if (!policy.canEditDescription) {
     throw new AuthoringError(403, "course_details_locked", "Course details cannot be changed in this state.");

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -83,9 +84,7 @@ export function AdminCourseActions({
     <div className={styles.actions}>
       {currentStatus === "published" ? <div>
         <small className={styles.actionHint}>{publishedEditsAllowed ? "تعديل الشارح مفعّل" : "تعديل الشارح مقفل"}</small>
-        <AdminMutationButton action={publishedEditsAllowed ? "قفل التعديل" : "السماح بالتعديل"}
-          body={{ publishedEditsAllowed: !publishedEditsAllowed }} endpoint={`/api/admin/courses/${courseId}/edit-permission`}
-          confirmation={publishedEditsAllowed ? "منع الشارح من تعديل التفاصيل وإضافة محتوى جديد؟" : "السماح بتعديل التفاصيل وإضافة دروس غير منشورة؟ المحتوى المنشور والسعر والرابط تبقى محفوظة."} />
+        <Link className={styles.actionHint} href="/admin/users?role=instructor">إدارة صلاحية الشارح</Link>
       </div> : null}
       {!canPublish && currentStatus !== "published" ? <small className={styles.actionHint}>لا يمكن النشر قبل اكتمال المحتوى والفيديوهات.</small> : null}
       {actions.map((action) => (
@@ -102,6 +101,17 @@ export function AdminCourseActions({
 }
 
 type ApiError = { error?: { message?: string } };
+
+export function AdminInstructorUpdateControl({ instructorId, instructorName, allowed }: {
+  instructorId: string; instructorName: string; allowed: boolean;
+}) {
+  return <div className={styles.actions}>
+    <small className={styles.actionHint}>{allowed ? "تحديث الدورات المنشورة مفعّل" : "تحديث الدورات المنشورة مقفل"}</small>
+    <AdminMutationButton action={allowed ? "إيقاف التحديثات" : "السماح بالتحديثات"}
+      body={{ publishedEditsAllowed: !allowed }} endpoint={`/api/admin/users/${instructorId}/edit-permission`}
+      confirmation={`${allowed ? "إيقاف" : "تفعيل"} تحديث جميع الدورات المنشورة الحالية والمستقبلية للشارح ${instructorName}؟ تبقى الدورات متاحة للمتعلمين.`} />
+  </div>;
+}
 
 export function AdminSettingsForm({
   initialValue,

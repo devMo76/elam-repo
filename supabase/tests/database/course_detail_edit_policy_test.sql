@@ -34,7 +34,7 @@ with changed as (update public.courses set title = 'Archived bypass'
 select is((select count(*) from changed), 0::bigint, 'archived write is filtered by RLS');
 
 select set_config('request.jwt.claim.sub', '30000000-0000-4000-8000-000000000001', true);
-select public.admin_set_course_edit_permission('49120000-0000-4000-8000-000000000003', true);
+select public.admin_set_instructor_edit_permission('20000000-0000-4000-8000-000000000001', true);
 update public.platform_settings set instructor_direct_publish = true where id = 1;
 select set_config('request.jwt.claim.sub', '20000000-0000-4000-8000-000000000001', true);
 select lives_ok($$update public.courses set department = 'Updated department', course_code = 'NEW',
@@ -64,7 +64,7 @@ with changed as (update public.courses set title = 'Learner bypass'
 select is((select count(*) from changed), 0::bigint, 'learner cannot edit live course');
 
 select set_config('request.jwt.claim.sub', '30000000-0000-4000-8000-000000000001', true);
-select public.admin_set_course_edit_permission('49120000-0000-4000-8000-000000000003', false);
+select public.admin_set_instructor_edit_permission('20000000-0000-4000-8000-000000000001', false);
 select set_config('request.jwt.claim.sub', '20000000-0000-4000-8000-000000000001', true);
 select throws_ok($$update public.courses set title = 'Revoked bypass'
   where id = '49120000-0000-4000-8000-000000000003'$$,

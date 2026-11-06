@@ -14,7 +14,7 @@ export function TestScript({ onLoad, onReady }: { onLoad?: () => void; onReady?:
   return null;
 }
 export function useRouter() {
-  return { replace: (url: string) => window.history.replaceState(null, "", url) };
+  return { replace: (url: string) => window.history.replaceState(null, "", url), refresh: () => window.dispatchEvent(new Event("fixture:refresh")) };
 }
 export function usePathname() { return "/learn/courses/example"; }
 export function useSearchParams() { return new URLSearchParams(window.location.search); }

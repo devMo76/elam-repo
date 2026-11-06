@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import "../../../app/globals.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { AdminInstructorUpdateControl, AdminCourseActions } from "../../../components/admin/AdminMutations";
 import { CoursePlayer } from "../../../components/learning/CoursePlayer";
 import type { CatalogueCourseDetail } from "../../../lib/contracts/catalogue";
 import { InstructorCourseEditor } from "../../../components/instructor/InstructorCourseEditor";
@@ -21,6 +22,7 @@ const course: CatalogueCourseDetail & { completedLessonIds: string[]; resumeLess
       title: `الدرس ${position}`, position, durationSeconds: 60, isFreePreview: position === 1 })) }],
 };
 const studioCourse: StudioCourse = { ...course, createdAt: "2026-11-06T00:00:00Z", publishedAt: null,
+  publishedEditsAllowed: location.search.includes("enabled"),
   status: location.search.includes("readonly") ? "published" : "draft",
   modules: course.modules.map(module => ({ ...module, courseId: course.id,
     lessons: module.lessons.map(lesson => ({ ...lesson, moduleId: module.id, mediaStatus: "ready" })) })),
@@ -31,7 +33,17 @@ function PreviewFixture() {
     <button onClick={() => setStatus("failed")}>Fail processing</button>
     <InstructorVideoPreview active lessonId={course.modules[0].lessons[0].id} lessonTitle="الدرس 1" mediaStatus={status} /></>;
 }
-const view = location.search.includes("studio")
+function PermissionsFixture() {
+  const [allowed, setAllowed] = useState(false);
+  useEffect(() => {
+    const refresh = () => setAllowed(value => !value);
+    window.addEventListener("fixture:refresh", refresh);
+    return () => window.removeEventListener("fixture:refresh", refresh);
+  }, []);
+  return <><AdminInstructorUpdateControl instructorId={course.instructor.id} instructorName="شارح الاختبار" allowed={allowed} />
+    <AdminCourseActions courseId={course.id} courseTitle={course.title} currentStatus="published" canPublish publishedEditsAllowed={allowed} /></>;
+}
+const view = location.search.includes("permissions") ? <PermissionsFixture /> : location.search.includes("studio")
   ? <InstructorNavigationBlockerProvider><InstructorUploadProvider>
       <InstructorCourseEditor course={studioCourse} publishingCapability={{ canDirectPublish: false, primaryWorkflow: "review" }} />
     </InstructorUploadProvider></InstructorNavigationBlockerProvider>

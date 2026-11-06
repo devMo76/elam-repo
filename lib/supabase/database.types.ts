@@ -514,6 +514,7 @@ export type Database = {
           full_name: string
           headline: string | null
           id: string
+          instructor_published_updates_allowed: boolean
           role: Database["public"]["Enums"]["user_role"]
         }
         Insert: {
@@ -523,6 +524,7 @@ export type Database = {
           full_name: string
           headline?: string | null
           id: string
+          instructor_published_updates_allowed?: boolean
           role?: Database["public"]["Enums"]["user_role"]
         }
         Update: {
@@ -532,6 +534,7 @@ export type Database = {
           full_name?: string
           headline?: string | null
           id?: string
+          instructor_published_updates_allowed?: boolean
           role?: Database["public"]["Enums"]["user_role"]
         }
         Relationships: []
@@ -661,6 +664,10 @@ export type Database = {
       }
       admin_set_course_edit_permission: {
         Args: { allow_edits: boolean; target_course_id: string }
+        Returns: boolean
+      }
+      admin_set_instructor_edit_permission: {
+        Args: { allow_edits: boolean; target_instructor_id: string }
         Returns: boolean
       }
       admin_user_directory: {
@@ -838,6 +845,10 @@ export type Database = {
           course_title: string
           enrollment_count: number
         }[]
+      }
+      instructor_updates_enabled: {
+        Args: { target_instructor_id: string }
+        Returns: boolean
       }
       is_admin: { Args: never; Returns: boolean }
       is_enrolled: { Args: { target_course: string }; Returns: boolean }

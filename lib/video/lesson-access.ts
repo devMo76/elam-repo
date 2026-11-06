@@ -106,7 +106,7 @@ export async function getManagedVideoLesson(
 
   const { data: course, error: courseError } = await supabase
     .from("courses")
-    .select("instructor_id, status, instructor_published_edits_allowed")
+    .select("instructor_id, status, instructor:profiles!courses_instructor_id_fkey(role, instructor_published_updates_allowed)")
     .eq("id", module.course_id)
     .maybeSingle();
 
@@ -134,7 +134,7 @@ export async function getManagedVideoLesson(
   }
 
   if (operation === "modify" && !(course.status === "draft" ||
-    (course.status === "published" && lesson.is_pending && course.instructor_published_edits_allowed))) {
+    (course.status === "published" && lesson.is_pending && course.instructor?.role === "instructor" && course.instructor.instructor_published_updates_allowed))) {
     return { success: false, status: 409, code: "course_not_editable",
       message: "Existing published media cannot be replaced or removed." };
   }

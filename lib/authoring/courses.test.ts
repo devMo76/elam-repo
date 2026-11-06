@@ -97,7 +97,7 @@ describe("instructor course detail update policy", () => {
 
   function setup(status: string, allowed = false, exists = true) {
     const accessResult = vi.fn().mockResolvedValue({
-      data: exists ? { status, slug: rawCourse.slug, price_halalas: 0, instructor_published_edits_allowed: allowed } : null,
+      data: exists ? { status, slug: rawCourse.slug, price_halalas: 0, instructor: { role: "instructor", instructor_published_updates_allowed: allowed } } : null,
       error: null,
     });
     const updateResult = vi.fn().mockResolvedValue({ data: { ...rawCourse, status }, error: null });

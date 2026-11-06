@@ -14,7 +14,7 @@ insert into public.lesson_resources(lesson_id,storage_path,file_name,byte_size) 
 ('69140000-0000-4000-8000-000000000003','cleanup/draft.pdf','draft.pdf',100);
 set local role authenticated;
 select set_config('request.jwt.claim.sub','30000000-0000-4000-8000-000000000001',true);
-select public.admin_set_course_edit_permission('49140000-0000-4000-8000-000000000001',true);
+select public.admin_set_instructor_edit_permission('20000000-0000-4000-8000-000000000001',true);
 select set_config('request.jwt.claim.sub','20000000-0000-4000-8000-000000000001',true);
 select public.append_module_lesson('59140000-0000-4000-8000-000000000001','Pending media cleanup');
 select is((select is_pending from public.lessons where title='Pending media cleanup'),true,'instructor cannot insert publicly visible live addition');
@@ -52,7 +52,7 @@ select lives_ok($$select public.delete_draft_course_module('59140000-0000-4000-8
 select lives_ok($$select public.delete_draft_course_module('59140000-0000-4000-8000-000000000002')$$,'draft module and its lessons can be deleted');
 set local role authenticated;
 select set_config('request.jwt.claim.sub','30000000-0000-4000-8000-000000000001',true);
-select public.admin_set_course_edit_permission('49140000-0000-4000-8000-000000000001',false);
+select public.admin_set_instructor_edit_permission('20000000-0000-4000-8000-000000000001',false);
 set local role service_role;
 select set_config('request.jwt.claim.sub','',true);
 select throws_ok($$update public.lessons set video_asset_id='late-upload' where id='69140000-0000-4000-8000-000000000001'$$,

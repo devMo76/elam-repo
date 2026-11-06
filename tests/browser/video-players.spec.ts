@@ -226,3 +226,40 @@ test("a pending instructor preview shows a skeleton and can close safely", async
   await expect(page.locator("iframe")).toHaveCount(0);
   await expect(page.getByRole("status")).toHaveCount(0);
 });
+
+test("admin enables and revokes instructor-wide updates with explicit scope confirmation", async ({ page }) => {
+  const requests: { url: string; allowed: boolean }[] = [];
+  await page.route("**/api/admin/users/*/edit-permission", route => {
+    const allowed = route.request().postDataJSON().publishedEditsAllowed as boolean;
+    requests.push({ url: route.request().url(), allowed });
+    return route.fulfill({ json: { data: { instructorId: "20000000-0000-4000-8000-000000000001", publishedEditsAllowed: allowed } } });
+  });
+  await openFixture(page, "?permissions");
+  await page.getByRole("button", { name: "السماح بالتحديثات", exact: true }).click();
+  await expect(page.getByRole("group")).toContainText("جميع الدورات المنشورة الحالية والمستقبلية");
+  await page.getByRole("button", { name: "إلغاء", exact: true }).click();
+  expect(requests).toHaveLength(0);
+  await page.getByRole("button", { name: "السماح بالتحديثات", exact: true }).click();
+  await page.getByRole("button", { name: "تأكيد", exact: true }).click();
+  await expect(page.getByRole("button", { name: "إيقاف التحديثات", exact: true })).toBeVisible();
+  expect(requests[0].url).toContain("/api/admin/users/20000000-0000-4000-8000-000000000001/edit-permission");
+  expect(requests[0].allowed).toBe(true);
+  await expect(page.getByRole("button", { name: "السماح بالتعديل", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "إدارة صلاحية الشارح" })).toHaveAttribute("href", "/admin/users?role=instructor");
+  await page.getByRole("button", { name: "إيقاف التحديثات", exact: true }).click();
+  await page.getByRole("button", { name: "تأكيد", exact: true }).click();
+  await expect(page.getByRole("button", { name: "السماح بالتحديثات", exact: true })).toBeVisible();
+  expect(requests.map(request => request.allowed)).toEqual([true, false]);
+});
+
+test("enabled instructor can maintain published details and additions while existing media stays protected", async ({ page }) => {
+  await openFixture(page, "?studio&readonly&enabled");
+  await page.getByRole("button", { name: "تفاصيل الدورة", exact: true }).first().click();
+  await expect(page.getByRole("button", { name: "حفظ التفاصيل", exact: true })).toBeEnabled();
+  await expect(page.getByLabel(/السعر بالريال السعودي/)).toBeDisabled();
+  await page.getByRole("dialog").getByRole("button", { name: "المحتوى", exact: true }).click();
+  await expect(page.getByPlaceholder("عنوان الدرس الجديد")).toBeEnabled();
+  await page.getByRole("dialog").getByRole("button", { name: /الدرس 1/ }).click();
+  await expect(page.getByLabel("عنوان الدرس", { exact: true })).toBeDisabled();
+  await expect(page.getByText("استبدال الفيديو", { exact: true })).toHaveCount(0);
+});

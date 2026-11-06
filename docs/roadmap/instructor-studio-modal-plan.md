@@ -1,7 +1,8 @@
 # Instructor studio: editing, focused dialogs, and mobile navigation
 
-Date: 2026-10-11; updated 2026-10-12. Status: owner-reviewed and staging deployed;
-full authenticated/provider staging acceptance pending.
+Date: 2026-10-11; updated 2026-11-07. Original scope: owner-reviewed and deployed;
+remaining acceptance is tracked separately. Published-course maintenance extension:
+planned in section 10 below; not yet implemented by this planning update.
 Task list: [instructor-studio-modal-todo.md](../../tasks/instructor-studio-modal-todo.md).
 This proposal is separate from the unfinished production-launch plan.
 
@@ -54,7 +55,7 @@ or replacing a working video with an unprocessed one is not. Do not temporarily
 turn a published course into a draft simply to unlock its editor: that can change
 catalogue visibility and learner access.
 
-### Proposed first-release policy
+### Historical first-release policy (course-scoped; superseded by section 10)
 
 - Add an admin-only, per-course permission: `السماح للشارح بتحديث الدورة المنشورة`.
   Default off for existing published courses until an admin explicitly enables it.
@@ -256,3 +257,228 @@ after checking the repository's current tooling. Never reset the staging databas
 Approve or amend the published-edit policy and the three focused dialog workflows
 before implementation. The task list remains unchecked until implemented and
 verified; document creation is not feature completion.
+
+## 10. Published-course maintenance extension — 2026-11-07
+
+### 10.1 Outcome and confirmed starting point
+
+An owning instructor should maintain a purchased course through the same studio,
+without unpublishing it, rebuilding its curriculum, losing enrollments or waiting
+for an administrator to approve every correction. Retain the existing three-panel
+modal UX, optional fields, persistent uploads and newly deployed video preview.
+
+The November source audit found a partially delivered feature, rather than a
+missing permission system:
+
+| Operation | Existing implementation | Remaining work |
+| --- | --- | --- |
+| Admin permission | `instructor_published_edits_allowed`, per course, default false; `admin_set_course_edit_permission` and admin action exist | Replace course-scoped controls with the instructor-wide permission confirmed below; migrate safely and remove conflicting legacy authority |
+| Course details | `updateInstructorCourse` permits descriptive edits when enabled; price and slug are protected | Verify the complete UI/API/database journey and improve success/permission-revoked feedback |
+| New modules and lessons | Pending additions, upload, learner isolation and `release_course_additions` already exist | Make adding/releasing updates obvious; retain existing readiness and optional fields |
+| Existing curriculum | `canEditExistingCurriculum` remains false on published courses; database triggers block live row changes | Add narrow, permission-controlled title and ordering updates, with stable identifiers |
+| Existing video/PDF | Published replacement/removal is deliberately blocked | Build a safe replacement path before enabling these controls |
+| Instructor playback | Signed preview now exists, including read-only published lessons | Extend it to explicitly preview pending replacements without exposing them to learners |
+
+No production permission flags were changed or account/course data inspected as
+part of this source review. A locked editor alone does not establish a broken
+backend: the existing permission may simply be disabled. Phase E0 distinguishes
+configuration, stale UI, missing capability and genuine request/policy failures.
+
+The earlier owner decision permitted non-destructive published edits and deferred
+live media replacement/deletion. This extension proposes a safe replacement
+workflow; it does not authorize bypassing those protections during planning.
+
+### 10.2 Recommended editing policy
+
+**Owner-confirmed scope update, 2026-11-07:** one admin setting per instructor,
+**السماح للشارح بتحديث دوراته المنشورة**. It applies to all published courses
+currently owned by that instructor and courses they publish in the future. There
+are no individual course overrides or per-course approvals. This replaces the
+earlier course-scoped proposal; it is not a second overlapping permission.
+
+Keep the default disabled until an admin explicitly enables the instructor.
+Enabling grants the owning instructor the bounded maintenance capabilities below.
+Disabling blocks new published-course mutations and publication of pending updates
+across all their courses at commit time. Existing published content remains
+available to learners, draft authoring remains available, and pending work is
+preserved. Already issued provider upload credentials may remain usable until
+expiry; revocation must prevent promotion rather than claim to revoke those tokens.
+
+Use the current course owner and current instructor permission on every write.
+An ownership transfer must not carry the previous instructor's authorization to
+the new owner. A user whose role is no longer instructor cannot use this flag to
+retain instructor authoring access.
+
+| Change | Recommended behavior when enabled | Learner impact |
+| --- | --- | --- |
+| Course title, subtitle, description, cover and existing descriptive fields | Save immediately using existing details API | Show saved values on the next read |
+| Existing lesson/module title | Save immediately through narrowly allowed column changes | Correct the label; keep IDs and history |
+| Lesson/module order | Explicit save through validated ordering RPCs | New order; keep links and progress attached to the same lessons |
+| New modules/lessons | Keep existing private additions workflow; publish ready additions explicitly | Existing content stays available until additions are published |
+| Replace video | Upload and process a separate candidate; instructor previews it, then explicitly publishes it | Old video remains active until atomic promotion succeeds |
+| Add/replace PDF | Validate a separate object in the private bucket, preview it and publish the pointer change | Old attachment remains active until promotion |
+| Course price, currency, public slug, ownership or publish status | Continue through the appropriate existing admin/commercial workflow | No silent commercial or ownership changes |
+| Delete existing lessons/modules or remove the active media/PDF | Keep outside this maintenance release | Protect paid access, deep links and history; design an archival/removal policy separately |
+
+Draft authoring stays unchanged. Archived and in-review courses stay read-only
+for instructors. The permission does not confer access to another instructor's
+course. Preserve current preview/free-access rules; changing the public preview
+policy is a distinct decision, not a side effect of allowing a title correction.
+
+### 10.3 Instructor and administrator experience
+
+**Published workspace:** show `الدورة منشورة` plus a compact `التحديث متاح` or
+`التحديث مقفل` state. When locked, keep course content and video previews readable
+and say once: `تحديث الدورات المنشورة غير مفعّل لحسابك. يمكن للمسؤول تفعيله.` Do not show editable-looking
+controls that later reject every save. A request/approval messaging subsystem is
+not needed to make the existing setting usable.
+
+**Details panel:** retain the current fields and optionality. Show immediate save
+feedback, including that the saved details are now visible to learners. Preserve
+entered values if saving fails or permission changes while the form is open.
+
+**Content panel:** show only concise, relevant states:
+
+- `منشور` for the active learner version.
+- `إضافة غير منشورة` for new lessons.
+- `تحديث غير منشور` for a replacement, alongside its processing/ready/error state.
+
+The lesson editor keeps its ordinary controls. For replacement media, distinguish
+`النسخة المنشورة` from `معاينة التحديث`; keep at most one playing iframe. Offer
+`استبدال الفيديو` / `استبدال الملف` only when authorized. Cancel/discard targets
+the pending update, never the active asset. The persistent transfer panel must
+identify both lesson and update so an old job cannot overwrite a newer job's state.
+
+**Publication panel:** use a concise `نشر التحديثات` action and summary of exactly
+what will change. Clearly distinguish immediately saved text edits from pending
+media/additions; do not imply that a text correction is still waiting to publish.
+Unfinished unrelated uploads must not block a ready selected replacement. Keep
+the existing batch-additions release available, with its current readiness rules;
+add explicit bounded replacement publication rather than blindly extending that
+RPC to every pending object. Do not ask for course descriptions/covers again.
+
+**Admin users/instructors:** place the toggle on the instructor's management
+surface in `/admin/users`, available only for instructors and only to authorized
+admins. Its confirmation explicitly states that it affects all the instructor's
+current and future published courses. Record actor, instructor, previous/new value
+and timestamp using existing audit conventions.
+
+**Admin courses:** replace individual course toggles with an inherited read-only
+permission state and a link to manage the instructor. Studio can show the same
+account-wide permission once on its main page, with a compact inherited state in
+each published course. State that existing purchases remain valid. Recheck the
+instructor's current authorization during finalization/publication rather than
+relying on the value originally rendered in the editor.
+
+Use local skeletons for reads, pending feedback for saves and real transfer/
+processing progress. Preserve typed values on error. Do not replace the entire
+workspace while one request runs. Keep one modal, keyboard support, RTL layout,
+44 px controls and narrow-screen lesson drill-in.
+
+### 10.4 Backend design: reuse first, add versioning where necessary
+
+**Instructor-wide permission foundation:** add one admin-managed boolean on the
+instructor profile, proposed `profiles.instructor_published_updates_allowed`, with
+default false. Do not grant profile owners permission to change it through normal
+profile editing, raw PostgREST writes or role/profile mutation endpoints. Expose
+an admin-only instructor permission RPC/route and a shared database capability
+helper resolving the current course owner and their profile permission. Keep
+normal public profile DTOs from exposing privileged management fields unnecessarily.
+
+Audit every legacy read: course details, module/lesson append/update/reorder/delete,
+PDF prepare/finalize/remove, video prepare/cancel, additions release, replacement
+promotion, RLS/triggers and admin/course DTOs. Application `publishedEditsAllowed`
+may remain a derived course capability for compatibility, but must come from the
+instructor profile; do not maintain duplicated writable booleans on every course.
+The same rule must protect direct database calls, not only the API/UI.
+
+Migration must inventory existing true/false course flags grouped by instructor.
+Do not automatically treat any one legacy enabled course as approval to unlock
+all that instructor's courses. Generate a transition review list for the admin;
+initialize the new field disabled and apply only explicitly approved instructor
+grants. Retain old columns temporarily if needed for safe rollout, but make them
+inert at the coordinated cutover and retire the old per-course mutation path.
+Never authorize through `old_course_flag OR new_instructor_flag`. Existing learner
+access and purchase data do not depend on this maintenance-permission migration.
+
+**Non-destructive maintenance:** reuse authoring endpoints and the capability
+helper with the new instructor-level authority. Extend final database triggers/RLS and
+reordering RPCs only for explicitly allowed columns/operations. The current live
+row-preservation trigger cannot simply be removed: it also protects provider IDs,
+readiness, visibility and structural relationships. Require ownership and current
+permission at commit time; validate exact ID sets for ordering and preserve stable
+course/module/lesson IDs. Use existing audit conventions for the changes.
+
+**Replacement prerequisite:** the current `requestLessonVideoUpload` immediately
+updates the lesson's `video_asset_id`, clears duration and sets status to uploading.
+Using this path unchanged on a published lesson would replace the playable pointer
+before the new video is ready. Merely unlocking its button is therefore unsafe.
+
+Introduce a separate pending-video-revision record with lesson ID, unique provider
+asset ID, actor, provider readiness/duration, base active revision and lifecycle
+state. Final schema names and contracts are an implementation review deliverable.
+Do not change the active lesson pointer or its ready state when preparing an upload.
+Provider callbacks/status polling must find the correct revision by provider ID;
+stale/out-of-order callbacks must never change the active version or another job.
+
+Keep normal learner playback bound to the active version. Pending playback is
+owner/admin-only through an explicit revision preview path, reusing the existing
+Bunny signer. A learner cannot obtain a pending URL by guessing a revision ID.
+
+Promotion is one database transaction: lock the instructor permission row, course,
+lesson and revision in one consistent order so revocation and publication serialize;
+recheck owner/permission, verify candidate readiness and expected base revision,
+swap the active pointer and duration, record the revision/audit event, and mark
+the candidate promoted. A retry is idempotent; a conflicting concurrent update
+returns a clear conflict and preserves both the active asset and pending work.
+Do not make a provider network request while holding database row locks.
+
+PDF replacement follows the same active-versus-candidate principle, reusing the
+private bucket, signed uploads, size/type checks and existing resource validation.
+Use immutable object paths rather than overwriting the published object. Extend
+existing resource metadata where possible; do not force videos and PDFs into an
+unvalidated generic JSON payload. Inspect current resource schema before migration.
+
+Retain superseded assets for a defined rollback period at least covering signed
+URL expiry/in-flight use. No immediate Bunny or storage deletion on replacement.
+Cleanup must prove an asset has no active or retained reference; repeated cleanup
+is safe. Define retention/cost policy before enabling automatic deletion.
+
+### 10.5 Learner history and races
+
+- Keep enrollments, payment/order records, lesson IDs and completion history.
+- Adding published lessons can lower the displayed completion percentage because
+  the denominator increases; previously watched lessons stay watched. Explain this
+  briefly in the additions confirmation.
+- Reordering or correcting a title changes no progress records.
+- Recommended replacement rule: preserve watched/completion history, but start
+  a replacement video at zero instead of seeking to a timestamp from the old video.
+  Track the media version used by progress writes/read responses; an old open
+  player's delayed write must not overwrite progress for the new active version.
+  A replacement does not silently revoke a learner's completed status.
+- Backfill version identity without bulk-resetting existing progress. Test shorter
+  replacement videos and sessions open during promotion. Changing completion rules
+  or marking all updated lessons unwatched requires a separate product decision.
+- Permission revocation, two browser tabs, provider retries, upload cancellation
+  and publication retries must preserve the last good active media version.
+
+### 10.6 Delivery order and decision gates
+
+1. **First usable release:** migrate the permission to instructor scope and expose
+   its admin control, verify course details/additions inherit it, then enable safe
+   live titles and stable ordering. This supplies
+   useful maintenance without waiting for provider versioning.
+2. **Video replacement slice:** add isolated revision persistence/provider routing,
+   secure preview, atomic promotion and progress compatibility; then expose controls.
+3. **PDF replacement slice:** stage and validate immutable attachments, then expose
+   preview/promotion through the same maintenance experience.
+4. **Release and feedback:** verify roles, races, real providers and mobile UX on
+   staging, document results, obtain review and deploy the exact reviewed candidate.
+
+Each release must be independently useful and leave published courses accessible.
+Do not expose replacement controls before their backend slice is complete. Do not
+bundle unrelated role hierarchy, revenue, email, payment or hosting changes.
+
+The ordered implementation/checkpoint list is section E of the existing task file.
+This planning update edits documents only; it does not change database permissions,
+enable edits for any instructor or live course, or implement asset replacement.

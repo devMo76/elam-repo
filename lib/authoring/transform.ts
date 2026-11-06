@@ -25,7 +25,7 @@ type RawModule = {
 };
 
 type RawCourse = {
-  instructor_published_edits_allowed?: boolean;
+  instructor?: { role: string; instructor_published_updates_allowed: boolean } | null;
   id: string;
   slug: string;
   department: string;
@@ -70,7 +70,7 @@ export function toAuthoringLesson(rawLesson: RawLesson) {
 
 export function toAuthoringCourse(course: RawCourse) {
   return authoringCourseSchema.parse({
-    publishedEditsAllowed: course.instructor_published_edits_allowed ?? false,
+    publishedEditsAllowed: course.instructor?.role === "instructor" && course.instructor.instructor_published_updates_allowed === true,
     id: course.id,
     slug: course.slug,
     department: course.department,

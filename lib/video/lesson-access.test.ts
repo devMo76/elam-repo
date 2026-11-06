@@ -55,7 +55,7 @@ function configureClient({
     }),
     modules: createQuery({ data: { course_id: courseId }, error: null }),
     courses: createQuery({
-      data: { instructor_id: instructorId, status, instructor_published_edits_allowed: allowed },
+      data: { instructor_id: instructorId, status, instructor: { role: "instructor", instructor_published_updates_allowed: allowed } },
       error: null,
     }),
   };

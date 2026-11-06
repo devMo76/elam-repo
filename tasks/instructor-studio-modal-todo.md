@@ -149,3 +149,128 @@ Manual tests and staging prerequisites:
 - [ ] Exercise simultaneous permission revoke/release/media finalization.
 - [ ] Verify physical-phone keyboard, Safari and assistive technology.
 - [x] Owner reviewed local dialogs and approved deployment; final staging sign-off remains open.
+
+## E. Published-course maintenance extension — planned 2026-11-07
+
+Plan: section 10 of [instructor-studio-modal-plan.md](../docs/roadmap/instructor-studio-modal-plan.md).
+This extends the same instructor work; the unfinished production-launch tracker
+and existing acceptance items are preserved. The November 7 update is planning,
+not implementation. Earlier approval covered bounded non-destructive changes;
+replacement publication must follow the safe design before controls are enabled.
+
+Owner-confirmed amendment, 2026-11-07: **Allow updates is an instructor-wide
+permission covering all their existing and future published courses.** No
+course-level overrides. E0a–E0c below replace the earlier plan to reuse a writable
+per-course flag. Historical completed tasks above describe the old implementation.
+
+### E0. Verify the existing permission journey (Small)
+- [ ] Reproduce the existing course-scoped behavior and inventory all API/RPC/RLS consumers before replacing it; identify configuration and request/policy failures separately.
+- [ ] Prepare a legacy course-flag inventory grouped by instructor without changing real permissions; record which grants need explicit transition review.
+Verification: focused edit-policy/admin permission tests and authenticated staging/local fixture; record evidence and exact active release.
+Dependencies: none. Inspect: `lib/authoring/edit-policy.ts`, `lib/admin/courses.ts`, admin action/route and existing tests.
+
+### E0a. Establish instructor-wide database authorization (Medium)
+- [ ] Add the default-false admin-managed instructor permission and a shared capability helper; normal profile edits and direct owner writes cannot modify it.
+- [ ] Enforce current instructor ownership/role and permission across published authoring RLS/RPCs; serialize permission revocation with publication and keep drafts/learner access intact.
+Verification: SQL role/direct-write tests; two courses owned by instructor A and one by B; legacy enabled course flags cannot override the new disabled permission.
+Dependencies: E0. Likely files: permission migration/helper, generated database types and focused SQL tests.
+
+### E0b. Provide the single admin instructor toggle (Medium)
+- [ ] Add an admin-only instructor permission endpoint/control in `/admin/users`, with audit records and confirmation covering all current/future published courses.
+- [ ] Replace per-course toggles with inherited state/link; retire the legacy mutation path so it cannot silently create conflicting settings.
+Verification: admin/non-admin API/UI tests; reject learner targets and self-grants; toggling one instructor does not affect another.
+Dependencies: E0a. Likely files: instructor permission route/service, admin users/course controls and focused tests.
+
+### E0c. Derive all studio/media capabilities from the instructor (Medium)
+- [ ] Course DTOs, capability helpers and authoring/media prepare/finalize/release paths read the new authority; no duplicated writable per-course booleans.
+- [ ] Existing/future published courses inherit the setting; current ownership/role changes take effect; prepared updates survive revocation but cannot be promoted until authorized.
+Verification: API/browser capability matrix and source audit for legacy column references; stale UI and old course RPC calls cannot bypass instructor permission.
+Dependencies: E0a–E0b. Likely files: authoring transforms/access helper, video/PDF authorization, contracts and focused tests; split remaining endpoint consumers into focused follow-ups if needed.
+
+### E1. Make enabled/locked editing clear (Medium)
+- [ ] Studio and admin show the same inherited instructor-wide permission state; locked content remains inspectable with a concise reason and no per-course toggle.
+- [ ] Enabled course details save through the existing API, report live visibility and retain input on errors/revocation; optional fields and commercial locks remain intact.
+Verification: owner/non-owner, enabled/disabled and revoke-while-open browser/API cases.
+Dependencies: E0a–E0c. Likely files: instructor editor/details form, admin user/course presentation and browser regression.
+
+### E2. Permit safe published title corrections (Medium)
+- [ ] Owner with current permission can rename an existing lesson/module without changing IDs or media fields.
+- [ ] Narrow database/API/capability rules continue to reject changes to provider metadata, visibility, ownership, reparenting and protected commercial fields.
+Verification: SQL direct-write bypass tests, policy/route tests and instructor/learner browser read-back.
+Dependencies: E0a–E0c. Likely files: focused migration, edit-policy helper, curriculum controls and focused tests.
+
+### E3. Permit stable curriculum reordering (Medium)
+- [ ] Validate the complete ordering ID set and allow permitted owner ordering without changing lesson/module identities.
+- [ ] Concurrent changes, foreign IDs and permission revocation fail safely; enrollments, completion and lesson links survive.
+Verification: ordering RPC SQL tests plus actual studio ordering and learner navigation checks.
+Dependencies: E2. Likely files: ordering migration/RPCs, curriculum controls and focused SQL/browser tests.
+
+### Checkpoint E-A: Non-destructive maintenance
+- [ ] E0–E3, including E0a–E0c, meet acceptance; existing private additions/upload/release still work.
+- [ ] Admin-reviewed transition grants are documented; one toggle covers multiple existing courses and a newly published course, with no legacy per-course override.
+- [ ] Typecheck, lint, backend/SQL/browser tests, build and client-secret scan pass for the exact candidate.
+- [ ] Review enabled/locked UX and deploy the reviewed slice; do not wait for replacement implementation to provide this usable release.
+
+### E4. Define pending video revisions (Medium)
+- [ ] Add versioned candidate persistence with owner/admin isolation and an explicit active/base revision relationship; backfill existing active media safely.
+- [ ] Define typed prepare/status/preview/promote responses, idempotency and controlled conflicts; no active pointer changes during preparation.
+Verification: migration replay, schema/RLS tests and contract tests.
+Dependencies: E-A, replacement design review. Likely files: migration, video contracts, database types and schema/access tests.
+
+### E5. Connect replacement upload and provider status (Medium)
+- [ ] Prepare/upload a separate Bunny asset; route webhook/polling events to its revision without changing the published lesson's ready state.
+- [ ] Duplicate/out-of-order events, cancellation and lost responses cannot alter another candidate or delete the active asset.
+Verification: provider-mocked upload/status/webhook tests and a real short staging upload.
+Dependencies: E4. Likely files: video upload/status/webhook services and focused adapter tests.
+
+### E6. Secure preview and atomic video promotion (Medium)
+- [ ] Owner/admin can preview the candidate; learners and non-owners cannot retrieve its credentials.
+- [ ] Promotion verifies readiness/base revision/current permission under consistent database locks, changes the active pointer atomically, is retry-safe and records an audit event.
+Verification: role SQL/API matrix; failed/concurrent/revoked promotion leaves the original playable; signed credentials remain private/uncached.
+Dependencies: E5. Likely files: promotion migration, preview/promotion handlers, signer integration and focused tests.
+
+### E7. Preserve learner progress across video versions (Medium)
+- [ ] Keep completion/history; effective resume starts at zero when media version changes, including replacement with a shorter video.
+- [ ] Stale player writes are rejected or reconciled explicitly and cannot overwrite the new version's progress; migrate old progress without bulk resets.
+Verification: SQL/API/browser cases with two open sessions and existing completed lessons.
+Dependencies: E6; ship alongside replacement activation. Likely files: progress migration/contracts/route, learner player and progress tests.
+
+### E8. Add the replacement UX to the existing studio (Medium)
+- [ ] Show active and pending states, correct candidate preview and a concise publish/discard action; closing the preview stops it while upload persists.
+- [ ] Persistent jobs identify the correct revision and lesson; failed uploads retain the live video; mobile/keyboard interactions remain usable.
+Verification: desktop/mobile browser tests and real staging Bunny preview/promotion; no added required course fields.
+Dependencies: E6–E7. Likely files: upload manager, lesson editor, preview, publication summary and browser regression.
+
+### Checkpoint E-B: Video replacement
+- [ ] Prepare -> process -> preview -> publish works on a purchased staging course while the original video remains available until promotion.
+- [ ] Permission, cancellation, provider retries, progress and concurrent-promotion tests pass; no unsafe controls ship early.
+- [ ] Owner reviews the video replacement behavior and retention/progress defaults before production rollout.
+
+### E9. Stage validated PDF replacements (Medium)
+- [ ] Extend existing private resource metadata for immutable pending attachments; validate the candidate before promotion.
+- [ ] Keep the existing attachment active through failed uploads/cancellation and block learner access to pending objects, including direct storage access.
+Verification: bucket/RLS/API tests, malicious/oversized files and revoked-permission finalization.
+Dependencies: E4 and resource-schema audit. Likely files: resource migration, PDF service/contracts and focused route/storage tests.
+
+### E10. Preview/publish PDF updates in Studio (Medium)
+- [ ] Existing PDF control supports add/replace on authorized published lessons with clearly separated active/candidate links.
+- [ ] Explicit publication atomically switches the validated resource reference; discard affects only pending data; no extra course forms or nested modal.
+Verification: real staging PDF upload/open/promote and mobile/error/retry browser tests.
+Dependencies: E9. Likely files: PDF handler/promotion RPC, instructor PDF control, publication summary and tests.
+
+### E11. Retention and recovery safeguards (Medium)
+- [ ] Define a rollback window covering signed URL expiry/in-flight use; retain superseded assets until that window expires.
+- [ ] Cleanup only removes unreferenced eligible candidates/superseded assets, is idempotent and never removes the current video/PDF.
+Verification: reference/retention/job tests plus a documented rollback rehearsal using disposable staging assets.
+Dependencies: E6 and E9. Likely files: cleanup/reference queries, worker entry point, tests and operations runbook.
+
+### E12. Final acceptance and rollout (Medium)
+- [ ] Verify enabled/locked owner, non-owner instructor, learner and admin; two instructors with multiple courses and future-course inheritance; profile self-grant/direct API/RLS bypass; paid learner access; two tabs; instructor-wide revoke during upload/publication; failed/out-of-order provider events.
+- [ ] Verify existing videos/PDFs, new additions, replacements, mobile modal, progress preservation and clear Arabic feedback with real staging providers.
+Verification: full quality/SQL/browser/build/client-secret gates; document candidate SHA, migration order, backfill counts, role/provider evidence and rollback steps. Deploy reviewed migrations before matching controls, then repeat production smoke checks without new purchases.
+Dependencies: all released extension tasks. Files: verification handover, operations runbook and this evidence register.
+
+### Final checkpoint E-C
+- [ ] The supported published-maintenance operations work without unpublishing or losing paid access/history.
+- [ ] No new required course fields, routine per-edit admin approvals or destructive content deletion were introduced.
+- [ ] Owner acceptance and exact staging/production versions are documented; untested provider/race cases stay explicitly open.

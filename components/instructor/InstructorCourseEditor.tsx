@@ -54,7 +54,7 @@ export function InstructorCourseEditor({ course: initialCourse, publishingCapabi
     {tabs}
     {course.status === "published" ? <p className={styles.readOnlyNotice}>{policy.canEditDescription
       ? "التعديل متاح بإذن المسؤول. الدروس الجديدة لا تظهر للمتعلمين حتى نشر الإضافات. المحتوى المنشور محفوظ."
-      : "الدورة منشورة؛ يمكن للمسؤول تفعيل تعديل التفاصيل وإضافة دروس جديدة."}</p> : null}
+      : "تحديث الدورات المنشورة غير مفعّل لحسابك. يمكن للمسؤول تفعيله لجميع دوراتك."}</p> : null}
     <section className={styles.section} aria-label="محتوى الدورة">
       <div className={styles.sectionHeading}><h2>محتوى الدورة</h2><span>{pendingCount > 0 ? formatArabicLessonCount(pendingCount) + " بانتظار النشر" : ""}</span></div>
       {course.modules.length ? <ol className={styles.workspaceOutline}>{course.modules.map((module) => <li key={module.id}>
