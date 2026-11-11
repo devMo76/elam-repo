@@ -22,11 +22,33 @@ type Panel = keyof typeof panels;
 export function InstructorCourseEditor({ course: initialCourse, publishingCapability }: {
   course: StudioCourse; publishingCapability: InstructorPublishingCapability;
 }) {
-  const [course, setCourse] = useState(initialCourse);
+  const [storedCourse, setCourse] = useState(initialCourse);
   const search = useSearchParams();
   const [panel, setPanel] = useState<Panel | null>(() => search.get("panel") === "content" ? "content" : null);
   const { isBusy } = useInstructorNavigationBlocker();
   const { uploads } = useInstructorUploads();
+  // Uploads finish independently of the selected lesson or open dialog. Derive
+  // every editor view from the live status rather than waiting for a lesson's
+  // upload control to mount and copy that status into the course snapshot.
+  const course = useMemo(() => ({
+    ...storedCourse,
+    modules: storedCourse.modules.map((module) => ({
+      ...module,
+      lessons: module.lessons.map((lesson) => {
+        const upload = uploads[lesson.id];
+        if (!upload || upload.courseId !== storedCourse.id) return lesson;
+        const mediaStatus = upload.isPreparing || upload.isClientUpload
+          ? "uploading" as const : upload.mediaStatus;
+        return mediaStatus === lesson.mediaStatus ? lesson : { ...lesson, mediaStatus };
+      }),
+    })),
+  }), [storedCourse, uploads]);
+  // Checkpoint transitions in this component's own state so dismissing a tracker
+  // entry cannot restore the old snapshot. The comparison prevents repeat updates.
+  if (course.modules.some((module, index) => module.lessons.some((lesson, lessonIndex) =>
+    lesson.mediaStatus !== storedCourse.modules[index].lessons[lessonIndex].mediaStatus))) {
+    setCourse(course);
+  }
   const videoActivity = Object.values(uploads).filter((upload) => upload.isPreparing || upload.isClientUpload || ["uploading", "processing"].includes(upload.mediaStatus));
   useEffect(() => {
     const openLesson = (event: Event) => {

@@ -7,6 +7,86 @@ import { resolve } from "node:path";
 let script: string;
 let css: string;
 const origin = "http://127.0.0.1:3001/";
+
+for (const width of [390, 1440]) test(`admin reviews submitted lessons, video and PDF at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 900 });
+  const progressWrites: string[] = [];
+  await page.route("**/api/lessons/*/progress", route => {
+    progressWrites.push(route.request().url());
+    return route.fulfill({ status: 500, body: "Unexpected progress write" });
+  });
+  await openFixture(page, "?review");
+  await expect(page.locator("iframe")).toHaveCount(1);
+  await expect(page.getByRole("link", { name: /فتح ملف الدرس/ })).toHaveAttribute("href", /000000000001\/pdf$/);
+  await page.getByRole("button", { name: /الدرس 2/ }).click();
+  await expect(page.locator("iframe")).toHaveCount(1);
+  await expect(page.locator("iframe")).toHaveAttribute("src", /000000000002/);
+  await expect(page.getByRole("link", { name: /فتح ملف الدرس/ })).toHaveAttribute("href", /000000000002\/pdf$/);
+  expect(progressWrites).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: `test-results/admin-review-${width}.png`, fullPage: true });
+});
+
+test("admin sees PDF errors with retry and an explicit missing-attachment state", async ({ page }) => {
+  await openFixture(page, "?review");
+  await page.route("**/api/lessons/*/pdf?metadata", route => route.fulfill({ status: 500, json: { error: {} } }));
+  await page.getByRole("button", { name: /الدرس 2/ }).click();
+  await expect(page.getByRole("alert")).toHaveText("تعذّر تحميل ملف الدرس.");
+  await page.route("**/api/lessons/*/pdf?metadata", route => route.fulfill({ status: 404, json: { error: {} } }));
+  await page.getByRole("button", { name: "إعادة تحميل الملف" }).click();
+  await expect(page.getByText("لا يوجد ملف PDF لهذا الدرس.")).toBeVisible();
+});
+
+test("admin cannot preview unfinished video but can still inspect the attached PDF", async ({ page }) => {
+  let playbackRequests = 0;
+  await page.route("**/api/lessons/*/playback", route => { playbackRequests++; return route.abort(); });
+  await openFixture(page, "?review&processing");
+  await expect(page.getByRole("status").filter({ hasText: "قيد التجهيز" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /فتح ملف الدرس/ })).toBeVisible();
+  await expect(page.locator("iframe")).toHaveCount(0);
+  expect(playbackRequests).toBe(0);
+});
+
+test("background processing updates unopened lessons, unit counts and course readiness together", async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem("elam.instructor-video-uploads.v1", JSON.stringify([1, 2].map(position => ({
+      lessonId: `60000000-0000-4000-8000-00000000000${position}`,
+      lessonTitle: `الدرس ${position}`,
+      courseId: "40000000-0000-4000-8000-000000000001", courseTitle: "دورة اختبار",
+      mediaStatus: "processing", isClientUpload: false, requiresFile: false,
+      uploadProgress: null, processingProgress: 50, isCancelled: false,
+      lastProgressAt: new Date().toISOString(),
+    }))));
+  });
+  let release!: () => void;
+  const processing = new Promise<void>(resolve => { release = resolve; });
+  let requests = 0;
+  await page.route("**/api/instructor/lessons/*/video-status", async route => {
+    requests++;
+    await processing;
+    const ready = route.request().url().includes("000000000001/");
+    await route.fulfill({ json: { data: { mediaStatus: ready ? "ready" : "failed", encodingProgress: ready ? 100 : null } } });
+  });
+  await openFixture(page, "?studio&processing");
+  await expect.poll(() => requests, { timeout: 15_000 }).toBe(2);
+  await page.getByRole("button", { name: "المحتوى", exact: true }).first().click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByRole("button", { name: "الدرس 1 قيد التجهيز", exact: true })).toBeVisible();
+  await expect(dialog.getByText("2 قيد التجهيز", { exact: true })).toBeVisible();
+  release();
+  await expect(dialog.getByRole("button", { name: "الدرس 1 جاهز", exact: true })).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "الدرس 2 يحتاج متابعة", exact: true })).toBeVisible();
+  await expect(dialog.getByText("2 قيد التجهيز", { exact: true })).toHaveCount(0);
+  await expect(page.locator('section[aria-label="حالة الدورة"]')).toContainText("1 / 2");
+  await dialog.getByRole("button", { name: "إغلاق النافذة", exact: true }).click();
+  const tracker = page.getByRole("complementary", { name: "عمليات الفيديو الجارية" });
+  await expect(tracker.getByText("الفيديو جاهز", { exact: true })).toBeVisible();
+  await tracker.getByRole("button", { name: "إخفاء", exact: true }).first().click();
+  await tracker.getByRole("button", { name: "إخفاء", exact: true }).click();
+  await page.getByRole("button", { name: "المحتوى", exact: true }).first().click();
+  await expect(page.getByRole("dialog").getByRole("button", { name: "الدرس 1 جاهز", exact: true })).toBeVisible();
+});
+
 test.beforeAll(async () => {
   const result = await build({ configFile: false, root: process.cwd(), logLevel: "error",
     define: { "process.env.NODE_ENV": JSON.stringify("development"), "process.env": "{}" },

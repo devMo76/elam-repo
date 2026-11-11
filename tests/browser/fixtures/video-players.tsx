@@ -2,10 +2,11 @@ import { createRoot } from "react-dom/client";
 import "../../../app/globals.css";
 import { useState, useEffect } from "react";
 import { AdminInstructorUpdateControl, AdminCourseActions } from "../../../components/admin/AdminMutations";
+import { AdminCourseReviewContent } from "../../../components/admin/AdminCourseReviewContent";
 import { CoursePlayer } from "../../../components/learning/CoursePlayer";
 import type { CatalogueCourseDetail } from "../../../lib/contracts/catalogue";
 import { InstructorCourseEditor } from "../../../components/instructor/InstructorCourseEditor";
-import { InstructorUploadProvider } from "../../../components/instructor/InstructorUploadManager";
+import { InstructorUploadProvider, InstructorUploadPanel } from "../../../components/instructor/InstructorUploadManager";
 import { InstructorNavigationBlockerProvider } from "../../../components/instructor/InstructorNavigationBlocker";
 import { InstructorVideoPreview } from "../../../components/instructor/InstructorVideoPreview";
 import type { StudioCourse, StudioLesson } from "../../../components/instructor/studio-types";
@@ -25,7 +26,7 @@ const studioCourse: StudioCourse = { ...course, createdAt: "2026-11-06T00:00:00Z
   publishedEditsAllowed: location.search.includes("enabled"),
   status: location.search.includes("readonly") ? "published" : "draft",
   modules: course.modules.map(module => ({ ...module, courseId: course.id,
-    lessons: module.lessons.map(lesson => ({ ...lesson, moduleId: module.id, mediaStatus: "ready" })) })),
+    lessons: module.lessons.map(lesson => ({ ...lesson, moduleId: module.id, mediaStatus: location.search.includes("processing") ? "processing" : "ready" })) })),
 };
 function PreviewFixture() {
   const [status, setStatus] = useState<StudioLesson["mediaStatus"]>("processing");
@@ -43,9 +44,10 @@ function PermissionsFixture() {
   return <><AdminInstructorUpdateControl instructorId={course.instructor.id} instructorName="شارح الاختبار" allowed={allowed} />
     <AdminCourseActions courseId={course.id} courseTitle={course.title} currentStatus="published" canPublish publishedEditsAllowed={allowed} /></>;
 }
-const view = location.search.includes("permissions") ? <PermissionsFixture /> : location.search.includes("studio")
+const view = new URLSearchParams(location.search).has("review") ? <AdminCourseReviewContent course={{ ...studioCourse, status: "in_review" }} /> : location.search.includes("permissions") ? <PermissionsFixture /> : location.search.includes("studio")
   ? <InstructorNavigationBlockerProvider><InstructorUploadProvider>
       <InstructorCourseEditor course={studioCourse} publishingCapability={{ canDirectPublish: false, primaryWorkflow: "review" }} />
+      {location.search.includes("processing") ? <InstructorUploadPanel /> : null}
     </InstructorUploadProvider></InstructorNavigationBlockerProvider>
   : location.search.includes("preview") ? <PreviewFixture /> : <CoursePlayer course={course} initialLessonId={null} />;
 createRoot(document.getElementById("root")!).render(<main dir="rtl">{view}</main>);

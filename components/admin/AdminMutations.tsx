@@ -61,12 +61,14 @@ export function AdminCourseActions({
   courseTitle,
   currentStatus,
   publishedEditsAllowed = false,
+  showReviewLink = true,
 }: {
   canPublish: boolean;
   courseId: string;
   courseTitle: string;
   currentStatus: "draft" | "in_review" | "published" | "archived";
   publishedEditsAllowed?: boolean;
+  showReviewLink?: boolean;
 }) {
   const actions = [
     currentStatus !== "published" && canPublish
@@ -82,6 +84,7 @@ export function AdminCourseActions({
 
   return (
     <div className={styles.actions}>
+      {showReviewLink ? <Link className={styles.quietButton} href={`/admin/courses/${courseId}`}>مراجعة المحتوى</Link> : null}
       {currentStatus === "published" ? <div>
         <small className={styles.actionHint}>{publishedEditsAllowed ? "تعديل الشارح مفعّل" : "تعديل الشارح مقفل"}</small>
         <Link className={styles.actionHint} href="/admin/users?role=instructor">إدارة صلاحية الشارح</Link>

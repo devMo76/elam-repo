@@ -1,0 +1,21 @@
+.layout { display: grid; grid-template-columns: minmax(14rem, 20rem) minmax(0, 1fr); gap: 1.5rem; margin-block-start: 1.25rem; align-items: start; }
+.curriculum { min-inline-size: 0; max-block-size: 42rem; overflow-y: auto; border: 1px solid var(--hairline); border-radius: 12px; background: var(--raised); }
+.module { padding: 1rem; }
+.module + .module { border-block-start: 1px solid var(--hairline); }
+.module h3 { margin: 0; color: var(--ink); font-size: 1rem; }
+.module p { margin: .3rem 0 .75rem; color: var(--muted); font-size: .875rem; }
+.module ol { list-style: none; padding: 0; margin: 0; display: grid; gap: .35rem; }
+.lesson { display: grid; gap: .3rem; text-align: start; inline-size: 100%; min-block-size: 48px; padding: .75rem; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--ink); font: inherit; cursor: pointer; overflow-wrap: anywhere; }
+.lesson small { color: var(--muted); font-size: .8125rem; }
+.lesson:hover, .lesson[aria-current="true"] { background: var(--tint); border-color: var(--accent); }
+.lesson:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.viewer { min-inline-size: 0; }
+.viewer h2 { margin: 0 0 1rem; font-size: 1.25rem; overflow-wrap: anywhere; }
+.notice { padding: 1rem; border: 1px solid var(--hairline); border-radius: 8px; color: var(--muted); }
+.attachment { margin-block-start: 1rem; overflow-wrap: anywhere; }
+.attachment a { color: var(--accent); text-underline-offset: .2em; }
+.attachment button { min-block-size: 44px; padding-inline: 1rem; font: inherit; color: var(--accent); background: var(--raised); border: 1px solid var(--hairline); border-radius: 8px; cursor: pointer; }
+@media (max-width: 760px) {
+  .layout { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+  .curriculum { max-block-size: 17rem; }
+}
