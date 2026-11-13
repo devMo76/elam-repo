@@ -56,6 +56,20 @@
     0 0 0 7rem rgb(66 57 146 / 2%);
 }
 
+.descriptionPreview {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 6;
+  max-block-size: 11.4em;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+  margin-block-start: .65rem;
+  color: var(--body);
+  font-size: 1rem;
+  line-height: 1.9;
+}
+
 .vettingTrack {
   position: relative;
 }

@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { CaretLeft } from "@phosphor-icons/react/dist/ssr";
-import { featured, coursePage, nouns } from "@/lib/copy";
+import { featured, nouns } from "@/lib/copy";
 import type { CatalogueCourseDetail } from "@/lib/contracts";
-import { Num } from "@/components/ui/Num";
 import { CourseLabel } from "@/components/ui/CourseLabel";
 import { Counted } from "@/components/ui/Counted";
 import { Rule } from "@/components/ui/Rule";
@@ -37,6 +36,7 @@ export function FeaturedCourse({
 }) {
   if (!course) return null;
 
+  const description = course.description?.trim() || course.subtitle?.trim();
   const hasFreePreview = course.modules.some((module) =>
     module.lessons.some((lesson) => lesson.isFreePreview),
   );
@@ -99,7 +99,10 @@ export function FeaturedCourse({
                   </p>
                 </div>
 
-                <Curriculum modules={course.modules} />
+                {description ? <div className="mt-6 border-t border-hairline pt-5">
+                  <p className="text-sm font-medium text-muted">عن الدورة</p>
+                  <p className={styles.descriptionPreview}>{description}</p>
+                </div> : null}
 
                 {/* Not a nested link -- the whole card is the anchor. This is
                     the visible affordance for it, which hover alone cannot be
@@ -173,51 +176,6 @@ function CourseIdentity({
         sar={priceSAR}
         className="w-full border-t border-on-accent/25 pt-5 text-2xl font-semibold text-on-accent"
       />
-    </div>
-  );
-}
-
-/**
- * Module breakdown.
- *
- * Real structure rather than five metadata values, which is what made the
- * previous version of this card read as thin. It also previews what is being
- * bought: a reader can see the course is organised rather than a flat pile of
- * videos.
- *
- * The index is decorative -- an ordered list already conveys sequence to a
- * screen reader, so announcing "1" before every title would double it.
- */
-function Curriculum({
-  modules,
-}: {
-  modules: CatalogueCourseDetail["modules"];
-}) {
-  return (
-    <div className="mt-6">
-      <p className="text-sm font-medium text-muted">{coursePage.curriculum}</p>
-
-      <ol className="mt-3 border-t border-hairline">
-        {modules.map((module, i) => (
-          <li
-            key={module.id}
-            className="flex items-center justify-between gap-4 border-b border-hairline py-2.5"
-          >
-            <span className="flex items-center gap-3 text-base text-body">
-              {/* aria-hidden sits on the wrapper, not on Num, which takes only
-                  children and a className. */}
-              <span aria-hidden className="text-xs text-muted">
-                <Num>{i + 1}</Num>
-              </span>
-              {module.title}
-            </span>
-
-            <span className="shrink-0 text-sm text-muted">
-              <Counted n={module.lessons.length} forms={nouns.lesson} />
-            </span>
-          </li>
-        ))}
-      </ol>
     </div>
   );
 }

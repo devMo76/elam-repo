@@ -3,6 +3,7 @@ import "../../../app/globals.css";
 import { useState, useEffect } from "react";
 import { AdminInstructorUpdateControl, AdminCourseActions } from "../../../components/admin/AdminMutations";
 import { AdminCourseReviewContent } from "../../../components/admin/AdminCourseReviewContent";
+import { FeaturedCourse } from "../../../components/sections/FeaturedCourse";
 import { CoursePlayer } from "../../../components/learning/CoursePlayer";
 import type { CatalogueCourseDetail } from "../../../lib/contracts/catalogue";
 import { InstructorCourseEditor } from "../../../components/instructor/InstructorCourseEditor";
@@ -34,6 +35,15 @@ function PreviewFixture() {
     <button onClick={() => setStatus("failed")}>Fail processing</button>
     <InstructorVideoPreview active lessonId={course.modules[0].lessons[0].id} lessonTitle="الدرس 1" mediaStatus={status} /></>;
 }
+function FeaturedFixture() {
+  const query = new URLSearchParams(location.search);
+  const featuredCourse = { ...course, title: "Calculus 2", lessonCount: 98,
+    description: query.has("fallback") || query.has("empty") ? "   " : query.has("literal") ? "وصف الدورة <script>window.previewInjection = true</script>" : "مقدمة في حساب التفاضل والتكامل وتطبيقاته العملية. ".repeat(150),
+    subtitle: query.has("empty") ? null : "وصف مختصر للدورة من قاعدة البيانات",
+    modules: Array.from({ length: 100 }, (_, index) => ({ ...course.modules[0], id: `module-${index}`, title: `Chapter ${index + 1}`, position: index + 1 })),
+  };
+  return <FeaturedCourse course={featuredCourse} />;
+}
 function PermissionsFixture() {
   const [allowed, setAllowed] = useState(false);
   useEffect(() => {
@@ -44,7 +54,7 @@ function PermissionsFixture() {
   return <><AdminInstructorUpdateControl instructorId={course.instructor.id} instructorName="شارح الاختبار" allowed={allowed} />
     <AdminCourseActions courseId={course.id} courseTitle={course.title} currentStatus="published" canPublish publishedEditsAllowed={allowed} /></>;
 }
-const view = new URLSearchParams(location.search).has("review") ? <AdminCourseReviewContent course={{ ...studioCourse, status: "in_review" }} /> : location.search.includes("permissions") ? <PermissionsFixture /> : location.search.includes("studio")
+const view = new URLSearchParams(location.search).has("featured") ? <FeaturedFixture /> : new URLSearchParams(location.search).has("review") ? <AdminCourseReviewContent course={{ ...studioCourse, status: "in_review" }} /> : location.search.includes("permissions") ? <PermissionsFixture /> : location.search.includes("studio")
   ? <InstructorNavigationBlockerProvider><InstructorUploadProvider>
       <InstructorCourseEditor course={studioCourse} publishingCapability={{ canDirectPublish: false, primaryWorkflow: "review" }} />
       {location.search.includes("processing") ? <InstructorUploadPanel /> : null}

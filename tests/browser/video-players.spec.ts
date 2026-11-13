@@ -8,6 +8,44 @@ let script: string;
 let css: string;
 const origin = "http://127.0.0.1:3001/";
 
+for (const width of [390, 1440]) test(`featured course stays compact with 100 chapters and a long description at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 1000 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await openFixture(page, "?featured");
+  const card = page.locator('a[href="/courses/video-regression"]');
+  await expect(card.getByRole("heading", { name: "Calculus 2" })).toBeVisible();
+  await expect(card).not.toContainText("Chapter");
+  await expect(card.locator("ol")).toHaveCount(0);
+  const description = card.getByText(/مقدمة في حساب التفاضل/);
+  await expect(description).toBeVisible();
+  const dimensions = await description.evaluate(element => ({ height: element.clientHeight, contentHeight: element.scrollHeight, line: parseFloat(getComputedStyle(element).lineHeight) }));
+  expect(dimensions.height).toBeLessThanOrEqual(dimensions.line * 6 + 1);
+  expect(dimensions.contentHeight).toBeGreaterThan(dimensions.height);
+  expect((await card.boundingBox())!.height).toBeLessThan(width < 768 ? 900 : 550);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: `test-results/featured-description-${width}.png`, fullPage: true });
+});
+
+test("featured course uses the subtitle when the description is blank", async ({ page }) => {
+  await openFixture(page, "?featured&fallback");
+  await expect(page.getByText("وصف مختصر للدورة من قاعدة البيانات")).toBeVisible();
+  await expect(page.getByText("عن الدورة", { exact: true })).toBeVisible();
+});
+
+test("featured course omits the preview when both description and subtitle are absent", async ({ page }) => {
+  await openFixture(page, "?featured&empty");
+  await expect(page.getByText("عن الدورة", { exact: true })).toHaveCount(0);
+  await expect(page.locator('a[href="/courses/video-regression"]')).toBeVisible();
+});
+
+test("featured course description is displayed as plain text", async ({ page }) => {
+  await openFixture(page, "?featured&literal");
+  const card = page.locator('a[href="/courses/video-regression"]');
+  await expect(card).toContainText("<script>window.previewInjection = true</script>");
+  await expect(card.locator("script")).toHaveCount(0);
+  expect(await page.evaluate(() => "previewInjection" in window)).toBe(false);
+});
+
 for (const width of [390, 1440]) test(`admin reviews submitted lessons, video and PDF at ${width}px`, async ({ page }) => {
   await page.setViewportSize({ width, height: 900 });
   const progressWrites: string[] = [];
