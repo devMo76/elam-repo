@@ -6,9 +6,8 @@ import { Logo } from "@/components/ui/Logo";
  * Columned footer. No version stamps, no build strings, no locale or time
  * strips, all of which read as devtool fixtures on a marketing page.
  *
- * The disclaimer is not decoration. Elam is unaffiliated with any university
- * and says so in its own copy, so the statement belongs somewhere permanent
- * rather than only inside an FAQ answer a visitor may never open.
+ * Shared support contacts and the single policy page remain available across
+ * public pages. Contact values are isolated from surrounding Arabic text.
  */
 export function SiteFooter() {
   return (
@@ -31,16 +30,12 @@ export function SiteFooter() {
                 <ul className="mt-4 space-y-3">
                   {col.links.map((link) => (
                     <li key={link.label}>
-                      {link.href ? (
-                        <Link
-                          href={link.href}
-                          className="text-sm text-muted transition-colors hover:text-accent"
-                        >
-                          {link.label}
-                        </Link>
-                      ) : (
-                        <span className="text-sm text-muted">{link.label}</span>
-                      )}
+                      <Link
+                        href={link.href}
+                        className="inline-flex min-h-11 max-w-full items-center text-sm text-muted transition-colors hover:text-accent"
+                      >
+                        <bdi dir={"direction" in link ? link.direction : "auto"} className="[overflow-wrap:anywhere]">{link.label}</bdi>
+                      </Link>
                     </li>
                   ))}
                 </ul>

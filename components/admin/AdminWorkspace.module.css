@@ -239,8 +239,11 @@
 .confirmationActions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .dangerButton { border: 1px solid var(--ink); background: var(--ink); color: var(--on-accent); }
 .quietButton { border: 1px solid var(--hairline); background: var(--raised); color: var(--body); }
-button:disabled { cursor: not-allowed; opacity: 0.65; }
-.error { margin: 0; color: #9c1c35 !important; font-size: 0.8125rem !important; }
+.filter button:disabled,
+.actionButton:disabled,
+.dangerButton:disabled,
+.quietButton:disabled { cursor: not-allowed; opacity: 0.65; }
+.error { margin: 0; color: var(--danger) !important; font-size: 0.8125rem !important; }
 
 .pagination { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-block-start: 1rem; color: var(--muted); font-size: 0.875rem; }
 .pagination nav { display: flex; gap: 0.5rem; }

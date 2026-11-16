@@ -1,12 +1,14 @@
 import { catalog } from "@/lib/copy";
+import Link from "next/link";
 import type { CatalogueCourseDetail } from "@/lib/contracts";
 import { PublishedCourseTile } from "@/components/ui/PublishedCourseTile";
 import { Reveal } from "@/components/ui/Reveal";
 import styles from "./Landing.module.css";
+import { selectGeneralEngineeringCourses } from "@/lib/catalogue/homepage-subjects";
 
 /** Tile grid. Collapses to one column below md, two at md, three at lg. */
 export function Catalog({ courses }: { courses: CatalogueCourseDetail[] }) {
-
+  const visibleCourses = selectGeneralEngineeringCourses(courses);
   return (
     <section
       id="catalog"
@@ -17,16 +19,15 @@ export function Catalog({ courses }: { courses: CatalogueCourseDetail[] }) {
           <h2 className="text-3xl font-bold text-ink md:text-4xl">
             {catalog.heading}
           </h2>
-          <p className="mt-4 max-w-[60ch] text-lg text-body">{catalog.body}</p>
         </Reveal>
 
         {/* Match the column count to the available courses. */}
         <div
           className={`mt-10 grid gap-6 ${
-            courses.length >= 3 ? "md:grid-cols-2 lg:grid-cols-3" : courses.length === 2 ? "md:grid-cols-2" : "grid-cols-1"
+            visibleCourses.length >= 3 ? "md:grid-cols-2 lg:grid-cols-3" : visibleCourses.length === 2 ? "md:grid-cols-2" : "grid-cols-1"
           }`}
         >
-          {courses.map((course, i) => (
+          {visibleCourses.map((course, i) => (
             <Reveal
               key={course.id}
               delay={(i % 3) * 0.06}
@@ -36,6 +37,8 @@ export function Catalog({ courses }: { courses: CatalogueCourseDetail[] }) {
             </Reveal>
           ))}
         </div>
+        {visibleCourses.length === 0 ? <p className="text-base text-muted">{catalog.empty}</p> : null}
+        <Link href="/courses" className="mt-6 inline-flex min-h-11 items-center rounded-card px-1 font-medium text-accent underline-offset-4 hover:underline">{catalog.browseAll}</Link>
       </div>
     </section>
   );

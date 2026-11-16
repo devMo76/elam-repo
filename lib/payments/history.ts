@@ -54,7 +54,7 @@ export async function getLearnerPurchases(userId: string): Promise<LearnerPurcha
     return {
       orderId: order.id,
       courseId: order.course_id,
-      courseTitle: course?.title ?? "مادة غير متاحة",
+      courseTitle: course?.title ?? "دورة غير متاحة",
       courseSlug: course?.slug ?? null,
       amountHalalas: order.amount_halalas,
       currency: order.currency,

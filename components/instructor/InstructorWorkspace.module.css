@@ -360,10 +360,10 @@
 
 .primaryButton:hover { background: var(--ink); }
 .primaryButton:disabled { cursor: wait; opacity: 0.7; }
-.error { margin: 0; color: #9c1c35; font-size: 0.875rem; font-weight: 600; }
+.error { margin: 0; color: var(--danger); font-size: 0.875rem; font-weight: 600; }
 .success { margin: 0; color: var(--accent); font-size: 0.875rem; font-weight: 700; }
 .saveStatus { margin: 0; color: var(--muted); font-size: 0.875rem; }
-.unsaved { margin: 0; color: #8a5612; font-size: 0.8125rem; font-weight: 700; }
+.unsaved { margin: 0; color: var(--warning); font-size: 0.8125rem; font-weight: 700; }
 .readOnlyNotice { margin: 0; color: var(--muted); }
 .profileName { display: grid; gap: 0.1rem; border-block-end: 1px solid var(--hairline); padding-block-end: 1rem; }
 .profileName span, .profileName small { color: var(--muted); font-size: 0.875rem; }
@@ -378,7 +378,7 @@
 .readinessPanel summary:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 35%, transparent); outline-offset: -3px; }
 .readinessPanel summary strong { color: var(--ink); font-size: 0.9rem; }
 .readinessIndicator { inline-size: 0.65rem; block-size: 0.65rem; border-radius: 999px; background: var(--accent); }
-.readinessBlocked .readinessIndicator { background: #9c1c35; }
+.readinessBlocked .readinessIndicator { background: var(--danger); }
 .readinessDisclosure { color: var(--accent); font-size: 0.8125rem; font-weight: 700; }
 .readinessBody { display: grid; gap: 1rem; border-block-start: 1px solid var(--hairline); padding: 0.85rem; }
 .readinessBody h3 { margin: 0 0 0.4rem; color: var(--ink); font-size: 0.875rem; }
@@ -454,7 +454,7 @@
 .moduleToggle strong { overflow-wrap: anywhere; }
 .moduleToggle small { color: var(--muted); font-size: 0.8125rem; font-weight: 400; }
 .moduleSignals { display: flex; flex: 0 0 auto; flex-wrap: wrap; justify-content: end; gap: 0.35rem 0.65rem; }
-.moduleSignals .problemSignal { color: #9c1c35; font-weight: 700; }
+.moduleSignals .problemSignal { color: var(--danger); font-weight: 700; }
 .moduleBody { display: grid; grid-template-columns: minmax(0, 1fr); min-inline-size: 0; gap: 0.9rem; border-block-start: 1px solid var(--hairline); padding-block-start: 0.9rem; }
 .inlineForm { display: flex; flex: 1 1 18rem; align-items: center; gap: 0.5rem; }
 .inlineForm input,
@@ -497,8 +497,8 @@
 
 .textButton { border: 1px solid var(--hairline); background: var(--raised); color: var(--accent); }
 .textButton:hover, .quietButton:hover { background: var(--tint); }
-.dangerTextButton { border: 1px solid transparent; background: transparent; color: #9c1c35; }
-.dangerTextButton:hover { background: #fff0f2; }
+.dangerTextButton { border: 1px solid transparent; background: transparent; color: var(--danger); }
+.dangerTextButton:hover { background: var(--danger-surface); }
 .lessonList { display: grid; }
 
 .lesson {
@@ -536,7 +536,7 @@
 .checkLabel { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--body); cursor: pointer; }
 .checkLabel input { accent-color: var(--accent); }
 .uploadControl { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
-.uploadRecovery { display: flex; flex-basis: 100%; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.65rem; border-inline-start: 3px solid #a56a12; padding: 0.65rem 0.75rem; background: #fff8e8; color: var(--body); font-size: 0.8125rem; line-height: 1.6; }
+.uploadRecovery { display: flex; flex-basis: 100%; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.65rem; border-inline-start: 3px solid var(--warning); padding: 0.65rem 0.75rem; background: var(--warning-surface); color: var(--body); font-size: 0.8125rem; line-height: 1.6; }
 .uploadButton {
   display: inline-flex;
   min-block-size: 40px;

@@ -30,6 +30,7 @@ export function Reveal({
 
   return (
     <motion.div
+      data-reveal=""
       className={className}
       initial={reduce ? false : { opacity: 0, y: 20 }}
       whileInView={reduce ? undefined : { opacity: 1, y: 0 }}

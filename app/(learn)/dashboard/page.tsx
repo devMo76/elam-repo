@@ -34,5 +34,5 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       </PublicShell>
     );
   }
-  return <PublicShell><div className="roleLanding"><h1>مرحبًا {viewer.fullName}</h1><p>ستظهر هنا المواد المسجل فيها وتقدمك الدراسي.</p></div></PublicShell>;
+  return <PublicShell><div className="roleLanding"><h1>مرحبًا {viewer.fullName}</h1><p>ستظهر هنا الدورات المسجل فيها وتقدمك الدراسي.</p></div></PublicShell>;
 }

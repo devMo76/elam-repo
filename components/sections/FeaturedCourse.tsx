@@ -45,11 +45,7 @@ export function FeaturedCourse({
     <section className={`border-b border-hairline ${styles.featured}`}>
       <div className="mx-auto max-w-[1400px] px-4 py-20 md:px-8 md:py-28">
         <Reveal>
-          <SectionHeading
-            eyebrow={featured.eyebrow}
-            heading={featured.heading}
-            lead={featured.body}
-          />
+          <SectionHeading heading={featured.heading} />
         </Reveal>
 
         {/* Separate Reveal, slightly behind the heading. Wrapping both in one

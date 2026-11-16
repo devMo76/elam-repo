@@ -17,6 +17,7 @@ vi.mock("@/lib/http/rate-limit", () => ({
 }));
 
 import { POST as register } from "@/app/api/auth/register/route";
+import { CURRENT_POLICY_VERSION } from "@/lib/policy-version";
 import { POST as resendConfirmation } from "@/app/api/auth/resend-confirmation/route";
 import { GET as confirmEmail } from "@/app/auth/callback/route";
 import { createClient } from "@/lib/supabase/server";
@@ -70,6 +71,8 @@ describe("authentication destination continuity", () => {
         email: "learner@example.com",
         password: "safe-password",
         fullName: "New Learner",
+        policyAccepted: true,
+        policyVersion: CURRENT_POLICY_VERSION,
         next,
       }),
     );
@@ -88,6 +91,8 @@ describe("authentication destination continuity", () => {
         email: "learner@example.com",
         password: "safe-password",
         fullName: "New Learner",
+        policyAccepted: true,
+        policyVersion: CURRENT_POLICY_VERSION,
         next: "https://evil.example/steal-session",
       }),
     );

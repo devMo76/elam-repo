@@ -7,17 +7,9 @@
      #0A0E69  deep navy-indigo, book mark and wordmark
      #423992  violet-indigo, right-hand page
 
-   ONE THEME. The site is light-only and there is no runtime switch: no
-   data-theme attribute, no prefers-color-scheme branch, no dark: variant.
-   Components read these nine variables and never spell a colour twice, which
-   is what makes the single-accent lock in section 9 of the spec reviewable
-   rather than aspirational.
-
-   A dark palette was previously carried here alongside a header toggle. It was
-   removed deliberately: it doubled the token surface, forced the logo to ship
-   as four images instead of two, and required a render-blocking inline script
-   in the document body to avoid a first-paint flash. If dark mode ever comes
-   back, all three of those costs come back with it.
+   Shared light/dark semantic tokens. A managed early script restores the
+   explicit preference before hydration; CSS supplies the system fallback. Components use
+   these tokens so the public site, learning area and dashboards stay coherent.
    --------------------------------------------------------------------------- */
 
 :root {
@@ -30,10 +22,46 @@
   --on-accent: #ffffff;
   --hairline: #e4e4ee;
   --tint: #f1f0f9;
+  --success: #176437;
+  --success-surface: #edf9f0;
+  --warning: #72510a;
+  --warning-surface: #fff5dc;
+  --danger: #9f1d35;
+  --danger-surface: #fff0f2;
 
-  /* Stated, not inferred. Without this a reader whose OS is set to dark gets
-     dark scrollbars and dark native form controls framing a light page. */
   color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --surface: #111321;
+  --raised: #1b1e31;
+  --ink: #ecebff;
+  --body: #d1d3e5;
+  --muted: #a4abc6;
+  --accent: #b4a9ff;
+  --on-accent: #17142d;
+  --hairline: #34384f;
+  --tint: #25283f;
+  --success: #8ad9a7;
+  --success-surface: #183329;
+  --warning: #f0ca7e;
+  --warning-surface: #352c1d;
+  --danger: #ffabb9;
+  --danger-surface: #3b202d;
+  color-scheme: dark;
+}
+
+/* Usable without JavaScript too; an explicit preference always takes priority. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --surface: #111321; --raised: #1b1e31; --ink: #ecebff;
+    --body: #d1d3e5; --muted: #a4abc6; --accent: #b4a9ff;
+    --on-accent: #17142d; --hairline: #34384f; --tint: #25283f;
+    --success: #8ad9a7; --success-surface: #183329;
+    --warning: #f0ca7e; --warning-surface: #352c1d;
+    --danger: #ffabb9; --danger-surface: #3b202d;
+    color-scheme: dark;
+  }
 }
 
 @theme inline {
@@ -134,6 +162,13 @@ p {
    Motion components additionally gate on useReducedMotion so that reveal
    animations resolve to their final state rather than merely snapping. */
 @media (prefers-reduced-motion: reduce) {
+  /* SSR may emit the motion library's hidden initial inline style before the
+     browser preference is known. Keep content visible even before hydration. */
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
   html {
     scroll-behavior: auto;
   }

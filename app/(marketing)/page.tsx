@@ -42,9 +42,7 @@ export default async function Home({
       {authStatus ? <AuthStatus status={authStatus} /> : null}
       <div className={styles.home}>
         <Hero />
-        <FeaturedCourse
-          course={courses.find((course) => course.priceHalalas === 0) ?? courses[0]}
-        />
+        <FeaturedCourse course={courses[0]} />
         <Vetting />
         <Catalog courses={courses} />
         <Faq />

@@ -38,7 +38,7 @@ export function PurchaseHistory({ purchases, returnPaymentId }: {
         return;
       }
       setNotice(payload.data.accessGranted
-        ? "تأكد الدفع، والمادة متاحة الآن في مكتبتك."
+        ? "تأكد الدفع، والدورة متاحة الآن في مكتبتك."
         : payload.data.status === "pending"
           ? "ما زال الدفع قيد التحقق. حاول لاحقًا."
           : "تم تحديث حالة العملية. إذا دُفع المبلغ ولم يظهر الوصول، احتفظ برقم الطلب وتواصل مع الدعم.");
@@ -55,7 +55,7 @@ export function PurchaseHistory({ purchases, returnPaymentId }: {
       <div className={styles.sectionHeader}><h2 id="purchases-heading">عمليات الشراء</h2></div>
       {returnPaymentId ? (
         <div className={styles.purchaseNotice}>
-          <p>إذا رجعت من بوابة الدفع وما ظهرت المادة، تحقق من العملية نفسها دون دفع جديد.</p>
+          <p>إذا رجعت من بوابة الدفع وما ظهرت الدورة، تحقق من العملية نفسها دون دفع جديد.</p>
           <button disabled={busyId !== null} onClick={() => void recheck({ paymentId: returnPaymentId }, returnPaymentId)} type="button">
             {busyId === returnPaymentId ? "جارٍ التحقق…" : "التحقق من الدفع"}
           </button>
@@ -77,13 +77,13 @@ export function PurchaseHistory({ purchases, returnPaymentId }: {
                   {purchase.status === "pending" && !purchase.paymentId ? <p>بانتظار مرجع بوابة الدفع. إذا طال الانتظار، تواصل مع الدعم برقم الطلب.</p> : null}
                 </div>
                 <div className={styles.purchaseActions}>
-                  {purchase.status === "paid" && purchase.hasAccess ? <Link href={`/learn/courses/${purchase.courseId}`}>افتح المادة</Link> : null}
+                  {purchase.status === "paid" && purchase.hasAccess ? <Link href={`/learn/courses/${purchase.courseId}`}>افتح الدورة</Link> : null}
                   {needsRecovery && purchase.paymentId ? (
                     <button disabled={busyId !== null} onClick={() => void recheck({ orderId: purchase.orderId }, purchase.orderId)} type="button">
                       {busyId === purchase.orderId ? "جارٍ التحقق…" : "تحقق من العملية"}
                     </button>
                   ) : null}
-                  {purchase.status === "failed" && purchase.courseSlug ? <Link href={`/courses/${purchase.courseSlug}`}>العودة للمادة</Link> : null}
+                  {purchase.status === "failed" && purchase.courseSlug ? <Link href={`/courses/${purchase.courseSlug}`}>العودة للدورة</Link> : null}
                 </div>
               </article>
             );

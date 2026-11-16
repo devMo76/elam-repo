@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { nav, cta, site } from "@/lib/copy";
+import { headerLinks, nav, site } from "@/lib/copy";
 import { getRoleHomePath, getViewer } from "@/lib/auth/viewer";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { Logo } from "@/components/ui/Logo";
@@ -46,12 +46,8 @@ export async function SiteHeader() {
           <Logo className={styles.logo} />
         </Link>
         <HeaderNavigation
-          links={[
-            { href: "/courses", label: nav.courses },
-            { href: "#vetting", label: nav.howItWorks },
-            { href: "#teach", label: nav.teach },
-          ]}
-          browse={cta.browse}
+          links={headerLinks}
+          browse={nav.courses}
           desktopAccount={desktopAccount}
           mobileAccount={mobileAccount}
         />

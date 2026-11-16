@@ -90,7 +90,7 @@ describe("checkout service", () => {
         orderId,
         amount: 35000,
         currency: "SAR",
-        description: `Elam course order ${orderId}`,
+        description: `طلب دورة إلام ${orderId}`,
         publishableApiKey: "pk_test_publickey",
         callbackUrl: "https://example.com/api/payments/callback",
         metadata: { order_id: orderId },

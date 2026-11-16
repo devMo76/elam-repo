@@ -44,7 +44,7 @@
 .progressRow > bdi { min-inline-size: 2.4rem; color: var(--body); font-size: 0.8125rem; font-variant-numeric: tabular-nums; text-align: end; }
 .meter { flex: 1; block-size: 0.44rem; overflow: hidden; border-radius: 999px; background: var(--hairline); }
 .meter span { display: block; block-size: 100%; border-radius: inherit; background: var(--accent); transition: inline-size 180ms ease-out; }
-.error { color: #9c1c35 !important; font-weight: 600; }
+.error { color: var(--danger) !important; font-weight: 600; }
 .notice { color: var(--body) !important; line-height: 1.6; }
 .uploadMeta { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
 .uploadMeta small { color: var(--muted); font-size: 0.75rem; }

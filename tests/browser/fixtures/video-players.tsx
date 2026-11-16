@@ -1,16 +1,17 @@
-import { createRoot } from "react-dom/client";
+import { createRoot, hydrateRoot } from "react-dom/client";
 import "../../../app/globals.css";
-import { useState, useEffect } from "react";
-import { AdminInstructorUpdateControl, AdminCourseActions } from "../../../components/admin/AdminMutations";
-import { AdminCourseReviewContent } from "../../../components/admin/AdminCourseReviewContent";
-import { FeaturedCourse } from "../../../components/sections/FeaturedCourse";
+import { useEffect, useState } from "react";
 import { CoursePlayer } from "../../../components/learning/CoursePlayer";
 import type { CatalogueCourseDetail } from "../../../lib/contracts/catalogue";
 import { InstructorCourseEditor } from "../../../components/instructor/InstructorCourseEditor";
 import { InstructorUploadProvider, InstructorUploadPanel } from "../../../components/instructor/InstructorUploadManager";
+import { AdminCourseReviewContent } from "../../../components/admin/AdminCourseReviewContent";
 import { InstructorNavigationBlockerProvider } from "../../../components/instructor/InstructorNavigationBlocker";
 import { InstructorVideoPreview } from "../../../components/instructor/InstructorVideoPreview";
 import type { StudioCourse, StudioLesson } from "../../../components/instructor/studio-types";
+import { PublishingPolishFixture } from "./publishing-polish";
+import { FeaturedCourse } from "../../../components/sections/FeaturedCourse";
+import { Reveal } from "../../../components/ui/Reveal";
 
 const course: CatalogueCourseDetail & { completedLessonIds: string[]; resumeLessonId: null } = {
   id: "40000000-0000-4000-8000-000000000001", slug: "video-regression",
@@ -24,17 +25,10 @@ const course: CatalogueCourseDetail & { completedLessonIds: string[]; resumeLess
       title: `الدرس ${position}`, position, durationSeconds: 60, isFreePreview: position === 1 })) }],
 };
 const studioCourse: StudioCourse = { ...course, createdAt: "2026-11-06T00:00:00Z", publishedAt: null,
-  publishedEditsAllowed: location.search.includes("enabled"),
   status: location.search.includes("readonly") ? "published" : "draft",
   modules: course.modules.map(module => ({ ...module, courseId: course.id,
     lessons: module.lessons.map(lesson => ({ ...lesson, moduleId: module.id, mediaStatus: location.search.includes("processing") ? "processing" : "ready" })) })),
 };
-function PreviewFixture() {
-  const [status, setStatus] = useState<StudioLesson["mediaStatus"]>("processing");
-  return <><button onClick={() => setStatus("ready")}>Finish processing</button>
-    <button onClick={() => setStatus("failed")}>Fail processing</button>
-    <InstructorVideoPreview active lessonId={course.modules[0].lessons[0].id} lessonTitle="الدرس 1" mediaStatus={status} /></>;
-}
 function FeaturedFixture() {
   const query = new URLSearchParams(location.search);
   const featuredCourse = { ...course, title: "Calculus 2", lessonCount: 98,
@@ -44,20 +38,24 @@ function FeaturedFixture() {
   };
   return <FeaturedCourse course={featuredCourse} />;
 }
-function PermissionsFixture() {
-  const [allowed, setAllowed] = useState(false);
-  useEffect(() => {
-    const refresh = () => setAllowed(value => !value);
-    window.addEventListener("fixture:refresh", refresh);
-    return () => window.removeEventListener("fixture:refresh", refresh);
-  }, []);
-  return <><AdminInstructorUpdateControl instructorId={course.instructor.id} instructorName="شارح الاختبار" allowed={allowed} />
-    <AdminCourseActions courseId={course.id} courseTitle={course.title} currentStatus="published" canPublish publishedEditsAllowed={allowed} /></>;
+
+function ServerRevealFixture() {
+  useEffect(() => { document.documentElement.dataset.revealHydrated = "true"; }, []);
+  return <Reveal><p id="server-reveal-content">محتوى مرئي قبل وبعد التحميل</p></Reveal>;
 }
-const view = new URLSearchParams(location.search).has("featured") ? <FeaturedFixture /> : new URLSearchParams(location.search).has("review") ? <AdminCourseReviewContent course={{ ...studioCourse, status: "in_review" }} /> : location.search.includes("permissions") ? <PermissionsFixture /> : location.search.includes("studio")
+function PreviewFixture() {
+  const [status, setStatus] = useState<StudioLesson["mediaStatus"]>("processing");
+  return <><button onClick={() => setStatus("ready")}>Finish processing</button>
+    <button onClick={() => setStatus("failed")}>Fail processing</button>
+    <InstructorVideoPreview active lessonId={course.modules[0].lessons[0].id} lessonTitle="الدرس 1" mediaStatus={status} /></>;
+}
+const serverRendered = new URLSearchParams(location.search).has("reveal-ssr");
+const view = serverRendered ? <ServerRevealFixture /> : new URLSearchParams(location.search).has("featured") ? <FeaturedFixture /> : new URLSearchParams(location.search).has("polish") ? <PublishingPolishFixture course={studioCourse} /> : new URLSearchParams(location.search).has("review") ? <AdminCourseReviewContent course={{ ...studioCourse, status: "in_review" }} /> : location.search.includes("studio")
   ? <InstructorNavigationBlockerProvider><InstructorUploadProvider>
       <InstructorCourseEditor course={studioCourse} publishingCapability={{ canDirectPublish: false, primaryWorkflow: "review" }} />
       {location.search.includes("processing") ? <InstructorUploadPanel /> : null}
     </InstructorUploadProvider></InstructorNavigationBlockerProvider>
   : location.search.includes("preview") ? <PreviewFixture /> : <CoursePlayer course={course} initialLessonId={null} />;
-createRoot(document.getElementById("root")!).render(<main dir="rtl">{view}</main>);
+const root = document.getElementById("root")!;
+if (serverRendered) hydrateRoot(root, <main dir="rtl">{view}</main>);
+else createRoot(root).render(<main dir="rtl">{view}</main>);

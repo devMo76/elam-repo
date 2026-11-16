@@ -18,11 +18,11 @@ export async function LegacyAdminPage() {
           <h1>مرحبًا، {viewer.fullName}</h1>
           <p>
             أنت مسجّل الدخول بصفة مسؤول. لديك صلاحية الوصول إلى أدوات إدارة
-            المنصة، ومراجعة المواد، وإدارة المستخدمين.
+            المنصة، ومراجعة الدورات، وإدارة المستخدمين.
           </p>
         </div>
       </PublicShell>
     );
   }
-  return <PublicShell><div className="roleLanding"><h1>مرحبًا {viewer.fullName}</h1><p>ستظهر هنا ملخصات إدارة المنصة ومراجعة المواد.</p></div></PublicShell>;
+  return <PublicShell><div className="roleLanding"><h1>مرحبًا {viewer.fullName}</h1><p>ستظهر هنا ملخصات إدارة المنصة ومراجعة الدورات.</p></div></PublicShell>;
 }

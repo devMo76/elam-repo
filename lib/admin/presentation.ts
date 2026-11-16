@@ -77,7 +77,7 @@ export const courseStatusLabel = {
 
 export const roleLabel = {
   learner: "متعلم",
-  instructor: "مدرّس",
+  instructor: "شارح",
   admin: "مسؤول",
 } as const;
 

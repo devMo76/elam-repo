@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { CURRENT_POLICY_VERSION } from "@/lib/policy-version";
 
 import {
   registerSchema,
@@ -15,6 +16,8 @@ describe("authentication schemas", () => {
       password: "safe-password",
       fullName: "  New Learner  ",
       next: "/courses/signals-and-systems-ee301",
+      policyAccepted: true,
+      policyVersion: CURRENT_POLICY_VERSION,
     });
 
     expect(result).toEqual({
@@ -22,6 +25,8 @@ describe("authentication schemas", () => {
       password: "safe-password",
       fullName: "New Learner",
       next: "/courses/signals-and-systems-ee301",
+      policyAccepted: true,
+      policyVersion: CURRENT_POLICY_VERSION,
     });
   });
 
@@ -30,6 +35,8 @@ describe("authentication schemas", () => {
       email: "learner@example.com",
       password: "short",
       fullName: "New Learner",
+      policyAccepted: true,
+      policyVersion: CURRENT_POLICY_VERSION,
     });
 
     expect(result.success).toBe(false);
@@ -41,6 +48,8 @@ describe("authentication schemas", () => {
       password: "safe-password",
       fullName: "New Learner",
       role: "admin",
+      policyAccepted: true,
+      policyVersion: CURRENT_POLICY_VERSION,
     });
 
     expect(result.success).toBe(false);

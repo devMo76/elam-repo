@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { type FormEvent, useRef, useState } from "react";
 
 import styles from "./AuthForm.module.css";
+import { PolicyAgreement } from "./PolicyAgreement";
+import { CURRENT_POLICY_VERSION } from "@/lib/policy-version";
 
 type AuthMode = "sign-in" | "register" | "password-reset";
 
@@ -25,7 +27,7 @@ const copy = {
   },
   register: {
     title: "أنشئ حسابك",
-    description: "ابدأ باستخدام إلم بحساب واحد بسيط.",
+    description: "ابدأ باستخدام إلام بحساب واحد بسيط.",
     endpoint: "/api/auth/register",
     action: "إنشاء الحساب",
   },
@@ -42,6 +44,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [policyAccepted, setPolicyAccepted] = useState(false);
   const content = copy[mode];
   const isRegister = mode === "register";
   const hasPassword = mode !== "password-reset";
@@ -54,10 +57,15 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     setIsSubmitting(true);
 
     const formData = new FormData(form);
+    if (isRegister && !policyAccepted) {
+      setError("يجب الموافقة على لائحة سياسات الخصوصية والاستخدام.");
+      setIsSubmitting(false);
+      return;
+    }
     const body = {
       email: String(formData.get("email") ?? ""),
       ...(hasPassword ? { password: String(formData.get("password") ?? "") } : {}),
-      ...(isRegister ? { fullName: String(formData.get("fullName") ?? "") } : {}),
+      ...(isRegister ? { fullName: String(formData.get("fullName") ?? ""), policyAccepted: true, policyVersion: CURRENT_POLICY_VERSION } : {}),
     };
 
     try {
@@ -88,6 +96,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           : "إذا كان البريد مسجلاً، فسيصلك رابط الاستعادة قريبًا.",
       );
       form.reset();
+      setPolicyAccepted(false);
     } catch {
       setError("تعذر الاتصال بالخدمة. تحقق من اتصالك ثم حاول مرة أخرى.");
     } finally {
@@ -125,9 +134,10 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
             />
           </label>
         ) : null}
+        {isRegister ? <PolicyAgreement checked={policyAccepted} onChange={setPolicyAccepted} disabled={isSubmitting} /> : null}
         {error ? <p className={styles.error} role="alert">{error}</p> : null}
         {message ? <p className={styles.message} role="status">{message}</p> : null}
-        <button disabled={isSubmitting} type="submit">
+        <button disabled={isSubmitting || (isRegister && !policyAccepted)} type="submit">
           {isSubmitting ? "جارٍ الإرسال…" : content.action}
         </button>
       </form>
@@ -154,12 +164,12 @@ type CurrentApiError = {
 };
 
 type CurrentFieldErrors = Partial<
-  Record<"email" | "password" | "fullName" | "confirmPassword", string>
+  Record<"email" | "password" | "fullName" | "confirmPassword" | "policyAccepted" | "policyVersion", string>
 >;
 
 const currentCopy = {
   "sign-in": { title: "سجّل دخولك", description: "ارجع لدروسك وكمّل من حيث توقفت.", endpoint: "/api/auth/sign-in", method: "POST", action: "دخول" },
-  register: { title: "أنشئ حسابك", description: "ابدأ باستخدام إلم بحساب واحد بسيط.", endpoint: "/api/auth/register", method: "POST", action: "إنشاء الحساب" },
+  register: { title: "أنشئ حسابك", description: "ابدأ باستخدام إلام بحساب واحد بسيط.", endpoint: "/api/auth/register", method: "POST", action: "إنشاء الحساب" },
   "password-reset": { title: "استعادة كلمة المرور", description: "أدخل بريدك وسنرسل لك رابطًا آمنًا لتعيين كلمة مرور جديدة.", endpoint: "/api/auth/password-reset", method: "POST", action: "إرسال رابط الاستعادة" },
   "reset-password": { title: "تعيين كلمة مرور جديدة", description: "اختر كلمة مرور جديدة لا تقل عن 8 أحرف.", endpoint: "/api/auth/password", method: "PATCH", action: "حفظ كلمة المرور" },
 } as const;
@@ -184,6 +194,8 @@ function arabicFieldErrors(payload: CurrentApiError | null): CurrentFieldErrors 
     ...(fields.fullName ? { fullName: "أدخل الاسم الكامل كما سيظهر في حسابك." } : {}),
     ...(fields.email ? { email: "أدخل بريدًا إلكترونيًا صحيحًا." } : {}),
     ...(fields.password ? { password: "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل." } : {}),
+    ...(fields.policyAccepted ? { policyAccepted: "يجب الموافقة على لائحة المنصة." } : {}),
+    ...(fields.policyVersion ? { policyVersion: "تم تحديث اللائحة. حدّث الصفحة واقرأها قبل الموافقة." } : {}),
   };
 }
 
@@ -195,6 +207,7 @@ export function AuthPanel({ mode, redirectTo = "/account" }: { mode: CurrentAuth
   const [fieldErrors, setFieldErrors] = useState<CurrentFieldErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pendingConfirmationEmail, setPendingConfirmationEmail] = useState<string | null>(null);
+  const [policyAccepted, setPolicyAccepted] = useState(false);
   const content = currentCopy[mode];
   const isRegister = mode === "register";
   const isResetRequest = mode === "password-reset";
@@ -214,6 +227,11 @@ export function AuthPanel({ mode, redirectTo = "/account" }: { mode: CurrentAuth
     const password = String(formData.get("password") ?? "");
     const confirmPassword = String(formData.get("confirmPassword") ?? "");
     setError(null); setMessage(null); setFieldErrors({});
+    if (isRegister && !policyAccepted) {
+      setError("يجب الموافقة على لائحة سياسات الخصوصية والاستخدام.");
+      requestAnimationFrame(() => errorSummaryRef.current?.focus());
+      return;
+    }
     if (isPasswordUpdate && password !== confirmPassword) {
       setFieldErrors({ confirmPassword: "كلمتا المرور غير متطابقتين." });
       requestAnimationFrame(() => {
@@ -228,13 +246,13 @@ export function AuthPanel({ mode, redirectTo = "/account" }: { mode: CurrentAuth
       return;
     }
     setIsSubmitting(true);
-    const body = { ...(!isPasswordUpdate ? { email: String(formData.get("email") ?? "") } : {}), ...(hasPassword ? { password } : {}), ...(isRegister ? { fullName: String(formData.get("fullName") ?? ""), next: redirectTo } : {}) };
+    const body = { ...(!isPasswordUpdate ? { email: String(formData.get("email") ?? "") } : {}), ...(hasPassword ? { password } : {}), ...(isRegister ? { fullName: String(formData.get("fullName") ?? ""), next: redirectTo, policyAccepted: true, policyVersion: CURRENT_POLICY_VERSION } : {}) };
     try {
       const { response, payload } = await post(content.endpoint, content.method, body);
       if (!response.ok) {
         const nextFieldErrors = arabicFieldErrors(payload);
         setFieldErrors(nextFieldErrors);
-        setError(Object.keys(nextFieldErrors).length > 0 ? "راجع الحقول المحددة ثم حاول مرة أخرى." : arabicError(response, payload));
+        setError(nextFieldErrors.policyVersion ?? nextFieldErrors.policyAccepted ?? (Object.keys(nextFieldErrors).length > 0 ? "راجع الحقول المحددة ثم حاول مرة أخرى." : arabicError(response, payload)));
         requestAnimationFrame(() => {
           const firstField = Object.keys(nextFieldErrors)[0];
           const control = firstField
@@ -275,9 +293,10 @@ export function AuthPanel({ mode, redirectTo = "/account" }: { mode: CurrentAuth
       {!isPasswordUpdate ? <label>البريد الإلكتروني<input aria-describedby={fieldErrors.email ? "email-error" : undefined} aria-invalid={Boolean(fieldErrors.email)} autoComplete="email" dir="ltr" inputMode="email" name="email" required type="email" />{fieldErrors.email ? <span id="email-error">{fieldErrors.email}</span> : null}</label> : null}
       {hasPassword ? <label>كلمة المرور<input aria-describedby={fieldErrors.password ? "password-error" : undefined} aria-invalid={Boolean(fieldErrors.password)} autoComplete={isRegister || isPasswordUpdate ? "new-password" : "current-password"} dir="ltr" minLength={isRegister || isPasswordUpdate ? 8 : 1} name="password" required type="password" />{fieldErrors.password ? <span id="password-error">{fieldErrors.password}</span> : null}</label> : null}
       {isPasswordUpdate ? <label>تأكيد كلمة المرور<input aria-describedby={fieldErrors.confirmPassword ? "confirmPassword-error" : undefined} aria-invalid={Boolean(fieldErrors.confirmPassword)} autoComplete="new-password" dir="ltr" minLength={8} name="confirmPassword" required type="password" />{fieldErrors.confirmPassword ? <span id="confirmPassword-error">{fieldErrors.confirmPassword}</span> : null}</label> : null}
+      {isRegister ? <PolicyAgreement checked={policyAccepted} onChange={setPolicyAccepted} disabled={isSubmitting} /> : null}
       {error ? <p className={styles.error} id="auth-error-summary" ref={errorSummaryRef} role="alert" tabIndex={-1}>{error}</p> : null}
       {message ? <p className={styles.message} role="status">{message}</p> : null}
-      <button disabled={isSubmitting} type="submit">{isSubmitting ? "جارٍ الإرسال…" : content.action}</button>
+      <button disabled={isSubmitting || (isRegister && !policyAccepted)} type="submit">{isSubmitting ? "جارٍ الإرسال…" : content.action}</button>
     </form>
     {pendingConfirmationEmail ? <button className={styles.secondaryAction} disabled={isSubmitting} onClick={handleResend} type="button">إعادة إرسال رسالة التحقق</button> : null}
     <nav className={styles.links} aria-label="روابط الحساب">{mode === "sign-in" ? <><Link href={authHref("/auth/register", redirectTo)}>حساب جديد</Link><Link href="/auth/password-reset">نسيت كلمة المرور؟</Link></> : <Link href={authHref("/auth/sign-in", redirectTo)}>العودة إلى تسجيل الدخول</Link>}</nav>

@@ -36,9 +36,9 @@
 
 .empty {
   padding: 3rem;
-  border: 1px dashed #c9c5e9;
+  border: 1px dashed var(--hairline);
   border-radius: 1.25rem;
-  background: #fff;
+  background: var(--raised);
 }
 
 .empty h2,
@@ -47,13 +47,13 @@
 }
 
 .empty h2 {
-  color: #0b0b66;
+  color: var(--ink);
   font-size: 1.5rem;
 }
 
 .empty p {
   margin-block-start: 0.75rem;
-  color: #565567;
+  color: var(--muted);
 }
 
 @media (max-width: 900px) {

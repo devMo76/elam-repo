@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CURRENT_POLICY_VERSION } from "@/lib/policy-version";
 
 const emailSchema = z
   .email()
@@ -12,12 +13,19 @@ export const registerSchema = z.strictObject({
   email: emailSchema,
   password: passwordSchema,
   fullName: z.string().trim().min(2).max(100),
+  policyAccepted: z.literal(true),
+  policyVersion: z.literal(CURRENT_POLICY_VERSION),
   next: optionalRedirectSchema,
 });
 
 export const signInSchema = z.strictObject({
   email: emailSchema,
   password: z.string().min(1).max(128),
+});
+
+export const policyAcceptanceSchema = z.strictObject({
+  policyAccepted: z.literal(true),
+  policyVersion: z.literal(CURRENT_POLICY_VERSION),
 });
 
 export const requestPasswordResetSchema = z.strictObject({

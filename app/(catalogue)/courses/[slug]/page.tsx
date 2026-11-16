@@ -44,7 +44,7 @@ export default async function CourseDetailPage({
     <PublicShell>
       <div className={styles.main}>
         <Link className={styles.back} href="/courses">
-          المواد المتوفرة ←
+          الدورات المتوفرة ←
         </Link>
 
         <section className={styles.hero}>
@@ -60,13 +60,13 @@ export default async function CourseDetailPage({
           </div>
 
           <aside className={styles.purchase} id="course-actions">
-            <p>{isFreeCourse ? "مادة مجانية" : "سعر المادة"}</p>
+            <p>{isFreeCourse ? "دورة مجانية" : "سعر الدورة"}</p>
             <strong>{isFreeCourse ? "مجاناً" : sarFormatter.format(course.priceHalalas / 100)}</strong>
             <span>
               {course.isEnrolled
-                ? "أنت مسجل في هذه المادة."
+                ? "أنت مسجل في هذه الدورة."
                 : isFreeCourse
-                  ? "كل دروس هذه المادة متاحة لك مجاناً."
+                  ? "كل دروس هذه الدورة متاحة لك مجاناً."
                 : "تصفح المنهج والدروس المجانية قبل التسجيل."}
             </span>
             {course.isEnrolled ? (
@@ -100,7 +100,7 @@ export default async function CourseDetailPage({
         <div className={styles.content}>
           <section className={styles.syllabus} id="syllabus">
             <p className={styles.sectionLabel}>المنهج</p>
-            <h2>الدروس مرتبة كما تحتاجها المادة</h2>
+            <h2>الدروس مرتبة كما تحتاجها الدورة</h2>
             {course.modules.length > 0 ? (
               <ol className={styles.modules}>
                 {course.modules.map((module) => (
@@ -140,7 +140,7 @@ export default async function CourseDetailPage({
           </section>
 
           <aside className={styles.instructor}>
-            <p className={styles.sectionLabel}>عن المدرّس</p>
+            <p className={styles.sectionLabel}>عن الشارح</p>
             <h2>{course.instructor.fullName}</h2>
             {course.instructor.headline ? <strong>{course.instructor.headline}</strong> : null}
             {course.instructor.bio ? <p>{course.instructor.bio}</p> : null}

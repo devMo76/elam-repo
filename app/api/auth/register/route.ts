@@ -35,7 +35,10 @@ export async function POST(request: Request) {
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
-      data: { full_name: parsed.data.fullName },
+      data: {
+        full_name: parsed.data.fullName,
+        policy_acceptance: { accepted: true, version: parsed.data.policyVersion },
+      },
       emailRedirectTo: confirmationUrl.toString(),
     },
   });

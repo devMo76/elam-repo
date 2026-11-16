@@ -506,6 +506,27 @@ export type Database = {
           },
         ]
       }
+      policy_acceptances: {
+        Row: {
+          accepted_at: string
+          policy_version: string
+          source: string
+          user_id: string
+        }
+        Insert: {
+          accepted_at?: string
+          policy_version: string
+          source: string
+          user_id: string
+        }
+        Update: {
+          accepted_at?: string
+          policy_version?: string
+          source?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -544,6 +565,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_current_policy: {
+        Args: { requested_version: string }
+        Returns: undefined
+      }
       admin_audit_history: {
         Args: {
           filter_action?: string
@@ -786,6 +811,7 @@ export type Database = {
           order_status: Database["public"]["Enums"]["order_status"]
         }[]
       }
+      current_policy_version: { Args: never; Returns: string }
       delete_draft_course_module: {
         Args: { target_module_id: string }
         Returns: undefined
@@ -837,6 +863,7 @@ export type Database = {
           video_asset_id: string
         }[]
       }
+      has_current_policy_acceptance: { Args: never; Returns: boolean }
       instructor_course_stats: {
         Args: never
         Returns: {

@@ -118,7 +118,8 @@
     inset-block-start: 0;
     z-index: 20;
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
     gap: 0.65rem 0.9rem;
     border-block-end: 1px solid var(--hairline);
     border-inline-end: 0;
@@ -185,4 +186,9 @@
   .drawerNavigation .navigation { display: grid; overflow: visible; }
   .drawerNavigation .sidebarActions { display: grid; justify-self: stretch; margin-block-start: auto; border-block-start: 1px solid var(--hairline); padding-block-start: 1rem; }
   .drawerNavigation .backLink { display: flex; }
+}
+
+@media (max-width: 420px) {
+  .mobileHeader { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .mobileHeader .mobileLogo { display: none; }
 }

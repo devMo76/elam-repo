@@ -30,6 +30,7 @@
 .teach > p {
   font-size: 18px;
   margin-top: 16px;
+  white-space: pre-line;
 }
 .application {
   margin-top: 28px;

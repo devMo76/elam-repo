@@ -32,19 +32,19 @@
 }
 
 .paymentsuccess {
-  background: #e8f7ed;
-  color: #135d32;
+  background: var(--success-surface);
+  color: var(--success);
 }
 
 .paymentpending {
-  background: #fff5dc;
-  color: #72510a;
+  background: var(--warning-surface);
+  color: var(--warning);
 }
 
 .paymentfailed,
 .paymentsign_in_required {
-  background: #fff0f0;
-  color: #8e2424;
+  background: var(--danger-surface);
+  color: var(--danger);
 }
 
 .sectionHeader {

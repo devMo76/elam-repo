@@ -1,4 +1,3 @@
-import Link from "next/link";
 import Image from "next/image";
 import {
   PlayCircle,
@@ -9,7 +8,7 @@ import { hero, cta } from "@/lib/copy";
 import { Button } from "@/components/ui/Button";
 import motion from "./HeroMotion.module.css";
 
-const pointIcons = [PlayCircle, Translate, SealCheck];
+const pointIcons = [PlayCircle, SealCheck, Translate];
 
 export function Hero({ animated = false }: { animated?: boolean }) {
   return (
@@ -20,10 +19,10 @@ export function Hero({ animated = false }: { animated?: boolean }) {
 
       <div className="mx-auto w-full max-w-[1400px] px-4 pt-12 pb-16 md:px-8 md:pt-16 md:pb-24">
         <div className="grid items-center gap-14 lg:grid-cols-[minmax(0,46ch)_minmax(0,31rem)] lg:justify-center lg:gap-16">
-          <div className="max-w-[42ch]">
+          <div className="max-w-[48ch]">
             <h1
               data-hero="title"
-              className="text-4xl leading-[1.28] font-bold text-balance text-ink md:text-5xl lg:text-[3.5rem]"
+              className="text-[1.75rem] leading-[1.6] font-bold text-balance text-ink md:text-[2.125rem] lg:text-[2.5rem]"
             >
               {hero.headline}
             </h1>
@@ -32,27 +31,14 @@ export function Hero({ animated = false }: { animated?: boolean }) {
               {hero.subtext}
             </p>
 
-            <div
-              data-hero="actions"
-              className="mt-9 flex flex-wrap items-center gap-x-8 gap-y-4"
-            >
-              <Button href="#catalog">{cta.browse}</Button>
-              <Link
-                href="#vetting"
-                className="text-base font-medium text-accent underline-offset-4 transition-colors hover:underline"
-              >
-                {hero.anchorLabel}
-              </Link>
-            </div>
-
-            <ul className="mt-10 flex flex-col gap-3.5 border-t border-hairline pt-7">
+            <ul data-hero="points" className="mt-4 flex flex-col gap-3">
               {hero.points.map((point, i) => {
                 const Icon = pointIcons[i];
                 return (
                   <li
                     data-hero="point"
                     key={point}
-                    className="flex items-center gap-2 text-sm text-muted"
+                    className="flex items-center gap-3 text-lg text-body md:text-xl"
                   >
                     <Icon
                       size={20}
@@ -65,6 +51,10 @@ export function Hero({ animated = false }: { animated?: boolean }) {
                 );
               })}
             </ul>
+            <div data-hero="actions" className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+              <Button href="#catalog">{cta.browse}</Button>
+              <Button href="#vetting" variant="ghost">{hero.anchorLabel}</Button>
+            </div>
           </div>
 
           <HeroFrame />
@@ -86,7 +76,7 @@ function HeroFrame() {
 
       <div className={`relative aspect-3/2 w-full overflow-hidden ${corners}`}>
         <Image
-          src="/website_eng_building.webp"
+          src="/hero-campus.jpg"
           alt=""
           fill
           priority

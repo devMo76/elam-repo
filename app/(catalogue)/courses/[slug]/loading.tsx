@@ -5,8 +5,8 @@ import styles from "./page.module.css";
 export default function CourseLoading() {
   return (
     <PublicShell>
-      <div className={styles.main} aria-busy="true" aria-label="جارٍ تحميل المادة">
-        <div className={styles.back}>جارٍ تحميل المادة…</div>
+      <div className={styles.main} aria-busy="true" aria-label="جارٍ تحميل الدورة">
+        <div className={styles.back}>جارٍ تحميل الدورة…</div>
         <section className={styles.hero}>
           <div>
             <div className="h-4 w-24 animate-pulse rounded bg-[#edeaff]" />

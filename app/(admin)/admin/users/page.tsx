@@ -23,7 +23,7 @@ export default async function AdminUsersPage({ searchParams }: UsersPageProps) {
       <AdminPageHeader description="غيّر دور حساب عند الحاجة فقط. يمنع النظام تغيير دور المسؤول الحالي ويُسجّل كل تعديل." title="المستخدمون" />
       <form action="/admin/users" className={styles.filter}>
         <label>بحث<input defaultValue={query.search ?? ""} name="search" placeholder="الاسم أو البريد الإلكتروني" type="search" /></label>
-        <label>الدور<select defaultValue={query.role ?? ""} name="role"><option value="">كل الأدوار</option><option value="learner">متعلم</option><option value="instructor">مدرّس</option><option value="admin">مسؤول</option></select></label>
+        <label>الدور<select defaultValue={query.role ?? ""} name="role"><option value="">كل الأدوار</option><option value="learner">متعلم</option><option value="instructor">شارح</option><option value="admin">مسؤول</option></select></label>
         <button type="submit">تطبيق المرشحات</button>
       </form>
       <AdminSection description={`${users.pagination.totalCount} حسابًا مطابقًا للمرشحات الحالية.`} title="دليل الحسابات">

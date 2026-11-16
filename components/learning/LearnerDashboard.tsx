@@ -10,9 +10,9 @@ import styles from "./LearnerDashboard.module.css";
 const westernNumber = new Intl.NumberFormat("en-US");
 
 const paymentMessages: Record<PaymentReturnState, string> = {
-  success: "تم التحقق من الدفع وأُضيفت المادة إلى مكتبتك.",
-  pending: "عملية الدفع قيد التحقق. حدّث الصفحة بعد لحظات لرؤية المادة في مكتبتك.",
-  failed: "لم تكتمل عملية الدفع. لم تُضف أي مادة إلى مكتبتك.",
+  success: "تم التحقق من الدفع وأُضيفت الدورة إلى مكتبتك.",
+  pending: "عملية الدفع قيد التحقق. حدّث الصفحة بعد لحظات لرؤية الدورة في مكتبتك.",
+  failed: "لم تكتمل عملية الدفع. لم تُضف أي دورة إلى مكتبتك.",
   sign_in_required: "سجّل الدخول لإكمال التحقق من عملية الدفع.",
 };
 
@@ -33,7 +33,7 @@ export function LearnerDashboard({
     <div className={styles.page}>
       <header className={styles.intro}>
         <h1>أهلًا، {fullName}</h1>
-        <p>هذه المواد المسجّل فيها ومسار تقدّمك في كل واحدة منها.</p>
+        <p>هذه الدورات المسجّل فيها ومسار تقدّمك في كل واحدة منها.</p>
       </header>
 
       {paymentState ? (
@@ -50,7 +50,7 @@ export function LearnerDashboard({
         <div className={styles.sectionHeader}>
           <h2 id="learning-heading">تعلّمك</h2>
           <span className={styles.count}>
-            <bdi dir="ltr">{westernNumber.format(courses.length)}</bdi> مواد
+            <bdi dir="ltr">{westernNumber.format(courses.length)}</bdi> دورات
           </span>
         </div>
 
@@ -73,7 +73,7 @@ export function LearnerDashboard({
                         <bdi dir="ltr">{westernNumber.format(course.lessonCount)}</bdi>
                         {" دروس مكتملة"}
                       </span>
-                      {isArchived ? <span>المادة مؤرشفة</span> : null}
+                      {isArchived ? <span>الدورة مؤرشفة</span> : null}
                     </div>
                     <div className={styles.courseProgress}>
                       <div className={styles.progressLabel}>
@@ -98,10 +98,10 @@ export function LearnerDashboard({
           </div>
         ) : (
           <div className={styles.empty}>
-            <h2>ما عندك مواد مسجّل فيها حاليًا</h2>
-            <p>تقدر تبدأ بالدرس المجاني من صفحة أي مادة منشورة.</p>
+            <h2>ما عندك دورات مسجّل فيها حاليًا</h2>
+            <p>تقدر تبدأ بالدرس المجاني من صفحة أي دورة منشورة.</p>
             <Link className={styles.browse} href="/courses">
-              تصفّح المواد
+              تصفّح الدورات
             </Link>
           </div>
         )}

@@ -23,7 +23,7 @@ export function FreeCourseEnrollmentButton({ courseId, courseSlug }: { courseId:
         return;
       }
       if (!response.ok) {
-        setError(payload?.error?.code === "email_verification_required" ? "فعّل بريدك الإلكتروني أولًا، ثم أضف المادة إلى مكتبتك." : payload?.error?.code === "learner_required" ? "إضافة المواد متاحة لحساب المتعلّم." : "تعذّر إضافة المادة إلى مكتبتك. حدّث الصفحة ثم حاول مرة أخرى.");
+        setError(payload?.error?.code === "email_verification_required" ? "فعّل بريدك الإلكتروني أولًا، ثم أضف الدورة إلى مكتبتك." : payload?.error?.code === "learner_required" ? "إضافة الدورات متاحة لحساب المتعلّم." : "تعذّر إضافة الدورة إلى مكتبتك. حدّث الصفحة ثم حاول مرة أخرى.");
         return;
       }
       router.push(`/learn/courses/${courseId}`);

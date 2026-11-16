@@ -34,13 +34,13 @@ declare global {
 function checkoutErrorMessage(code?: string) {
   switch (code) {
     case "email_verification_required":
-      return "فعّل بريدك الإلكتروني أولًا، ثم أكمل التسجيل في المادة.";
+      return "فعّل بريدك الإلكتروني أولًا، ثم أكمل التسجيل في الدورة.";
     case "learner_required":
-      return "شراء المواد متاح لحساب المتعلّم.";
+      return "شراء الدورات متاح لحساب المتعلّم.";
     case "already_enrolled":
-      return "هذه المادة موجودة بالفعل في مكتبتك.";
+      return "هذه الدورة موجودة بالفعل في مكتبتك.";
     case "course_not_available":
-      return "هذه المادة غير متاحة للشراء حاليًا.";
+      return "هذه الدورة غير متاحة للشراء حاليًا.";
     case "payment_configuration_invalid":
       return "إعدادات الدفع غير مكتملة حاليًا. لم تُخصم أي مبالغ؛ حاول مرة أخرى لاحقًا.";
     default:
@@ -188,7 +188,7 @@ export function PaidCourseCheckoutButton({ courseId }: { courseId: string }) {
             ? "جارٍ تجهيز الدفع…"
             : error
               ? "إعادة محاولة الدفع"
-              : "اشترك في المادة"}
+              : "اشترك في الدورة"}
         </button>
       ) : (
         <section aria-labelledby={`${paymentRegionId}-title`} className={styles.paymentPanel} id={paymentRegionId}>

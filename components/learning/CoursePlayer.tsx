@@ -61,7 +61,7 @@ function parseTimingData(payload: unknown) {
 function playerErrorMessage(code: string | null) {
   switch (code) {
     case "playback_forbidden":
-      return "هذا الدرس غير متاح لحسابك. ابدأ بالدرس المجاني أو سجّل في المادة للوصول إلى بقية الدروس.";
+      return "هذا الدرس غير متاح لحسابك. ابدأ بالدرس المجاني أو سجّل في الدورة للوصول إلى بقية الدروس.";
     case "video_not_ready":
       return "الفيديو غير جاهز للمشاهدة الآن. ارجع بعد قليل وحاول مرة ثانية.";
     case "unauthenticated":
@@ -449,7 +449,7 @@ export function CoursePlayer({
         <p>
           {course.isEnrolled
             ? "اختر درسًا، وستُحفظ نقطة التوقّف تلقائيًا أثناء المشاهدة."
-            : "ابدأ بالدرس المجاني. بقية الدروس تصبح متاحة بعد التسجيل في المادة."}
+            : "ابدأ بالدرس المجاني. بقية الدروس تصبح متاحة بعد التسجيل في الدورة."}
         </p>
           </div>
           <span className={styles.courseCount}>
@@ -458,8 +458,8 @@ export function CoursePlayer({
           </span>
         </div>
         <div className={styles.courseProgress}>
-          <span>تقدّمك في المادة</span>
-          <progress aria-label="تقدّمك في المادة" max={100} value={completionPercentage} />
+          <span>تقدّمك في الدورة</span>
+          <progress aria-label="تقدّمك في الدورة" max={100} value={completionPercentage} />
           <bdi dir="ltr">{westernNumber.format(completionPercentage)}%</bdi>
         </div>
       </header>
@@ -485,8 +485,8 @@ export function CoursePlayer({
                 </>
               ) : (
                 <PlayerState
-                  action={<Link className={styles.catalogueLink} href={"/courses/" + course.slug}>عرض المادة</Link>}
-                  body="هذا الدرس يحتاج التسجيل في المادة. يمكنك مشاهدة الدرس المجاني المتاح في القائمة."
+                  action={<Link className={styles.catalogueLink} href={"/courses/" + course.slug}>عرض الدورة</Link>}
+                  body="هذا الدرس يحتاج التسجيل في الدورة. يمكنك مشاهدة الدرس المجاني المتاح في القائمة."
                   title="هذا الدرس مقفل"
                 />
               )}
@@ -497,7 +497,7 @@ export function CoursePlayer({
             </>
           ) : (
             <PlayerState
-              body="لا توجد دروس متاحة للمشاهدة في هذه المادة حاليًا."
+              body="لا توجد دروس متاحة للمشاهدة في هذه الدورة حاليًا."
               title="لا يوجد درس متاح"
             />
           )}
@@ -505,7 +505,7 @@ export function CoursePlayer({
 
         <aside className={styles.curriculum} aria-label="قائمة الدروس">
           <header className={styles.curriculumHeader}>
-            <h2>محتوى المادة</h2>
+            <h2>محتوى الدورة</h2>
             <p>
               <bdi dir="ltr">{westernNumber.format(lessons.length)}</bdi> دروس
             </p>

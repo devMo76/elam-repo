@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 
 import { Logo } from "@/components/ui/Logo";
 import { SignOutButton } from "@/components/auth/SignOutButton";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 import styles from "./AdminShell.module.css";
 
@@ -13,7 +14,7 @@ const links = [
   { href: "/admin", label: "نظرة عامة" },
   { href: "/admin/statistics", label: "الإحصاءات" },
   { href: "/admin/orders", label: "الطلبات والإيرادات" },
-  { href: "/admin/courses", label: "مراجعة المواد" },
+  { href: "/admin/courses", label: "مراجعة الدورات" },
   { href: "/admin/users", label: "المستخدمون" },
   { href: "/admin/settings", label: "الإعدادات والسجل" },
 ] as const;
@@ -55,6 +56,7 @@ export function AdminShell({
           ))}
         </nav>
         <div className={styles.sidebarActions}>
+          <ThemeToggle />
           <Link className={styles.backLink} href="/courses">العودة إلى الموقع</Link>
           <SignOutButton className={styles.signOutButton} />
         </div>

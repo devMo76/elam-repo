@@ -5,7 +5,7 @@
 }
 
 .back {
-  color: #4942a8;
+  color: var(--accent);
   font-size: 0.95rem;
   font-weight: 600;
   text-decoration: none;
@@ -21,7 +21,7 @@
 
 .sectionLabel {
   margin: 0;
-  color: #4942a8;
+  color: var(--accent);
   font-size: 0.875rem;
   font-weight: 600;
 }
@@ -29,14 +29,14 @@
 .courseCode {
   display: inline-block;
   margin-block-start: 1.5rem;
-  color: #7a7696;
+  color: var(--muted);
   font-size: 0.875rem;
 }
 
 .hero h1,
 .content h2 {
   margin: 0;
-  color: #0b0b66;
+  color: var(--ink);
   font-weight: 600;
   letter-spacing: -0.04em;
 }
@@ -50,7 +50,7 @@
 .subtitle,
 .description {
   max-inline-size: 44rem;
-  color: #565567;
+  color: var(--muted);
   line-height: 1.9;
 }
 
@@ -67,9 +67,9 @@
   display: grid;
   gap: 1rem;
   padding: 1.75rem;
-  border: 1px solid #d7d4f1;
+  border: 1px solid var(--hairline);
   border-radius: 1.25rem;
-  background: #edeaff;
+  background: var(--tint);
 }
 
 .purchase p,
@@ -78,18 +78,18 @@
 }
 
 .purchase p {
-  color: #4942a8;
+  color: var(--accent);
   font-size: 0.875rem;
   font-weight: 600;
 }
 
 .purchase strong {
-  color: #0b0b66;
+  color: var(--ink);
   font-size: 2rem;
 }
 
 .purchase span {
-  color: #565567;
+  color: var(--muted);
   line-height: 1.7;
 }
 
@@ -98,8 +98,8 @@
   place-items: center;
   min-block-size: 3rem;
   border-radius: 0.5rem;
-  background: #0b0b66;
-  color: #fff;
+  background: var(--ink);
+  color: var(--on-accent);
   font-weight: 600;
   text-decoration: none;
 }
@@ -107,7 +107,7 @@
 .purchase .syllabusLink {
   min-block-size: auto;
   background: transparent;
-  color: #0b0b66;
+  color: var(--ink);
   font-size: 0.9rem;
   text-decoration: underline;
   text-underline-offset: 0.2rem;
@@ -137,15 +137,15 @@
 
 .modules > li {
   padding: 1.25rem;
-  border: 1px solid #e4e2ed;
+  border: 1px solid var(--hairline);
   border-radius: 0.75rem;
-  background: #fff;
+  background: var(--raised);
   counter-increment: module;
 }
 
 .modules h3 {
   margin: 0;
-  color: #0b0b66;
+  color: var(--ink);
   font-size: 1.1rem;
 }
 
@@ -162,7 +162,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  color: #565567;
+  color: var(--muted);
   font-size: 0.95rem;
 }
 
@@ -170,8 +170,8 @@
   flex: none;
   padding: 0.25rem 0.5rem;
   border-radius: 999px;
-  background: #edeaff;
-  color: #4942a8;
+  background: var(--tint);
+  color: var(--accent);
   font-size: 0.75rem;
   font-style: normal;
   font-weight: 600;
@@ -180,25 +180,25 @@
 .modules p,
 .muted {
   margin: 1rem 0 0;
-  color: #777487;
+  color: var(--muted);
 }
 
 .instructor {
   align-self: start;
   padding: 1.5rem;
-  border-block-start: 2px solid #0b0b66;
-  background: #fff;
+  border-block-start: 2px solid var(--ink);
+  background: var(--raised);
 }
 
 .instructor strong {
   display: block;
   margin-block-start: 1rem;
-  color: #4942a8;
+  color: var(--accent);
   font-size: 0.95rem;
 }
 
 .instructor p:not(.sectionLabel) {
-  color: #565567;
+  color: var(--muted);
   line-height: 1.8;
 }
 

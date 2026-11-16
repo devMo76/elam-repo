@@ -6,6 +6,7 @@ import { List } from "@phosphor-icons/react";
 
 import { Logo } from "@/components/ui/Logo";
 import { SignOutButton } from "@/components/auth/SignOutButton";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 import { InstructorUploadPanel } from "./InstructorUploadManager";
 import { StudioDialog } from "./StudioDialog";
@@ -52,6 +53,7 @@ export function InstructorShell({
       {links.map((link) => <Link aria-current={isActive(pathname, link.href) ? "page" : undefined} className={isActive(pathname, link.href) ? styles.activeLink : undefined} href={link.href} key={link.href} onNavigate={() => setMenuOpen(false)}>{link.label}</Link>)}
     </nav>
     <div className={styles.sidebarActions}>
+      <ThemeToggle showLabel />
       <Link className={styles.backLink} href="/courses" onNavigate={() => setMenuOpen(false)}>العودة إلى الموقع</Link>
       <SignOutButton beforeSignOut={confirmNavigation} className={styles.signOutButton} />
     </div>
@@ -64,6 +66,7 @@ export function InstructorShell({
         <button type="button" className={styles.menuButton} aria-label="فتح قائمة الاستوديو" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}><List aria-hidden="true" size={24} /></button>
         <strong>استوديو الشارح</strong>
         <Logo className={styles.mobileLogo} />
+        <ThemeToggle />
       </div>
       <StudioDialog drawer open={menuOpen} title="استوديو الشارح" onClose={() => setMenuOpen(false)}>
         <div className={styles.drawerNavigation}>{navigation(true)}</div>
@@ -94,6 +97,7 @@ export function InstructorShell({
           })}
         </nav>
         <div className={styles.sidebarActions}>
+          <ThemeToggle showLabel />
           <Link className={styles.backLink} href="/courses">العودة إلى الموقع</Link>
           <SignOutButton beforeSignOut={confirmNavigation} className={styles.signOutButton} />
         </div>

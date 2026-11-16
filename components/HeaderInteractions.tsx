@@ -3,6 +3,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styles from "./SiteHeader.module.css";
+import { ThemeToggle } from "./ui/ThemeToggle";
 
 export function HeaderFrame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -51,7 +52,7 @@ export function HeaderNavigation({
   desktopAccount,
   mobileAccount,
 }: {
-  links: { href: string; label: string }[];
+  links: readonly { href: string; label: string }[];
   browse: string;
   desktopAccount?: ReactNode;
   mobileAccount?: ReactNode;
@@ -188,6 +189,7 @@ export function HeaderNavigation({
       {desktopAccount ? (
         <div className={styles.accountDesktop}>{desktopAccount}</div>
       ) : null}
+      <div className={styles.themeControl}><ThemeToggle /></div>
       <details ref={detailsRef} className={styles.menu}>
         <summary
           aria-label="القائمة الرئيسية"
@@ -201,7 +203,6 @@ export function HeaderNavigation({
           </span>
         </summary>
         <div id="header-menu" data-menu-panel className={styles.panel}>
-          <p className={styles.menuLabel}>ابدأ من هنا</p>
           <nav aria-label="التنقل الرئيسي للجوال">{items}</nav>
           {mobileAccount ? (
             <div className={styles.accountMobile}>{mobileAccount}</div>

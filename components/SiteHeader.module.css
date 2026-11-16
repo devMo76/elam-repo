@@ -67,6 +67,7 @@
   display: flex;
   align-items: center;
 }
+.themeControl { display: flex; align-items: center; }
 .accountControls {
   display: flex;
   align-items: center;
@@ -198,12 +199,6 @@
   padding: 20px;
   box-shadow: 0 12px 32px rgb(10 14 105 / 8%);
 }
-.menuLabel {
-  font-size: 13px;
-  color: var(--muted);
-  padding-inline: 12px;
-  margin-bottom: 8px;
-}
 .panel nav {
   display: flex;
   flex-direction: column;
@@ -222,6 +217,8 @@
   margin-top: 16px;
 }
 @media (max-width: 1023px) {
+  .row { gap: 12px; }
+  .themeControl { margin-inline-start: auto; }
   .header {
     --header-height: 72px;
     --logo-height: 40px;
@@ -233,6 +230,7 @@
   }
   .menu {
     display: block;
+    margin-inline-start: 0;
   }
   .accountMobile {
     display: block;

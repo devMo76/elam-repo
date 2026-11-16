@@ -4,10 +4,10 @@ export default function CourseError({ reset }: { reset: () => void }) {
   return (
     <main className="grid min-h-screen place-items-center p-6 text-center" dir="rtl" id="main-content" tabIndex={-1}>
       <div>
-        <h1 className="text-2xl font-semibold text-elam-primary">تعذر تحميل المادة</h1>
+        <h1 className="text-2xl font-semibold text-elam-primary">تعذر تحميل الدورة</h1>
         <p className="mt-3 text-slate-600">جرّب مرة ثانية بعد قليل.</p>
         <button
-          className="mt-6 rounded-lg bg-elam-primary px-5 py-3 font-semibold text-white"
+          className="mt-6 rounded-lg bg-accent px-5 py-3 font-semibold text-on-accent"
           onClick={reset}
           type="button"
         >

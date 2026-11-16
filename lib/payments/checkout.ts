@@ -127,7 +127,7 @@ export async function createCheckout(courseId: string) {
       orderId: order.order_id,
       amount: order.amount_halalas,
       currency: order.currency,
-      description: `Elam course order ${order.order_id}`,
+      description: `طلب دورة إلام ${order.order_id}`,
       publishableApiKey: publishableKey,
       callbackUrl: callbackUrl.toString(),
       metadata: {
