@@ -11,117 +11,99 @@ import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import styles from "./Landing.module.css";
 
-/**
- * One worked example, so the abstract proposition becomes concrete before the
- * visitor reaches the catalogue.
- *
- * Deliberately not a CourseTile. Reusing the tile would make this section and
- * the catalogue share a layout family, which the spec's repetition rule
- * forbids: the catalogue is a grid of vertical tiles, this is a single wide
- * horizontal split. The course code is set at display scale on its own panel
- * rather than as a tile header.
- *
- * The card is a link. It previously was not, which meant the most prominent
- * course promotion on the page was the one thing a reader could not click,
- * while every smaller tile below it navigated.
- *
- * Tinted band. Alternating band tone is what separates sections here; without
- * it the hero's wash runs straight into this section and the page reads as one
- * undifferentiated scroll.
- */
-export function FeaturedCourse({
-  course,
-}: {
-  course: CatalogueCourseDetail | undefined;
-}) {
-  if (!course) return null;
+export function FeaturedCourse({ courses }: { courses: readonly CatalogueCourseDetail[] }) {
+  if (courses.length === 0) return null;
 
+  return (
+    <section id="featured" className={`border-b border-hairline ${styles.featured}`}>
+      <div className="mx-auto max-w-[1400px] px-4 py-20 md:px-8 md:py-28">
+        <Reveal>
+          <SectionHeading heading={featured.heading} />
+        </Reveal>
+        <div className="mx-auto mt-12 grid max-w-250 gap-6">
+          {courses.map((course) => <FeaturedCourseCard key={course.id} course={course} />)}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FeaturedCourseCard({ course }: { course: CatalogueCourseDetail }) {
   const description = course.description?.trim() || course.subtitle?.trim();
   const hasFreePreview = course.modules.some((module) =>
     module.lessons.some((lesson) => lesson.isFreePreview),
   );
 
   return (
-    <section className={`border-b border-hairline ${styles.featured}`}>
-      <div className="mx-auto max-w-[1400px] px-4 py-20 md:px-8 md:py-28">
-        <Reveal>
-          <SectionHeading heading={featured.heading} />
-        </Reveal>
+    <Reveal delay={0.1}>
+      <Link
+        href={`/courses/${course.slug}`}
+        className={`group block overflow-hidden rounded-card border border-hairline bg-raised hover:border-accent ${styles.featuredCard}`}
+      >
+        <div className="grid md:grid-cols-[minmax(0,17rem)_1fr]">
+          <CourseIdentity
+            code={course.courseCode ?? course.department}
+            hasPreview={hasFreePreview}
+            priceSAR={course.priceHalalas / 100}
+          />
 
-        {/* Separate Reveal, slightly behind the heading. Wrapping both in one
-            makes the entire section blink in as a single block, which reads as
-            a page-load artefact rather than as a section resolving. */}
-        <Reveal delay={0.1}>
-          <Link
-            href={`/courses/${course.slug}`}
-            className={`group mx-auto mt-12 block max-w-250 overflow-hidden rounded-card border border-hairline bg-raised hover:border-accent ${styles.featuredCard}`}
-          >
-            <div className="grid md:grid-cols-[minmax(0,17rem)_1fr]">
-              <CourseIdentity
-                code={course.courseCode ?? course.department}
-                hasPreview={hasFreePreview}
-                priceSAR={course.priceHalalas / 100}
-              />
+          <div className="p-6 md:p-8">
+            {/* Summary sits beside the title rather than in the footer.
+                The title is short, so right-aligned it leaves a wide void
+                across the top of this column; the course's own metadata is
+                what naturally belongs there. */}
+            <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2">
+              <div>
+                <h3 className="text-2xl font-semibold text-ink md:text-3xl">
+                  {course.title}
+                </h3>
 
-              <div className="p-6 md:p-8">
-                {/* Summary sits beside the title rather than in the footer.
-                    The title is short, so right-aligned it leaves a wide void
-                    across the top of this column; the course's own metadata is
-                    what naturally belongs there. */}
-                <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-2">
-                  <div>
-                    <h3 className="text-2xl font-semibold text-ink md:text-3xl">
-                      {course.title}
-                    </h3>
-
-                    <p className="mt-3 text-base text-body">
-                      {course.instructor.fullName}
-                    </p>
-                    {course.instructor.headline ? (
-                      <p className="mt-1 text-sm text-muted">
-                        {course.instructor.headline}
-                      </p>
-                    ) : null}
-                  </div>
-
-                  <p className="flex items-center gap-2.5 pt-1 text-sm text-muted">
-                    <span>
-                      <Duration minutes={Math.ceil(course.durationSeconds / 60)} />
-                    </span>
-                    <Rule />
-                    <span>
-                      <Counted n={course.lessonCount} forms={nouns.lesson} />
-                    </span>
-                  </p>
-                </div>
-
-                {description ? <div className="mt-6 border-t border-hairline pt-5">
-                  <p className="text-sm font-medium text-muted">عن الدورة</p>
-                  <p className={styles.descriptionPreview}>{description}</p>
-                </div> : null}
-
-                {/* Not a nested link -- the whole card is the anchor. This is
-                    the visible affordance for it, which hover alone cannot be
-                    on a touch device. */}
-                <p className="mt-6 flex justify-end">
-                  <span className="flex items-center gap-1.5 text-sm font-medium text-accent">
-                    {featured.viewLabel}
-                    {/* Points left: "forward" in RTL. transform is physical, so
-                        the nudge is a negative X regardless of direction. */}
-                    <CaretLeft
-                      size={15}
-                      weight="bold"
-                      aria-hidden
-                      className="transition-transform duration-200 group-hover:-translate-x-1"
-                    />
-                  </span>
+                <p className="mt-3 text-base text-body">
+                  {course.instructor.fullName}
                 </p>
+                {course.instructor.headline ? (
+                  <p className="mt-1 text-sm text-muted">
+                    {course.instructor.headline}
+                  </p>
+                ) : null}
               </div>
+
+              <p className="flex items-center gap-2.5 pt-1 text-sm text-muted">
+                <span>
+                  <Duration minutes={Math.ceil(course.durationSeconds / 60)} />
+                </span>
+                <Rule />
+                <span>
+                  <Counted n={course.lessonCount} forms={nouns.lesson} />
+                </span>
+              </p>
             </div>
-          </Link>
-        </Reveal>
-      </div>
-    </section>
+
+            {description ? <div className="mt-6 border-t border-hairline pt-5">
+              <p className="text-sm font-medium text-muted">عن الدورة</p>
+              <p className={styles.descriptionPreview}>{description}</p>
+            </div> : null}
+
+            {/* Not a nested link -- the whole card is the anchor. This is
+                the visible affordance for it, which hover alone cannot be
+                on a touch device. */}
+            <p className="mt-6 flex justify-end">
+              <span className="flex items-center gap-1.5 text-sm font-medium text-accent">
+                {featured.viewLabel}
+                {/* Points left: "forward" in RTL. transform is physical, so
+                    the nudge is a negative X regardless of direction. */}
+                <CaretLeft
+                  size={15}
+                  weight="bold"
+                  aria-hidden
+                  className="transition-transform duration-200 group-hover:-translate-x-1"
+                />
+              </span>
+            </p>
+          </div>
+        </div>
+      </Link>
+    </Reveal>
   );
 }
 

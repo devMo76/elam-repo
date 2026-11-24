@@ -9,7 +9,7 @@ import { listPublishedCourseDetails } from "@/lib/catalogue/queries";
 import styles from "@/components/sections/Landing.module.css";
 
 /**
- * Five sections: split hero, featured card, vetting, catalogue, and a closing
+ * Five sections: split hero, latest courses, vetting, catalogue, and a closing
  * section combining FAQs with the teaching invitation.
  *
  * The bento section (WhyElam) that sat third was removed at the client's
@@ -42,7 +42,7 @@ export default async function Home({
       {authStatus ? <AuthStatus status={authStatus} /> : null}
       <div className={styles.home}>
         <Hero />
-        <FeaturedCourse course={courses[0]} />
+        <FeaturedCourse courses={courses.slice(0, 3)} />
         <Vetting />
         <Catalog courses={courses} />
         <Faq />

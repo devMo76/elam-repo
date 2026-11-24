@@ -15,6 +15,15 @@ export function isGeneralEngineeringCourse(course: SubjectMetadata) {
 }
 
 // Presentation grouping only. Keep query order, DTOs and access rules intact.
+export function isElectricalEngineeringCourse(course: SubjectMetadata) {
+  if (isGeneralEngineeringCourse(course)) return false;
+
+  const department = normalizeDepartment(course.department);
+  return /^(?:(?:قسم|مواد|دورات) )?(?:ال)?هندسة (?:ال)?كهربائية$/.test(department)
+    || department === "electrical engineering"
+    || /^ee\s*[-_]?\s*\d/i.test(course.courseCode?.trim() ?? "");
+}
+
 export function selectGeneralEngineeringCourses<T extends SubjectMetadata>(courses: readonly T[]) {
   return courses.filter(isGeneralEngineeringCourse);
 }

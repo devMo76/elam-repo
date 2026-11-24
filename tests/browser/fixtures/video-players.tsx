@@ -36,7 +36,7 @@ function FeaturedFixture() {
     subtitle: query.has("empty") ? null : "وصف مختصر للدورة من قاعدة البيانات",
     modules: Array.from({ length: 100 }, (_, index) => ({ ...course.modules[0], id: `module-${index}`, title: `Chapter ${index + 1}`, position: index + 1 })),
   };
-  return <FeaturedCourse course={featuredCourse} />;
+  return <FeaturedCourse courses={[featuredCourse]} />;
 }
 
 function ServerRevealFixture() {

@@ -136,12 +136,14 @@ for (const width of [320, 390, 1440]) test(`polished public header, Arabic copy 
     "كل شارح في إلام خاض نفس التجربة التي تمر بها ويقدم لك خلاصة ما تحتاجه بدون زيادة",
     "نجهزك للميد والفاينل بأسهل وأسرع طريق",
   ]);
-  await expect(page.locator("#catalog h2")).toHaveText("مواد الهندسة العامة");
-  await expect(page.locator("#catalog")).not.toContainText("دوائر كهربائية");
+  await expect(page.locator("#catalog h2")).toHaveText(["مواد الهندسة العامة", "مواد الهندسة الكهربائية"]);
+  await expect(page.getByRole("region", { name: "مواد الهندسة العامة" })).not.toContainText("دوائر كهربائية");
+  await expect(page.getByRole("region", { name: "مواد الهندسة الكهربائية" })).toContainText("دوائر كهربائية");
+  await expect(page.locator("#featured h3")).toHaveCount(3);
   await expect(page.locator("#catalog").getByRole("link", { name: "عرض جميع الدورات" })).toHaveAttribute("href", "/courses");
   await expect(page.locator("#faq details:not(#teach details)")).toHaveCount(3);
   await expect(page.locator("#faq details:not(#teach details) > summary")).toHaveText([
-    "هل إلام تابعة للجامعة؟", "مين يقدّم الشروحات؟", "كيف أتأكد من جودة الشرح؟",
+    "هل إلام تابعة للجامعة؟", "من يقدم الشروحات؟", "كيف أتأكد من جودة الشرح؟",
   ]);
   await expect(page.locator('header a[href$="#catalog"]').first()).toHaveText("الدورات");
   await expect(page.locator("header").getByRole("link", { name: "شوف الدورات", exact: true })).toHaveCount(0);
@@ -178,7 +180,7 @@ test("subject group has an honest empty state and the FAQ uses Arabic branding",
   await page.emulateMedia({ reducedMotion: "reduce" });
   await openFixture(page, "?polish=subjects-empty");
   await expect(page.locator("#catalog")).toContainText("لا توجد دورات منشورة في هذا القسم حاليًا.");
-  await expect(page.locator("#catalog")).not.toContainText("دوائر كهربائية");
+  await expect(page.getByRole("region", { name: "مواد الهندسة العامة" })).not.toContainText("دوائر كهربائية");
   await expect(page.locator("#catalog").getByRole("link", { name: "عرض جميع الدورات" })).toHaveAttribute("href", "/courses");
   await page.locator("#faq summary").first().click();
   await expect(page.locator("#faq details").first().locator("p")).toHaveText("لا. إلام منصة مستقلة.");

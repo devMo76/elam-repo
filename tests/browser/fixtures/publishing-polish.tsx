@@ -47,7 +47,7 @@ export function PublishingPolishFixture({ course }: { course: StudioCourse }) {
         : view === "policy-consent" ? <PolicyAcceptanceDialog redirectTo="/studio/courses/existing?tab=content" />
         : view === "policies" ? <PolicyContent />
         : view === "learner" ? <LearnerDashboard fullName="حساب المتعلّم" courses={[]} purchases={[]} paymentState={null} returnPaymentId={null} />
-        : <><Hero /><FeaturedCourse course={catalogueCourse} /><Vetting /><Catalog courses={view === "subjects-empty" ? [electricalCourse] : [catalogueCourse, electricalCourse]} /><Faq /></>}
+        : <><Hero /><FeaturedCourse courses={[catalogueCourse, electricalCourse, { ...catalogueCourse, id: "third-fixture", slug: "third-fixture", title: "دورة ثالثة" }]} /><Vetting /><Catalog courses={view === "subjects-empty" ? [electricalCourse] : [catalogueCourse, electricalCourse]} /><Faq /></>}
     </main><SiteFooter />
   </>;
 }
